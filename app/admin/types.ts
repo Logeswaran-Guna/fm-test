@@ -1,62 +1,64 @@
-export type RecordStatus =
-  | "Pending"
-  | "Matched"
-  | "Demo Scheduled"
-  | "Completed";
-
-export const STATUS_OPTIONS: RecordStatus[] = [
-  "Pending",
-  "Matched",
-  "Demo Scheduled",
-  "Completed",
-];
-
-/**
- * Status values in the database may be stored with different casing or
- * separators (e.g. "pending", "demo_scheduled"). Normalize any incoming
- * value to one of our canonical display statuses so badges, filters, and
- * counts stay correct regardless of how a row was written.
- */
-export function normalizeStatus(value: string | null | undefined): RecordStatus {
-  const normalized = (value ?? "").trim().toLowerCase().replace(/[_-]+/g, " ");
-  const match = STATUS_OPTIONS.find(
-    (option) => option.toLowerCase() === normalized
-  );
-  return match ?? "Pending";
-}
+export type MatchStatus =
+  | "PROPOSED"
+  | "DEMO_PROPOSED"
+  | "DEMO_SCHEDULED"
+  | "CONFIRMED"
+  | "DECLINED";
 
 export type RequirementRow = {
   id: string;
-  parent_name: string | null;
+  display_id: string;
+  subject: string;
+  mode: string;
+  location: string | null;
+  schedule_pref: string | null;
+  budget: number | null;
+  status: "open" | "assigned";
+  created_at: string;
+  parent_display_id: string;
+  parent_name: string;
+  parent_phone: string;
+  student_display_id: string | null;
   student_name: string | null;
-  grade_class: string | null;
-  subjects_needed: string | null;
-  location_address: string | null;
-  phone_number: string | null;
-  status: RecordStatus | null;
-  created_at: string | null;
+  student_grade: string | null;
+  match_id: string | null;
+  match_label: string | null;
+  match_status: MatchStatus | null;
+  match_score: number | null;
+  demo_date: string | null;
+  demo_time_slot: string | null;
+  parent_accepted_demo: boolean | null;
+  teacher_accepted_demo: boolean | null;
+  teacher_id: string | null;
+  teacher_display_id: string | null;
+  teacher_name: string | null;
 };
 
 export type TutorRow = {
   id: string;
-  full_name: string | null;
-  qualifications: string | null;
-  years_experience: string | null;
-  subjects_handled: string[] | null;
+  display_id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  qualification: string | null;
+  experience: string | null;
+  subjects: string[] | null;
   preferred_locations: string[] | null;
   teaching_mode: string | null;
-  phone_number: string | null;
-  status: RecordStatus | null;
-  created_at: string | null;
+  availability: string[] | null;
+  rate_expectation: number | null;
+  bank_upi_ref: string | null;
+  kyc_status: string;
+  rating: number | null;
 };
 
-export function splitList(value: string | null | undefined): string[] {
-  if (!value) return [];
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
+export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
+  PROPOSED: "Match Proposed",
+  DEMO_PROPOSED: "Demo Proposed",
+  DEMO_SCHEDULED: "Demo Scheduled",
+  CONFIRMED: "Confirmed",
+  DECLINED: "Declined",
+};
 
 function normalize(value: string): string {
   return value.trim().toLowerCase();
@@ -77,11 +79,11 @@ export function findMatchingTutors(
   requirement: RequirementRow,
   tutors: TutorRow[]
 ): { exact: TutorRow[]; subjectOnly: TutorRow[] } {
-  const reqSubjects = splitList(requirement.subjects_needed);
-  const reqLocations = splitList(requirement.location_address);
+  const reqSubjects = [requirement.subject];
+  const reqLocations = requirement.location ? [requirement.location] : [];
 
   const subjectMatches = tutors.filter((tutor) =>
-    fuzzyOverlap(reqSubjects, tutor.subjects_handled ?? [])
+    fuzzyOverlap(reqSubjects, tutor.subjects ?? [])
   );
 
   const exact = subjectMatches.filter((tutor) =>

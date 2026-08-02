@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
+import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
 
 const EXPERIENCE_OPTIONS = ["0-2 years", "2-5 years", "5+ years"] as const;
 const TEACHING_MODES = ["Home Tuition", "Online Classes", "Both"] as const;
@@ -14,6 +15,7 @@ type TeachingMode = (typeof TEACHING_MODES)[number];
 type FormState = {
   fullName: string;
   email: string;
+  password: string;
   phoneNumber: string;
   qualifications: string;
   yearsExperience: ExperienceRange | "";
@@ -28,6 +30,7 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 const initialFormState: FormState = {
   fullName: "",
   email: "",
+  password: "",
   phoneNumber: "",
   qualifications: "",
   yearsExperience: "",
@@ -55,6 +58,12 @@ function validate(form: FormState): FormErrors {
     errors.email = "Email address is required.";
   } else if (!EMAIL_PATTERN.test(form.email.trim())) {
     errors.email = "Enter a valid email address.";
+  }
+
+  if (!form.password.trim()) {
+    errors.password = "Please choose a password.";
+  } else if (form.password.length < 8) {
+    errors.password = "Password must be at least 8 characters.";
   }
 
   const digitsOnly = form.phoneNumber.replace(/\D/g, "");
@@ -92,6 +101,7 @@ export default function BecomeATutorPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
 
   function updateField<K extends keyof FormState>(
     key: K,
@@ -110,34 +120,40 @@ export default function BecomeATutorPage() {
 
     setSubmitting(true);
     setSubmitError(null);
+    setNeedsConfirmation(false);
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("tutors").insert([
-        {
-          full_name: form.fullName.trim(),
-          email: form.email.trim(),
-          phone_number: form.phoneNumber.trim(),
-          qualifications: form.qualifications.trim(),
-          years_experience: form.yearsExperience,
-          subjects_handled: toArray(form.subjectsHandled),
-          preferred_locations: toArray(form.preferredLocations),
-          teaching_mode: form.teachingMode,
-          dpdp_consent: form.consent,
-        },
-      ]);
+      const { hasSession } = await signUpOrSignIn(supabase, {
+        email: form.email.trim(),
+        password: form.password,
+        name: form.fullName.trim(),
+        phone: form.phoneNumber.trim(),
+        role: "TEACHER",
+      });
 
-      if (error) {
-        setSubmitError(
-          error.message || "Something went wrong. Please try again."
-        );
+      if (!hasSession) {
+        setNeedsConfirmation(true);
         return;
       }
 
+      const { error } = await supabase.rpc("upsert_teacher_profile", {
+        p_qualification: form.qualifications.trim(),
+        p_experience: form.yearsExperience,
+        p_subjects: toArray(form.subjectsHandled),
+        p_preferred_locations: toArray(form.preferredLocations),
+        p_teaching_mode: form.teachingMode,
+        p_whatsapp: form.phoneNumber.trim(),
+      });
+
+      if (error) throw new Error(error.message);
+
       setSuccess(true);
-    } catch {
+    } catch (err) {
       setSubmitError(
-        "We couldn't reach the server. Please check your connection and try again."
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -148,6 +164,7 @@ export default function BecomeATutorPage() {
     setForm(initialFormState);
     setErrors({});
     setSubmitError(null);
+    setNeedsConfirmation(false);
     setSuccess(false);
   }
 
@@ -173,7 +190,21 @@ export default function BecomeATutorPage() {
         </section>
 
         <div className="mx-auto max-w-2xl px-6 py-12 sm:px-8">
-          {success ? (
+          {needsConfirmation ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber/10 text-2xl font-bold text-amber">
+                ✉
+              </div>
+              <h2 className="mt-5 font-heading text-2xl font-semibold text-navy">
+                Confirm your email to finish
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                We&apos;ve sent a confirmation link to {form.email}. Once
+                you&apos;ve confirmed, come back to this page and submit the
+                form again — you won&apos;t need to sign up a second time.
+              </p>
+            </div>
+          ) : success ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber/10 text-2xl font-bold text-amber">
                 ✓
@@ -220,6 +251,14 @@ export default function BecomeATutorPage() {
                 onChange={(value) => updateField("email", value)}
                 error={errors.email}
                 placeholder="e.g. priya.ramesh@email.com"
+              />
+              <Field
+                label="Password"
+                type="password"
+                value={form.password}
+                onChange={(value) => updateField("password", value)}
+                error={errors.password}
+                placeholder="At least 8 characters"
               />
               <Field
                 label="Phone Number"

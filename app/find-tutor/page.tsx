@@ -3,14 +3,21 @@
 import { useState, type FormEvent } from "react";
 import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
+import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
+
+const TEACHING_MODES = ["Home Tuition", "Online Classes", "Both"] as const;
+type TeachingMode = (typeof TEACHING_MODES)[number];
 
 type FormState = {
   parentName: string;
+  email: string;
+  password: string;
   studentName: string;
   gradeClass: string;
   subjectsNeeded: string;
   locationAddress: string;
   phoneNumber: string;
+  mode: TeachingMode | "";
   consent: boolean;
 };
 
@@ -18,11 +25,14 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 
 const initialFormState: FormState = {
   parentName: "",
+  email: "",
+  password: "",
   studentName: "",
   gradeClass: "",
   subjectsNeeded: "",
   locationAddress: "",
   phoneNumber: "",
+  mode: "",
   consent: false,
 };
 
@@ -30,6 +40,19 @@ function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
 
   if (!form.parentName.trim()) errors.parentName = "Parent name is required.";
+
+  if (!form.email.trim()) {
+    errors.email = "Email address is required.";
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+    errors.email = "Enter a valid email address.";
+  }
+
+  if (!form.password.trim()) {
+    errors.password = "Please choose a password.";
+  } else if (form.password.length < 8) {
+    errors.password = "Password must be at least 8 characters.";
+  }
+
   if (!form.studentName.trim())
     errors.studentName = "Student name is required.";
   if (!form.gradeClass.trim())
@@ -38,6 +61,7 @@ function validate(form: FormState): FormErrors {
     errors.subjectsNeeded = "Please list at least one subject.";
   if (!form.locationAddress.trim())
     errors.locationAddress = "Location / address is required.";
+  if (!form.mode) errors.mode = "Please select a teaching mode.";
 
   const digitsOnly = form.phoneNumber.replace(/\D/g, "");
   if (!form.phoneNumber.trim()) {
@@ -60,6 +84,7 @@ export default function FindTutorPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [submittedParentName, setSubmittedParentName] = useState("");
 
   function updateField<K extends keyof FormState>(
@@ -79,33 +104,54 @@ export default function FindTutorPage() {
 
     setSubmitting(true);
     setSubmitError(null);
+    setNeedsConfirmation(false);
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("requirements").insert([
-        {
-          parent_name: form.parentName.trim(),
-          student_name: form.studentName.trim(),
-          grade_class: form.gradeClass.trim(),
-          subjects_needed: form.subjectsNeeded.trim(),
-          location_address: form.locationAddress.trim(),
-          phone_number: form.phoneNumber.trim(),
-          dpdp_consent: form.consent,
-        },
-      ]);
+      const { hasSession } = await signUpOrSignIn(supabase, {
+        email: form.email.trim(),
+        password: form.password,
+        name: form.parentName.trim(),
+        phone: form.phoneNumber.trim(),
+        role: "PARENT",
+      });
 
-      if (error) {
-        setSubmitError(
-          error.message || "Something went wrong. Please try again."
-        );
+      if (!hasSession) {
+        setNeedsConfirmation(true);
         return;
+      }
+
+      // One requirement row per subject — the student is created once,
+      // then reused (via student_id) for every subsequent subject.
+      const subjects = form.subjectsNeeded
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+
+      let studentId: string | null = null;
+      for (const subject of subjects) {
+        const { data, error } = await supabase.rpc("submit_requirement", {
+          p_subject: subject,
+          p_mode: form.mode,
+          p_consent: true,
+          p_location: form.locationAddress.trim(),
+          p_student_id: studentId ?? undefined,
+          p_student_name: studentId ? undefined : form.studentName.trim(),
+          p_age_grade: studentId ? undefined : form.gradeClass.trim(),
+          p_whatsapp: form.phoneNumber.trim(),
+        });
+
+        if (error) throw new Error(error.message);
+        if (!studentId) studentId = data.student_id as string;
       }
 
       setSubmittedParentName(form.parentName.trim());
       setSuccess(true);
-    } catch {
+    } catch (err) {
       setSubmitError(
-        "We couldn't reach the server. Please check your connection and try again."
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again."
       );
     } finally {
       setSubmitting(false);
@@ -116,6 +162,7 @@ export default function FindTutorPage() {
     setForm(initialFormState);
     setErrors({});
     setSubmitError(null);
+    setNeedsConfirmation(false);
     setSuccess(false);
   }
 
@@ -141,7 +188,21 @@ export default function FindTutorPage() {
         </section>
 
         <div className="mx-auto max-w-2xl px-6 py-12 sm:px-8">
-          {success ? (
+          {needsConfirmation ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber/10 text-2xl font-bold text-amber">
+                ✉
+              </div>
+              <h2 className="mt-5 font-heading text-2xl font-semibold text-navy">
+                Confirm your email to finish
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                We&apos;ve sent a confirmation link to {form.email}. Once
+                you&apos;ve confirmed, come back to this page and submit the
+                form again — you won&apos;t need to sign up a second time.
+              </p>
+            </div>
+          ) : success ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber/10 text-2xl font-bold text-amber">
                 ✓
@@ -176,6 +237,23 @@ export default function FindTutorPage() {
                 placeholder="e.g. Meera Krishnan"
               />
               <Field
+                label="Email"
+                type="email"
+                value={form.email}
+                onChange={(value) => updateField("email", value)}
+                error={errors.email}
+                placeholder="e.g. meera@email.com"
+                hint="Used to create your account so you can track this requirement later."
+              />
+              <Field
+                label="Password"
+                type="password"
+                value={form.password}
+                onChange={(value) => updateField("password", value)}
+                error={errors.password}
+                placeholder="At least 8 characters"
+              />
+              <Field
                 label="Student Name"
                 value={form.studentName}
                 onChange={(value) => updateField("studentName", value)}
@@ -195,6 +273,7 @@ export default function FindTutorPage() {
                 onChange={(value) => updateField("subjectsNeeded", value)}
                 error={errors.subjectsNeeded}
                 placeholder="e.g. Mathematics, Physics"
+                hint="Separate multiple subjects with commas — each gets tracked separately."
               />
               <Field
                 label="Location / Address"
@@ -211,6 +290,35 @@ export default function FindTutorPage() {
                 placeholder="e.g. 98765 43210"
                 type="tel"
               />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Teaching Mode
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {TEACHING_MODES.map((mode) => {
+                    const selected = form.mode === mode;
+                    return (
+                      <button
+                        type="button"
+                        key={mode}
+                        onClick={() => updateField("mode", mode)}
+                        aria-pressed={selected}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                          selected
+                            ? "border-amber bg-amber/10 text-navy"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-amber/50"
+                        }`}
+                      >
+                        {mode}
+                      </button>
+                    );
+                  })}
+                </div>
+                {errors.mode && (
+                  <p className="mt-1.5 text-xs text-red-600">{errors.mode}</p>
+                )}
+              </div>
 
               <div>
                 <label className="flex items-start gap-3 text-sm text-slate-600">
@@ -262,6 +370,7 @@ function Field({
   error,
   placeholder,
   type = "text",
+  hint,
 }: {
   label: string;
   value: string;
@@ -269,6 +378,7 @@ function Field({
   error?: string;
   placeholder?: string;
   type?: string;
+  hint?: string;
 }) {
   return (
     <div>
@@ -284,7 +394,11 @@ function Field({
           error ? "border-red-400" : "border-slate-200"
         }`}
       />
-      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
+      {error ? (
+        <p className="mt-1.5 text-xs text-red-600">{error}</p>
+      ) : (
+        hint && <p className="mt-1.5 text-xs text-slate-400">{hint}</p>
+      )}
     </div>
   );
 }
