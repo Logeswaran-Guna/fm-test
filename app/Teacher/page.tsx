@@ -235,7 +235,7 @@ export default function TeacherDashboard() {
                       <h3 className="font-bold text-base text-slate-100 capitalize">
                         {m.student_name || "Student"}{" "}
                         <span className="text-xs text-slate-400 font-normal">
-                          {m.student_grade ? `(Grade ${m.student_grade})` : ""}
+                          {m.student_grade ? `(${m.student_grade})` : ""}
                         </span>
                       </h3>
                       <p className="text-xs text-slate-400 capitalize">

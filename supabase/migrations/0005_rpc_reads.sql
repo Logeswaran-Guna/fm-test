@@ -10,7 +10,9 @@ returns table (
   id uuid, display_id text, subject text, mode text, location text,
   schedule_pref text, pricing_type text, budget numeric, status requirement_status,
   created_at timestamptz, student_display_id text, student_name text, student_grade text,
-  match_status match_status, teacher_display_id text, teacher_name text, teacher_phone text,
+  match_id uuid, match_label text, match_status match_status,
+  demo_date date, parent_accepted_demo boolean, teacher_accepted_demo boolean,
+  teacher_display_id text, teacher_name text, teacher_phone text,
   time_slot text
 )
 language plpgsql security definer set search_path = public as $$
@@ -22,7 +24,9 @@ begin
   select
     r.id, r.display_id, r.subject, r.mode, r.location, r.schedule_pref, r.pricing_type, r.budget, r.status, r.created_at,
     s.display_id, s.student_name, s.age_grade,
-    bm.status, tp.display_id, tu.name, tu.phone,
+    bm.id, case when bm.id is not null then match_display_id(bm) else null end, bm.status,
+    bm.demo_date, bm.parent_accepted_demo, bm.teacher_accepted_demo,
+    tp.display_id, tu.name, tu.phone,
     coalesce(bm.demo_time_slot, r.schedule_pref)
   from requirements r
   left join students s on s.id = r.student_id

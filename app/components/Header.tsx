@@ -73,6 +73,15 @@ export default function Header() {
             </Link>
           ))}
 
+          {loaded && profile?.role === "PARENT" && (
+            <Link
+              href="/my-requirements"
+              className="text-sm font-medium text-white/80 transition-colors hover:text-white"
+            >
+              My Requirements
+            </Link>
+          )}
+
           {loaded && profile ? (
             <>
               <span className="text-xs text-white/50">

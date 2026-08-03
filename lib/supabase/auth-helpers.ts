@@ -11,6 +11,18 @@ export async function signUpOrSignIn(
 ): Promise<{ hasSession: boolean }> {
   const { email, password, name, phone, role } = params;
 
+  // Already logged in (e.g. a parent revisiting the form for a second
+  // subject)? Skip signUp entirely — Supabase silently no-ops signUp for
+  // an already-registered, already-confirmed email (anti-enumeration
+  // behavior) and returns no session, which would otherwise look
+  // identical to "needs email confirmation."
+  const {
+    data: { user: existingUser },
+  } = await supabase.auth.getUser();
+  if (existingUser) {
+    return { hasSession: true };
+  }
+
   const { data: signUpData, error: signUpError } = await supabase.auth.signUp(
     {
       email,
