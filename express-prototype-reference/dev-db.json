@@ -1,0 +1,222 @@
+{
+  "users": [
+    {
+      "id": "83bb5abb-0c39-4e68-ab5c-562b920c65c8",
+      "displayId": "FMPAR260802-01",
+      "role": "PARENT",
+      "name": "Logesh",
+      "phone": "9944883407",
+      "email": null,
+      "consentAt": "2026-08-01T21:48:05.515Z",
+      "createdAt": "2026-08-01T21:48:05.515Z"
+    },
+    {
+      "id": "ffa15ea5-21d1-4836-9664-f67f71cda8dd",
+      "displayId": "FMTEACH260802-01",
+      "role": "TEACHER",
+      "name": "Beema",
+      "phone": "8608511808",
+      "email": null,
+      "consentAt": "2026-08-01T21:49:41.072Z",
+      "createdAt": "2026-08-01T21:49:41.072Z"
+    },
+    {
+      "id": "8e17df3d-13c0-4211-9002-b7b73ad432af",
+      "displayId": "FMPAR260802-02",
+      "role": "ADMIN",
+      "name": "Yogapriya",
+      "phone": "9360140853",
+      "email": null,
+      "consentAt": "2026-08-01T21:51:23.642Z",
+      "createdAt": "2026-08-01T21:51:23.642Z"
+    },
+    {
+      "id": "7acff2f1-3f15-4f4a-8d80-6c986364ac4a",
+      "displayId": "FMTEACH260802-02",
+      "role": "TEACHER",
+      "name": "Ramesh",
+      "phone": "96734256223",
+      "email": null,
+      "consentAt": "2026-08-02T08:26:31.783Z",
+      "createdAt": "2026-08-02T08:26:31.783Z"
+    }
+  ],
+  "studentProfiles": [
+    {
+      "id": "af047eaf-ab70-4a3d-89f7-7be637ed89f7",
+      "displayId": "FMSTU260802-01",
+      "parentId": "83bb5abb-0c39-4e68-ab5c-562b920c65c8",
+      "studentName": "Jithin L",
+      "ageGrade": "CLass 4",
+      "age": "9",
+      "gender": null,
+      "address": "Plot No 4, KK Nagar",
+      "areaCity": "Old Pallavaram, Chennai",
+      "pincode": "600117",
+      "whatsapp": "9944883407",
+      "notes": null
+    },
+    {
+      "id": "a7abe068-e2ec-47bb-94e7-c253565ebbf1",
+      "displayId": "FMSTU260802-02",
+      "parentId": "83bb5abb-0c39-4e68-ab5c-562b920c65c8",
+      "studentName": "Meera S.",
+      "ageGrade": "Class 10",
+      "age": "15",
+      "gender": null,
+      "address": "jlnkvcdm,",
+      "areaCity": "Chennai",
+      "pincode": "600028",
+      "whatsapp": "997589087565",
+      "notes": null
+    }
+  ],
+  "teacherProfiles": [
+    {
+      "id": "d4315b08-14e3-4100-aa64-d6d19efb491f",
+      "displayId": "FMTEACH260802-01",
+      "userId": "ffa15ea5-21d1-4836-9664-f67f71cda8dd",
+      "kycStatus": "PENDING",
+      "rating": null,
+      "qualification": "BA Tamil",
+      "experience": null,
+      "subjects": [
+        "Tamil"
+      ],
+      "availability": [
+        "Weekday evenings"
+      ],
+      "rateExpectation": "7000",
+      "bankUpiRef": "beema@upi-id",
+      "address": "Door No 6, Ram Nagar",
+      "areaCity": "Old Pallavaram, Chennai",
+      "pincode": "600117",
+      "whatsapp": "8608511808"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "bd09bf78-3925-4bf6-a2b3-3db00671c179",
+      "displayId": "FMREQ260802-01",
+      "parentId": "83bb5abb-0c39-4e68-ab5c-562b920c65c8",
+      "studentProfileId": "af047eaf-ab70-4a3d-89f7-7be637ed89f7",
+      "subject": "Tamil",
+      "mode": "HOME_TUITION",
+      "location": "Old Pallavaram, Chennai",
+      "schedulePref": "Weekday evenings",
+      "pricingType": null,
+      "budget": 6000,
+      "status": "open",
+      "createdAt": "2026-08-01T21:49:09.476Z"
+    },
+    {
+      "id": "f5fea28b-1377-40bd-b95b-d26de64d4317",
+      "displayId": "FMREQ260802-02",
+      "parentId": "83bb5abb-0c39-4e68-ab5c-562b920c65c8",
+      "studentProfileId": "a7abe068-e2ec-47bb-94e7-c253565ebbf1",
+      "subject": "Mathematics",
+      "mode": "ONLINE",
+      "location": "RS Puram, Coimbatore",
+      "schedulePref": "Weekday evenings",
+      "pricingType": null,
+      "budget": 3500,
+      "status": "open",
+      "createdAt": "2026-08-02T08:24:28.323Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "0a4938fc-a247-45d5-a176-c0dba0761218",
+      "idYear": 26,
+      "idSeq": 1,
+      "frozenDisplayId": null,
+      "dead": false,
+      "requirementId": "bd09bf78-3925-4bf6-a2b3-3db00671c179",
+      "teacherId": "d4315b08-14e3-4100-aa64-d6d19efb491f",
+      "matchScore": 0.92,
+      "status": "CONFIRMED",
+      "demoDate": "2026-08-06",
+      "demoTimeSlot": "5:00 PM",
+      "demoProposedAt": "2026-08-01T21:56:30.495Z",
+      "parentAcceptedDemo": true,
+      "teacherAcceptedDemo": true,
+      "scheduledAt": "2026-08-01T21:57:28.230Z",
+      "declinedBy": null,
+      "declineReason": null,
+      "parentApprovedAt": "2026-08-01T21:58:23.463Z",
+      "createdAt": "2026-08-01T21:56:24.864Z"
+    },
+    {
+      "id": "de9f03fb-5472-48b9-b985-e5c1a1c3e471",
+      "idYear": 26,
+      "idSeq": 2,
+      "frozenDisplayId": null,
+      "dead": false,
+      "requirementId": "bd09bf78-3925-4bf6-a2b3-3db00671c179",
+      "teacherId": "d4315b08-14e3-4100-aa64-d6d19efb491f",
+      "matchScore": 0.92,
+      "status": "DEMO_PROPOSED",
+      "demoDate": "2026-08-06",
+      "demoTimeSlot": "8:00 PM",
+      "demoProposedAt": "2026-08-02T08:28:04.964Z",
+      "parentAcceptedDemo": true,
+      "teacherAcceptedDemo": false,
+      "scheduledAt": null,
+      "declinedBy": null,
+      "declineReason": null,
+      "parentApprovedAt": null,
+      "createdAt": "2026-08-02T08:27:11.643Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "0f3230a2-5963-496b-991a-0726750702e6",
+      "matchId": "0a4938fc-a247-45d5-a176-c0dba0761218",
+      "matchDisplayId": "FMAPPROVED26-00001",
+      "date": "2026-08-05",
+      "timeSlot": "6:00 PM",
+      "teacherMarkedAt": "2026-08-01T21:59:48.602Z",
+      "parentConfirmedAt": "2026-08-01T22:02:40.083Z",
+      "adminValidatedAt": "2026-08-01T22:03:08.424Z",
+      "status": "ADMIN_VALIDATED",
+      "amount": 800,
+      "payoutId": "800fa91b-0653-4c53-b96e-8b6589b56095"
+    }
+  ],
+  "payouts": [
+    {
+      "id": "800fa91b-0653-4c53-b96e-8b6589b56095",
+      "teacherId": "d4315b08-14e3-4100-aa64-d6d19efb491f",
+      "teacherDisplayId": "FMTEACH260802-01",
+      "period": "Aug-2026",
+      "grossAmount": 800,
+      "commissionPercent": 10,
+      "commissionDeducted": 80,
+      "amount": 720,
+      "bankUpiRef": "beema@upi-id",
+      "status": "RELEASED",
+      "releasedAt": "2026-08-01T22:03:36.518Z",
+      "sessionIds": [
+        "0f3230a2-5963-496b-991a-0726750702e6"
+      ]
+    }
+  ],
+  "counters": {
+    "parentDaily": {
+      "260802": 2
+    },
+    "studentDaily": {
+      "260802": 2
+    },
+    "requirementDaily": {
+      "260802": 2
+    },
+    "teacherDaily": {
+      "260802": 2
+    },
+    "match": {
+      "year": 26,
+      "seq": 2
+    }
+  }
+}
