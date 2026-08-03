@@ -39,7 +39,15 @@ export async function signUpOrSignIn(
     signUpError.message
   );
   if (!alreadyRegistered) {
-    throw new Error(signUpError.message || "Could not create your account.");
+    if (/profiles_phone_key/.test(signUpError.message)) {
+      throw new Error(
+        "That phone number is already registered to another account. Please use a different number, or log in if it's yours."
+      );
+    }
+    const message = signUpError.message?.trim();
+    throw new Error(
+      message && message !== "{}" ? message : "Could not create your account. Please try again."
+    );
   }
 
   const { error: signInError } = await supabase.auth.signInWithPassword({

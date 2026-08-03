@@ -13,7 +13,7 @@ $$;
 -- === requirements.js: POST /requirements ===================================
 create or replace function submit_requirement(
   p_subject text,
-  p_mode text,
+  p_mode text[],
   p_consent boolean,
   p_location text default null,
   p_schedule_pref text default null,
@@ -42,7 +42,9 @@ declare
 begin
   if me.role <> 'PARENT' then raise exception 'Only parents can submit requirements'; end if;
   if not p_consent then raise exception 'Consent to be contacted is required'; end if;
-  if p_subject is null or p_mode is null then raise exception 'Subject and mode are required'; end if;
+  if p_subject is null or p_mode is null or array_length(p_mode, 1) is null then
+    raise exception 'Subject and at least one mode are required';
+  end if;
 
   if p_student_id is not null then
     v_student := find_student(p_student_id, me.id);
@@ -80,7 +82,7 @@ create or replace function upsert_teacher_profile(
   p_experience text default null,
   p_subjects text[] default null,
   p_preferred_locations text[] default null,
-  p_teaching_mode text default null,
+  p_teaching_mode text[] default null,
   p_availability text[] default null,
   p_time_slot text default null,        -- single-slot dropdown shorthand for availability
   p_rate_expectation numeric default null,
@@ -88,7 +90,10 @@ create or replace function upsert_teacher_profile(
   p_address text default null,
   p_area_city text default null,
   p_pincode text default null,
-  p_whatsapp text default null
+  p_whatsapp text default null,
+  p_photo_url text default null,
+  p_tutoring_for text[] default null,
+  p_boards text[] default null
 )
 returns teacher_profiles
 language plpgsql security definer set search_path = public as $$
@@ -102,8 +107,8 @@ begin
   select * into v_profile from teacher_profiles where user_id = me.id;
 
   if v_profile.id is null then
-    insert into teacher_profiles (display_id, user_id, qualification, experience, subjects, preferred_locations, teaching_mode, availability, rate_expectation, bank_upi_ref, address, area_city, pincode, whatsapp, kyc_status)
-    values (me.display_id, me.id, p_qualification, p_experience, coalesce(p_subjects, '{}'), coalesce(p_preferred_locations, '{}'), p_teaching_mode, v_availability, p_rate_expectation, p_bank_upi_ref, p_address, p_area_city, p_pincode, p_whatsapp, 'PENDING')
+    insert into teacher_profiles (display_id, user_id, qualification, experience, subjects, preferred_locations, teaching_mode, availability, rate_expectation, bank_upi_ref, address, area_city, pincode, whatsapp, kyc_status, photo_url, tutoring_for, boards)
+    values (me.display_id, me.id, p_qualification, p_experience, coalesce(p_subjects, '{}'), coalesce(p_preferred_locations, '{}'), coalesce(p_teaching_mode, '{}'), v_availability, p_rate_expectation, p_bank_upi_ref, p_address, p_area_city, p_pincode, p_whatsapp, 'PENDING', p_photo_url, coalesce(p_tutoring_for, '{}'), coalesce(p_boards, '{}'))
     returning * into v_profile;
   else
     update teacher_profiles set
@@ -111,14 +116,17 @@ begin
       experience = coalesce(p_experience, experience),
       subjects = case when p_subjects is not null and array_length(p_subjects, 1) > 0 then p_subjects else subjects end,
       preferred_locations = case when p_preferred_locations is not null and array_length(p_preferred_locations, 1) > 0 then p_preferred_locations else preferred_locations end,
-      teaching_mode = coalesce(p_teaching_mode, teaching_mode),
+      teaching_mode = case when p_teaching_mode is not null and array_length(p_teaching_mode, 1) > 0 then p_teaching_mode else teaching_mode end,
       availability = case when array_length(v_availability, 1) > 0 then v_availability else availability end,
       rate_expectation = coalesce(p_rate_expectation, rate_expectation),
       bank_upi_ref = coalesce(p_bank_upi_ref, bank_upi_ref),
       address = coalesce(p_address, address),
       area_city = coalesce(p_area_city, area_city),
       pincode = coalesce(p_pincode, pincode),
-      whatsapp = coalesce(p_whatsapp, whatsapp)
+      whatsapp = coalesce(p_whatsapp, whatsapp),
+      photo_url = coalesce(p_photo_url, photo_url),
+      tutoring_for = case when p_tutoring_for is not null and array_length(p_tutoring_for, 1) > 0 then p_tutoring_for else tutoring_for end,
+      boards = case when p_boards is not null and array_length(p_boards, 1) > 0 then p_boards else boards end
     where id = v_profile.id
     returning * into v_profile;
   end if;
@@ -308,7 +316,7 @@ end;
 $$;
 
 -- === attendance.js: POST /attendance/sessions ===============================
-create or replace function log_session(p_match_id text, p_date date, p_time_slot text default null, p_amount numeric default null)
+create or replace function log_session(p_match_id text, p_date date, p_time_slot text default null, p_amount numeric default null, p_duration_hours numeric default null)
 returns class_sessions
 language plpgsql security definer set search_path = public as $$
 declare
@@ -329,11 +337,65 @@ begin
     raise exception 'Match must be CONFIRMED (an FMAPPROVED... ID) before logging classes';
   end if;
 
-  insert into class_sessions (display_id, match_id, date, time_slot, amount)
-  values (next_daily_id('attendance_daily', 'FMATTEND'), v_match.id, p_date, p_time_slot, p_amount)
+  insert into class_sessions (display_id, match_id, date, time_slot, amount, duration_hours)
+  values (next_daily_id('attendance_daily', 'FMATTEND'), v_match.id, p_date, p_time_slot, p_amount, p_duration_hours)
   returning * into v_session;
 
   return v_session;
+end;
+$$;
+
+-- === teacher dashboard: parent leaves a rating/review for a CONFIRMED assignment ===
+-- One review per match; a parent re-submitting for the same match updates
+-- their existing review rather than creating a duplicate.
+create or replace function submit_teacher_review(p_match_id text, p_rating int, p_comment text default null)
+returns teacher_reviews
+language plpgsql security definer set search_path = public as $$
+declare
+  me profiles := current_profile();
+  v_match matches;
+  v_req requirements;
+  v_student students;
+  v_review teacher_reviews;
+begin
+  if me.role <> 'PARENT' then raise exception 'Parent only'; end if;
+  if p_rating is null or p_rating < 1 or p_rating > 5 then raise exception 'Rating must be between 1 and 5'; end if;
+
+  v_match := find_match(p_match_id);
+  if v_match.id is null then raise exception 'Match not found'; end if;
+  if v_match.status <> 'CONFIRMED' then raise exception 'You can only review a confirmed assignment'; end if;
+
+  select r.* into v_req from requirements r where r.id = v_match.requirement_id;
+  if v_req.id is null or v_req.parent_id <> me.id then raise exception 'Not your assignment'; end if;
+
+  select s.* into v_student from students s where s.id = v_req.student_id;
+
+  insert into teacher_reviews (match_id, teacher_id, parent_id, student_name, rating, comment)
+  values (v_match.id, v_match.teacher_id, me.id, v_student.student_name, p_rating, p_comment)
+  on conflict (match_id) do update set
+    rating = excluded.rating,
+    comment = excluded.comment,
+    created_at = now()
+  returning * into v_review;
+
+  return v_review;
+end;
+$$;
+
+-- === teacher's own reviews (for the "Parent & student appreciation" section) ===
+create or replace function my_teacher_reviews()
+returns setof teacher_reviews
+language plpgsql security definer set search_path = public as $$
+declare
+  me profiles := current_profile();
+  v_teacher teacher_profiles;
+begin
+  if me.role <> 'TEACHER' then raise exception 'Teacher only'; end if;
+
+  select * into v_teacher from teacher_profiles where user_id = me.id;
+  if v_teacher.id is null then return; end if;
+
+  return query select * from teacher_reviews where teacher_id = v_teacher.id order by created_at desc;
 end;
 $$;
 
@@ -511,5 +573,35 @@ begin
 
   update teacher_profiles set kyc_status = p_status where id = v_teacher.id returning * into v_teacher;
   return v_teacher;
+end;
+$$;
+
+-- === Languages Known: replace-all save (teacher edits their full list at once) ===
+-- p_languages: jsonb array like [{"language":"Hindi","can_read":true,"can_write":true,"can_speak":true}, ...]
+create or replace function set_teacher_languages(p_languages jsonb)
+returns setof teacher_languages
+language plpgsql security definer set search_path = public as $$
+declare
+  me profiles := current_profile();
+  v_teacher teacher_profiles;
+begin
+  if me.role <> 'TEACHER' then raise exception 'Teacher only'; end if;
+
+  select * into v_teacher from teacher_profiles where user_id = me.id;
+  if v_teacher.id is null then raise exception 'Complete your teacher profile first'; end if;
+
+  delete from teacher_languages where teacher_id = v_teacher.id;
+
+  insert into teacher_languages (teacher_id, language, can_read, can_write, can_speak)
+  select
+    v_teacher.id,
+    item->>'language',
+    coalesce((item->>'can_read')::boolean, false),
+    coalesce((item->>'can_write')::boolean, false),
+    coalesce((item->>'can_speak')::boolean, false)
+  from jsonb_array_elements(coalesce(p_languages, '[]'::jsonb)) as item
+  where item->>'language' is not null and item->>'language' <> '';
+
+  return query select * from teacher_languages where teacher_id = v_teacher.id;
 end;
 $$;

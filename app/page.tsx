@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import PlatformHighlights from "./components/PlatformHighlights";
+import Footer from "./components/Footer";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
         <Hero />
         <PlatformHighlights />
       </main>
+      <Footer />
     </div>
   );
 }

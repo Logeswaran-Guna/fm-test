@@ -7,7 +7,7 @@
 -- === requirements.js: GET /requirements/mine ================================
 create or replace function my_requirements()
 returns table (
-  id uuid, display_id text, subject text, mode text, location text,
+  id uuid, display_id text, subject text, mode text[], location text,
   schedule_pref text, pricing_type text, budget numeric, status requirement_status,
   created_at timestamptz, student_display_id text, student_name text, student_grade text,
   match_id uuid, match_label text, match_status match_status,
@@ -57,7 +57,7 @@ $$;
 -- non-DECLINED" selection logic.
 create or replace function admin_requirements_queue()
 returns table (
-  id uuid, display_id text, subject text, mode text, location text, schedule_pref text,
+  id uuid, display_id text, subject text, mode text[], location text, schedule_pref text,
   budget numeric, preferred_teacher_gender text, status requirement_status, created_at timestamptz,
   parent_display_id text, parent_name text, parent_phone text,
   student_display_id text, student_name text, student_grade text,
@@ -96,9 +96,13 @@ $$;
 create or replace function admin_teachers_directory(p_subject text default null)
 returns table (
   id uuid, display_id text, name text, phone text, email text, qualification text,
-  experience text, subjects text[], preferred_locations text[], teaching_mode text,
+  experience text, subjects text[], preferred_locations text[], teaching_mode text[],
   availability text[], rate_expectation numeric,
-  bank_upi_ref text, kyc_status text, kyc_document_path text, rating numeric
+  bank_upi_ref text, kyc_status text, kyc_document_path text, photo_url text,
+  tutoring_for text[], boards text[], rating numeric,
+  languages jsonb,
+  total_hours numeric, students_trained int, active_batches int,
+  rating_avg numeric, rating_count int
 )
 language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
@@ -108,10 +112,95 @@ begin
   return query
   select t.id, t.display_id, u.name, u.phone, u.email, t.qualification, t.experience,
     t.subjects, t.preferred_locations, t.teaching_mode, t.availability, t.rate_expectation,
-    t.bank_upi_ref, t.kyc_status, t.kyc_document_path, t.rating
+    t.bank_upi_ref, t.kyc_status, t.kyc_document_path, t.photo_url,
+    t.tutoring_for, t.boards, t.rating,
+    coalesce(
+      (select jsonb_agg(jsonb_build_object('language', tl.language, 'can_read', tl.can_read, 'can_write', tl.can_write, 'can_speak', tl.can_speak))
+       from teacher_languages tl where tl.teacher_id = t.id),
+      '[]'::jsonb
+    ),
+    coalesce((select sum(cs.duration_hours) from class_sessions cs join matches m on m.id = cs.match_id where m.teacher_id = t.id and cs.status <> 'DISPUTED'), 0),
+    coalesce((select count(distinct r.student_id) from matches m join requirements r on r.id = m.requirement_id where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
+    coalesce((select count(*) from matches m where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
+    (select round(avg(tr.rating), 1) from teacher_reviews tr where tr.teacher_id = t.id),
+    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int
   from teacher_profiles t
   join profiles u on u.id = t.user_id
   where p_subject is null or p_subject = any(t.subjects);
+end;
+$$;
+
+-- === teacher's own full profile (for the editable Teacher Profile page) ===
+create or replace function my_teacher_profile()
+returns table (
+  id uuid, display_id text, name text, phone text, email text, qualification text,
+  experience text, subjects text[], preferred_locations text[], teaching_mode text[],
+  availability text[], rate_expectation numeric, bank_upi_ref text,
+  kyc_status text, kyc_document_path text, photo_url text,
+  tutoring_for text[], boards text[], rating numeric,
+  languages jsonb,
+  total_hours numeric, students_trained int, active_batches int,
+  rating_avg numeric, rating_count int
+)
+language plpgsql security definer set search_path = public as $$
+declare me profiles := current_profile();
+begin
+  if me.role <> 'TEACHER' then raise exception 'Teacher only'; end if;
+
+  return query
+  select t.id, t.display_id, u.name, u.phone, u.email, t.qualification, t.experience,
+    t.subjects, t.preferred_locations, t.teaching_mode, t.availability, t.rate_expectation,
+    t.bank_upi_ref, t.kyc_status, t.kyc_document_path, t.photo_url,
+    t.tutoring_for, t.boards, t.rating,
+    coalesce(
+      (select jsonb_agg(jsonb_build_object('language', tl.language, 'can_read', tl.can_read, 'can_write', tl.can_write, 'can_speak', tl.can_speak))
+       from teacher_languages tl where tl.teacher_id = t.id),
+      '[]'::jsonb
+    ),
+    coalesce((select sum(cs.duration_hours) from class_sessions cs join matches m on m.id = cs.match_id where m.teacher_id = t.id and cs.status <> 'DISPUTED'), 0),
+    coalesce((select count(distinct r.student_id) from matches m join requirements r on r.id = m.requirement_id where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
+    coalesce((select count(*) from matches m where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
+    (select round(avg(tr.rating), 1) from teacher_reviews tr where tr.teacher_id = t.id),
+    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int
+  from teacher_profiles t
+  join profiles u on u.id = t.user_id
+  where t.user_id = me.id;
+end;
+$$;
+
+-- === admin: full logged-classes list with student/teacher names ============
+-- Mirrors the teacher's own "My Logged Classes" table, enriched with parent/
+-- teacher/student identity since admin oversees every teacher at once.
+create or replace function admin_sessions_queue()
+returns table (
+  id uuid, display_id text, match_id uuid, match_label text, date date, time_slot text,
+  duration_hours numeric, status session_status, amount numeric,
+  student_name text, student_grade text, subject text,
+  teacher_display_id text, teacher_name text, teacher_phone text,
+  parent_name text, parent_phone text,
+  payment_released boolean, payout_amount numeric, payout_commission_percent numeric
+)
+language plpgsql security definer set search_path = public as $$
+declare me profiles := current_profile();
+begin
+  if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
+
+  return query
+  select s.id, s.display_id, s.match_id, match_display_id(m), s.date, s.time_slot,
+    s.duration_hours, s.status, s.amount,
+    st.student_name, st.age_grade, r.subject,
+    tp.display_id, tu.name, tu.phone,
+    pu.name, pu.phone,
+    (s.payout_id is not null), po.amount, po.commission_percent
+  from class_sessions s
+  join matches m on m.id = s.match_id
+  join requirements r on r.id = m.requirement_id
+  left join students st on st.id = r.student_id
+  join profiles pu on pu.id = r.parent_id
+  join teacher_profiles tp on tp.id = m.teacher_id
+  join profiles tu on tu.id = tp.user_id
+  left join payouts po on po.id = s.payout_id
+  order by s.teacher_marked_at desc;
 end;
 $$;
 
@@ -166,7 +255,8 @@ returns table (
   id uuid, display_id text, match_id uuid, match_label text, date date, time_slot text,
   status session_status, amount numeric, teacher_marked_at timestamptz, parent_confirmed_at timestamptz,
   admin_validated_at timestamptz, parent_approval text, admin_approval text, payment_released boolean,
-  payout_amount numeric, payout_commission_percent numeric, payout_released_at timestamptz
+  payout_amount numeric, payout_commission_percent numeric, payout_released_at timestamptz,
+  duration_hours numeric
 )
 language plpgsql security definer set search_path = public as $$
 declare
@@ -184,7 +274,8 @@ begin
     case s.status when 'LOGGED' then 'PENDING' when 'DISPUTED' then 'DISPUTED' else 'APPROVED' end,
     case s.status when 'ADMIN_VALIDATED' then 'APPROVED' else 'PENDING' end,
     (s.payout_id is not null),
-    po.amount, po.commission_percent, po.released_at
+    po.amount, po.commission_percent, po.released_at,
+    s.duration_hours
   from class_sessions s
   join matches m on m.id = s.match_id
   left join payouts po on po.id = s.payout_id

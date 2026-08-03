@@ -1,3 +1,5 @@
+import { BOARDS, SOFT_SKILLS_ITEMS } from "@/lib/categories";
+
 const journeySteps = [
   {
     icon: "①",
@@ -51,18 +53,67 @@ const deliveryFormats = [
 ];
 
 const categories = [
-  "State Board",
-  "CBSE",
-  "ICSE",
-  "IGCSE",
-  "Engineering",
-  "Commerce",
-  "Languages",
-  "Public Speaking",
-  "Personality Development",
-  "AI & Robotics",
+  ...BOARDS,
+  "Academics (Pre-Primary – Higher Secondary)",
   "Music & Instruments",
   "Dance",
+  "Art",
+  "Abacus",
+  ...SOFT_SKILLS_ITEMS,
+];
+
+const learningSpaces = [
+  {
+    title: "Students",
+    description: "Every grade, every board — matched to a tutor who fits how they learn.",
+    icon: (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="8" r="3.2" />
+        <path d="M4.5 20c0-3.6 3.36-6.5 7.5-6.5s7.5 2.9 7.5 6.5" />
+      </svg>
+    ),
+  },
+  {
+    title: "Teachers",
+    description: "Verified educators, hand-picked by our team for qualification and fit.",
+    icon: (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="7" r="3" />
+        <path d="M5 20.5c0-3.87 3.13-7 7-7s7 3.13 7 7" />
+        <path d="M8.5 20.5V17a3.5 3.5 0 017 0v3.5" />
+      </svg>
+    ),
+  },
+  {
+    title: "Classroom",
+    description: "Online, home tuition, teacher's location, or a pooled community class.",
+    icon: (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4.5" width="18" height="12" rx="1.5" />
+        <path d="M8 20.5h8M12 16.5v4" />
+      </svg>
+    ),
+  },
+  {
+    title: "Books",
+    description: "Structured subjects, board-aligned curriculum, real progress tracking.",
+    icon: (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 5.2c2.2-.9 4.6-.9 6.8 0v13.6c-2.2-.9-4.6-.9-6.8 0z" />
+        <path d="M20 5.2c-2.2-.9-4.6-.9-6.8 0v13.6c2.2-.9 4.6-.9 6.8 0z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Labs",
+    description: "Hands-on future-skills learning — AI &amp; Robotics, coding, and more.",
+    icon: (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9.5 3.5h5M10 4v5.5L5.5 18a2 2 0 001.8 3h9.4a2 2 0 001.8-3L14 9.5V4" />
+        <path d="M7.5 15h9" />
+      </svg>
+    ),
+  },
 ];
 
 function SectionHeading({
@@ -135,7 +186,7 @@ export default function PlatformHighlights() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 pb-20 sm:px-8">
+      <div className="mx-auto max-w-7xl px-6 pb-16 sm:px-8">
         <SectionHeading
           title="Learning categories"
           description="Academic, creative and future-skills categories live today."
@@ -148,6 +199,31 @@ export default function PlatformHighlights() {
             >
               {category}
             </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 pb-20 sm:px-8">
+        <SectionHeading
+          title="Built for every kind of learning space"
+          description="From a home desk to a coaching centre, Future Minds fits how your child actually learns."
+        />
+        <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
+          {learningSpaces.map((space) => (
+            <div
+              key={space.title}
+              className="rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-amber/50 hover:shadow-md"
+            >
+              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-navy/5 text-navy">
+                {space.icon}
+              </div>
+              <h4 className="font-heading text-sm font-semibold text-navy">
+                {space.title}
+              </h4>
+              <p className="mt-1.5 text-xs leading-relaxed text-slate-500">
+                {space.description}
+              </p>
+            </div>
           ))}
         </div>
       </div>

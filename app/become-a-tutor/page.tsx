@@ -1,14 +1,32 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
+import PasswordField from "../components/PasswordField";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
-import { ACADEMIC_CATEGORIES, MODES, OTHER_CATEGORIES, type Mode } from "@/lib/categories";
+import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
+import {
+  BOARDS,
+  CREATIVE_LEARNING_ITEMS,
+  EXPERIENCE_BANDS,
+  GRADE_BANDS,
+  LANGUAGES,
+  MODES,
+  SOFT_SKILLS_ITEMS,
+  TUTORING_FOR,
+  type ExperienceBand,
+  type Mode,
+  type TutoringFor,
+} from "@/lib/categories";
 
-const EXPERIENCE_OPTIONS = ["0-2 years", "2-5 years", "5+ years"] as const;
-type ExperienceRange = (typeof EXPERIENCE_OPTIONS)[number];
+type LanguageRow = {
+  language: string;
+  canRead: boolean;
+  canWrite: boolean;
+  canSpeak: boolean;
+};
 
 type FormState = {
   fullName: string;
@@ -16,16 +34,21 @@ type FormState = {
   password: string;
   phoneNumber: string;
   qualifications: string;
-  yearsExperience: ExperienceRange | "";
+  yearsExperience: ExperienceBand | "";
   expectedRate: string;
-  subjects: string[];
   serviceArea: string;
   bankUpiRef: string;
-  teachingMode: Mode | "";
+  modes: Mode[];
+  tutoringFor: TutoringFor[];
+  boards: string[];
+  gradeSubjects: Record<string, string[]>;
+  creativeItems: string[];
+  softSkillItems: string[];
+  languages: LanguageRow[];
   consent: boolean;
 };
 
-type FormErrors = Partial<Record<keyof FormState, string>>;
+type FormErrors = Record<string, string | undefined>;
 
 const initialFormState: FormState = {
   fullName: "",
@@ -35,14 +58,37 @@ const initialFormState: FormState = {
   qualifications: "",
   yearsExperience: "",
   expectedRate: "",
-  subjects: [],
   serviceArea: "",
   bankUpiRef: "",
-  teachingMode: "",
+  modes: [],
+  tutoringFor: [],
+  boards: [],
+  gradeSubjects: {},
+  creativeItems: [],
+  softSkillItems: [],
+  languages: [],
   consent: false,
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function buildSubjectsArray(form: FormState): string[] {
+  const out: string[] = [];
+  if (form.tutoringFor.includes("Academics")) {
+    for (const band of GRADE_BANDS) {
+      for (const subject of form.gradeSubjects[band.label] ?? []) {
+        out.push(`${band.label} — ${subject}`);
+      }
+    }
+  }
+  if (form.tutoringFor.includes("Creative Learning")) {
+    out.push(...form.creativeItems);
+  }
+  if (form.tutoringFor.includes("Soft Skills")) {
+    out.push(...form.softSkillItems);
+  }
+  return out;
+}
 
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
@@ -74,14 +120,41 @@ function validate(form: FormState): FormErrors {
   if (!form.yearsExperience)
     errors.yearsExperience = "Please select your experience range.";
 
-  if (form.subjects.length === 0)
-    errors.subjects = "Pick at least one subject or area you teach.";
-
   if (!form.serviceArea.trim())
     errors.serviceArea = "Service area / address is required.";
 
-  if (!form.teachingMode)
-    errors.teachingMode = "Please select a mode.";
+  if (form.modes.length === 0) errors.modes = "Pick at least one mode.";
+
+  if (form.tutoringFor.length === 0)
+    errors.tutoringFor = "Pick at least one option.";
+
+  if (form.tutoringFor.includes("Academics")) {
+    if (form.boards.length === 0)
+      errors.boards = "Pick at least one board / medium.";
+    const anyGradeSubject = Object.values(form.gradeSubjects).some(
+      (list) => list.length > 0
+    );
+    if (!anyGradeSubject)
+      errors.gradeSubjects = "Pick at least one grade level and subject.";
+  }
+
+  if (
+    form.tutoringFor.includes("Creative Learning") &&
+    form.creativeItems.length === 0
+  ) {
+    errors.creativeItems = "Pick at least one creative learning area.";
+  }
+
+  if (
+    form.tutoringFor.includes("Soft Skills") &&
+    form.softSkillItems.length === 0
+  ) {
+    errors.softSkillItems = "Pick at least one soft skill area.";
+  }
+
+  if (buildSubjectsArray(form).length === 0) {
+    errors.tutoringFor = "Pick at least one subject or area you teach.";
+  }
 
   if (!form.consent)
     errors.consent =
@@ -98,6 +171,28 @@ export default function BecomeATutorPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
+  const [checkingRole, setCheckingRole] = useState(true);
+  const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const supabase = createClient();
+      const profile = await getCurrentProfile(supabase);
+      if (!active) return;
+      setSignedInAs(profile && profile.role !== "TEACHER" ? profile : null);
+      setCheckingRole(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setSignedInAs(null);
+  }
 
   function updateField<K extends keyof FormState>(
     key: K,
@@ -107,14 +202,58 @@ export default function BecomeATutorPage() {
     setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
   }
 
-  function toggleSubject(value: string) {
+  function toggleInArray<K extends "modes" | "tutoringFor" | "boards" | "creativeItems" | "softSkillItems">(
+    key: K,
+    value: FormState[K][number]
+  ) {
+    setForm((prev) => {
+      const current = prev[key] as unknown as string[];
+      const next = current.includes(value as string)
+        ? current.filter((v) => v !== value)
+        : [...current, value as string];
+      return { ...prev, [key]: next } as FormState;
+    });
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  }
+
+  function toggleGradeSubject(bandLabel: string, subject: string) {
+    setForm((prev) => {
+      const current = prev.gradeSubjects[bandLabel] ?? [];
+      const next = current.includes(subject)
+        ? current.filter((s) => s !== subject)
+        : [...current, subject];
+      return {
+        ...prev,
+        gradeSubjects: { ...prev.gradeSubjects, [bandLabel]: next },
+      };
+    });
+    setErrors((prev) => ({ ...prev, gradeSubjects: undefined }));
+  }
+
+  function addLanguageRow() {
     setForm((prev) => ({
       ...prev,
-      subjects: prev.subjects.includes(value)
-        ? prev.subjects.filter((s) => s !== value)
-        : [...prev.subjects, value],
+      languages: [
+        ...prev.languages,
+        { language: LANGUAGES[0], canRead: false, canWrite: false, canSpeak: false },
+      ],
     }));
-    setErrors((prev) => (prev.subjects ? { ...prev, subjects: undefined } : prev));
+  }
+
+  function updateLanguageRow(index: number, patch: Partial<LanguageRow>) {
+    setForm((prev) => ({
+      ...prev,
+      languages: prev.languages.map((row, i) =>
+        i === index ? { ...row, ...patch } : row
+      ),
+    }));
+  }
+
+  function removeLanguageRow(index: number) {
+    setForm((prev) => ({
+      ...prev,
+      languages: prev.languages.filter((_, i) => i !== index),
+    }));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -146,16 +285,30 @@ export default function BecomeATutorPage() {
       const { error } = await supabase.rpc("upsert_teacher_profile", {
         p_qualification: form.qualifications.trim(),
         p_experience: form.yearsExperience,
-        p_subjects: form.subjects,
+        p_subjects: buildSubjectsArray(form),
         p_preferred_locations: [form.serviceArea.trim()],
-        p_teaching_mode: form.teachingMode,
+        p_teaching_mode: form.modes,
         p_rate_expectation: form.expectedRate ? Number(form.expectedRate) : null,
         p_bank_upi_ref: form.bankUpiRef.trim() || null,
         p_whatsapp: form.phoneNumber.trim(),
         p_area_city: form.serviceArea.trim(),
+        p_tutoring_for: form.tutoringFor,
+        p_boards: form.boards,
       });
 
       if (error) throw new Error(error.message);
+
+      if (form.languages.length > 0) {
+        const { error: langError } = await supabase.rpc("set_teacher_languages", {
+          p_languages: form.languages.map((l) => ({
+            language: l.language,
+            can_read: l.canRead,
+            can_write: l.canWrite,
+            can_speak: l.canSpeak,
+          })),
+        });
+        if (langError) throw new Error(langError.message);
+      }
 
       if (idFile) {
         const {
@@ -168,7 +321,7 @@ export default function BecomeATutorPage() {
             .upload(path, idFile);
           if (uploadError) {
             throw new Error(
-              `Profile saved, but the ID document upload failed: ${uploadError.message}. You can try uploading it again later from your dashboard.`
+              `Profile saved, but the ID document upload failed: ${uploadError.message}. You can try uploading it again later from your profile.`
             );
           }
           const { error: kycError } = await supabase.rpc("set_kyc_document", {
@@ -221,7 +374,37 @@ export default function BecomeATutorPage() {
         </section>
 
         <div className="mx-auto max-w-2xl px-6 py-12 sm:px-8">
-          {needsConfirmation ? (
+          {checkingRole ? (
+            <div className="py-16 text-center text-sm text-slate-400">
+              Checking your session…
+            </div>
+          ) : signedInAs ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <h2 className="font-heading text-xl font-semibold text-navy">
+                You&apos;re signed in as a {signedInAs.role === "PARENT" ? "parent" : "admin"}
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                This form creates a new tutor account, so it can&apos;t be
+                used while you&apos;re signed in as {signedInAs.name}. Log out
+                to continue as a tutor, or go to your own dashboard.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5"
+                >
+                  Log out and continue
+                </button>
+                <Link
+                  href={homePathForRole(signedInAs.role)}
+                  className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-slate-50"
+                >
+                  Go to my dashboard
+                </Link>
+              </div>
+            </div>
+          ) : needsConfirmation ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber/10 text-2xl font-bold text-amber">
                 ✉
@@ -245,6 +428,8 @@ export default function BecomeATutorPage() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
                 Our team will review your profile and get in touch shortly.
+                You can update any of this later from your Teacher Profile
+                page.
               </p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <button
@@ -283,9 +468,8 @@ export default function BecomeATutorPage() {
                 error={errors.email}
                 placeholder="e.g. priya.ramesh@email.com"
               />
-              <Field
+              <PasswordField
                 label="Password"
-                type="password"
                 value={form.password}
                 onChange={(value) => updateField("password", value)}
                 error={errors.password}
@@ -316,28 +500,24 @@ export default function BecomeATutorPage() {
                   onChange={(event) =>
                     updateField(
                       "yearsExperience",
-                      event.target.value as ExperienceRange | ""
+                      event.target.value as ExperienceBand | ""
                     )
                   }
                   className={`w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50 ${
-                    errors.yearsExperience
-                      ? "border-red-400"
-                      : "border-slate-200"
+                    errors.yearsExperience ? "border-red-400" : "border-slate-200"
                   }`}
                 >
                   <option value="" disabled>
                     Select a range
                   </option>
-                  {EXPERIENCE_OPTIONS.map((option) => (
+                  {EXPERIENCE_BANDS.map((option) => (
                     <option key={option} value={option}>
                       {option}
                     </option>
                   ))}
                 </select>
                 {errors.yearsExperience && (
-                  <p className="mt-1.5 text-xs text-red-600">
-                    {errors.yearsExperience}
-                  </p>
+                  <p className="mt-1.5 text-xs text-red-600">{errors.yearsExperience}</p>
                 )}
               </div>
 
@@ -358,69 +538,159 @@ export default function BecomeATutorPage() {
                 placeholder="e.g. Anna Nagar, Coimbatore"
               />
 
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Mode
-                </label>
-                <div className="flex flex-wrap gap-2.5">
-                  {MODES.map((mode) => {
-                    const selected = form.teachingMode === mode;
-                    return (
-                      <button
-                        type="button"
-                        key={mode}
-                        onClick={() => updateField("teachingMode", mode)}
-                        aria-pressed={selected}
-                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                          selected
-                            ? "border-amber bg-amber/10 text-navy"
-                            : "border-slate-200 bg-white text-slate-600 hover:border-amber/50"
-                        }`}
-                      >
-                        {mode}
-                      </button>
-                    );
-                  })}
-                </div>
-                {errors.teachingMode && (
-                  <p className="mt-1.5 text-xs text-red-600">
-                    {errors.teachingMode}
+              <ChipGroup
+                label="Mode (select all that apply)"
+                options={MODES as readonly string[]}
+                selected={form.modes}
+                onToggle={(v) => toggleInArray("modes", v as Mode)}
+                error={errors.modes}
+              />
+
+              <ChipGroup
+                label="Tutoring For (select all that apply)"
+                options={TUTORING_FOR as readonly string[]}
+                selected={form.tutoringFor}
+                onToggle={(v) => toggleInArray("tutoringFor", v as TutoringFor)}
+                error={errors.tutoringFor}
+              />
+
+              {form.tutoringFor.includes("Academics") && (
+                <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Academics
                   </p>
-                )}
-              </div>
+                  <ChipGroup
+                    label="Medium / Board"
+                    options={BOARDS}
+                    selected={form.boards}
+                    onToggle={(v) => toggleInArray("boards", v)}
+                    error={errors.boards}
+                  />
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-navy">
+                      Grade Levels &amp; Subjects You Teach
+                    </label>
+                    <div className="space-y-3">
+                      {GRADE_BANDS.map((band) => (
+                        <div key={band.label} className="rounded-lg border border-slate-200 bg-white p-3">
+                          <p className="mb-2 text-xs font-semibold text-navy">{band.label}</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {band.subjects.map((subject) => (
+                              <Chip
+                                key={subject}
+                                label={subject}
+                                selected={(form.gradeSubjects[band.label] ?? []).includes(subject)}
+                                onClick={() => toggleGradeSubject(band.label, subject)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {errors.gradeSubjects && (
+                      <p className="mt-1.5 text-xs text-red-600">{errors.gradeSubjects}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {form.tutoringFor.includes("Creative Learning") && (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Creative Learning
+                  </p>
+                  <ChipGroup
+                    label="Areas you teach"
+                    options={CREATIVE_LEARNING_ITEMS}
+                    selected={form.creativeItems}
+                    onToggle={(v) => toggleInArray("creativeItems", v)}
+                    error={errors.creativeItems}
+                  />
+                </div>
+              )}
+
+              {form.tutoringFor.includes("Soft Skills") && (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Soft Skills
+                  </p>
+                  <ChipGroup
+                    label="Areas you teach"
+                    options={SOFT_SKILLS_ITEMS}
+                    selected={form.softSkillItems}
+                    onToggle={(v) => toggleInArray("softSkillItems", v)}
+                    error={errors.softSkillItems}
+                  />
+                </div>
+              )}
 
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Subjects &amp; classes you teach
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {ACADEMIC_CATEGORIES.map((c) => (
-                    <Chip
-                      key={c}
-                      label={c}
-                      selected={form.subjects.includes(c)}
-                      onClick={() => toggleSubject(c)}
-                    />
-                  ))}
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label className="block text-sm font-medium text-navy">
+                    Languages Known
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addLanguageRow}
+                    className="text-xs font-semibold text-amber-700 underline"
+                  >
+                    + Add language
+                  </button>
                 </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Other areas you teach
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {OTHER_CATEGORIES.map((c) => (
-                    <Chip
-                      key={c}
-                      label={c}
-                      selected={form.subjects.includes(c)}
-                      onClick={() => toggleSubject(c)}
-                    />
-                  ))}
-                </div>
-                {errors.subjects && (
-                  <p className="mt-1.5 text-xs text-red-600">{errors.subjects}</p>
+                {form.languages.length === 0 ? (
+                  <p className="text-xs text-slate-400">Optional.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {form.languages.map((row, index) => (
+                      <div
+                        key={index}
+                        className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 px-3 py-2"
+                      >
+                        <select
+                          value={row.language}
+                          onChange={(e) => updateLanguageRow(index, { language: e.target.value })}
+                          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-navy"
+                        >
+                          {LANGUAGES.map((lang) => (
+                            <option key={lang} value={lang}>
+                              {lang}
+                            </option>
+                          ))}
+                        </select>
+                        <label className="flex items-center gap-1 text-xs text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={row.canRead}
+                            onChange={(e) => updateLanguageRow(index, { canRead: e.target.checked })}
+                          />
+                          Read
+                        </label>
+                        <label className="flex items-center gap-1 text-xs text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={row.canWrite}
+                            onChange={(e) => updateLanguageRow(index, { canWrite: e.target.checked })}
+                          />
+                          Write
+                        </label>
+                        <label className="flex items-center gap-1 text-xs text-slate-600">
+                          <input
+                            type="checkbox"
+                            checked={row.canSpeak}
+                            onChange={(e) => updateLanguageRow(index, { canSpeak: e.target.checked })}
+                          />
+                          Speak
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeLanguageRow(index)}
+                          className="ml-auto text-xs text-red-600 underline"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -454,9 +724,7 @@ export default function BecomeATutorPage() {
                   <input
                     type="checkbox"
                     checked={form.consent}
-                    onChange={(event) =>
-                      updateField("consent", event.target.checked)
-                    }
+                    onChange={(event) => updateField("consent", event.target.checked)}
                     className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-amber focus:ring-amber"
                   />
                   <span>
@@ -465,9 +733,7 @@ export default function BecomeATutorPage() {
                   </span>
                 </label>
                 {errors.consent && (
-                  <p className="mt-1.5 text-xs text-red-600">
-                    {errors.consent}
-                  </p>
+                  <p className="mt-1.5 text-xs text-red-600">{errors.consent}</p>
                 )}
               </div>
 
@@ -488,6 +754,37 @@ export default function BecomeATutorPage() {
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+function ChipGroup({
+  label,
+  options,
+  selected,
+  onToggle,
+  error,
+}: {
+  label: string;
+  options: readonly string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  error?: string;
+}) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => (
+          <Chip
+            key={option}
+            label={option}
+            selected={selected.includes(option)}
+            onClick={() => onToggle(option)}
+          />
+        ))}
+      </div>
+      {error && <p className="mt-1.5 text-xs text-red-600">{error}</p>}
     </div>
   );
 }
@@ -536,9 +833,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">
-        {label}
-      </label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
       <input
         type={type}
         value={value}

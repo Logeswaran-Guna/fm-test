@@ -35,5 +35,5 @@ export async function getCurrentProfile(
 export function homePathForRole(role: Role): string {
   if (role === "ADMIN") return "/admin";
   if (role === "TEACHER") return "/Teacher";
-  return "/find-tutor";
+  return "/my-dashboard";
 }

@@ -43,6 +43,7 @@ export type MySession = {
   match_label: string;
   date: string;
   time_slot: string | null;
+  duration_hours: number | null;
   status: SessionStatus;
   amount: number | null;
   payment_released: boolean;

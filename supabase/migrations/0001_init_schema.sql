@@ -53,7 +53,7 @@ create table requirements (
   parent_id uuid not null references profiles(id) on delete cascade,
   student_id uuid references students(id) on delete set null,
   subject text not null,
-  mode text not null,
+  mode text[] not null default '{}',   -- multi-select: Online/Home Tuition/Teacher Location/Community Pooling/Flexible
   location text,
   schedule_pref text,
   pricing_type text,
@@ -71,7 +71,7 @@ create table teacher_profiles (
   experience text,
   subjects text[] not null default '{}',
   preferred_locations text[] not null default '{}',
-  teaching_mode text,
+  teaching_mode text[] not null default '{}',
   availability text[] not null default '{}',
   rate_expectation numeric,
   bank_upi_ref text,
@@ -81,8 +81,23 @@ create table teacher_profiles (
   whatsapp text,
   kyc_status text not null default 'PENDING',
   kyc_document_path text,            -- path within the private kyc-documents storage bucket
+  photo_url text,                    -- path within the public avatars storage bucket
+  tutoring_for text[] not null default '{}', -- Academics / Creative Learning / Soft Skills (multi-select)
+  boards text[] not null default '{}',       -- State Board / CBSE / ICSE / IGCSE (multi-select, when tutoring_for includes Academics)
   rating numeric,
   created_at timestamptz not null default now()
+);
+
+-- One row per (language, teacher) so read/write/speak proficiency is
+-- tracked per language rather than crammed into a single column.
+create table teacher_languages (
+  id uuid primary key default gen_random_uuid(),
+  teacher_id uuid not null references teacher_profiles(id) on delete cascade,
+  language text not null,
+  can_read boolean not null default false,
+  can_write boolean not null default false,
+  can_speak boolean not null default false,
+  unique (teacher_id, language)
 );
 
 -- Same underlying row survives the whole PROPOSED -> DEMO -> CONFIRMED /
@@ -130,6 +145,7 @@ create table class_sessions (
   match_id uuid not null references matches(id) on delete cascade,
   date date not null,
   time_slot text,
+  duration_hours numeric,            -- computed client-side from the From/To time picker
   teacher_marked_at timestamptz not null default now(),
   parent_confirmed_at timestamptz,
   admin_validated_at timestamptz,
@@ -141,6 +157,21 @@ create table class_sessions (
   created_at timestamptz not null default now()
 );
 
+-- One review per confirmed assignment (match), left by the parent, shown on
+-- the teacher's own dashboard as "Parent & student appreciation" — per
+-- developer requirements 4.4: "Dashboard shows hours, students, and
+-- reviews... wired to real data."
+create table teacher_reviews (
+  id uuid primary key default gen_random_uuid(),
+  match_id uuid unique not null references matches(id) on delete cascade,
+  teacher_id uuid not null references teacher_profiles(id) on delete cascade,
+  parent_id uuid not null references profiles(id) on delete cascade,
+  student_name text,
+  rating int not null check (rating between 1 and 5),
+  comment text,
+  created_at timestamptz not null default now()
+);
+
 create index idx_students_parent on students(parent_id);
 create index idx_requirements_parent on requirements(parent_id);
 create index idx_requirements_student on requirements(student_id);
@@ -149,3 +180,4 @@ create index idx_matches_teacher on matches(teacher_id);
 create index idx_matches_teacher_date_slot on matches(teacher_id, demo_date, demo_time_slot);
 create index idx_sessions_match on class_sessions(match_id);
 create index idx_payouts_teacher on payouts(teacher_id);
+create index idx_teacher_reviews_teacher on teacher_reviews(teacher_id);

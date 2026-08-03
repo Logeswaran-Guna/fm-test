@@ -1,19 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { SESSION_STATUS_LABELS, type MyMatch, type MySession } from "./types";
-
-const TIME_SLOTS = [
-  "Weekday mornings",
-  "Weekday afternoons",
-  "Weekday evenings",
-  "Weekend mornings",
-  "Weekend afternoons",
-  "Weekend evenings",
-];
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -26,6 +18,15 @@ function formatDate(value: string | null): string {
   });
 }
 
+function formatTime12h(value: string): string {
+  if (!value) return "";
+  const [hStr, mStr] = value.split(":");
+  const h = Number(hStr);
+  const suffix = h >= 12 ? "PM" : "AM";
+  const displayHour = h % 12 === 0 ? 12 : h % 12;
+  return `${displayHour}:${mStr} ${suffix}`;
+}
+
 function LogSessionForm({
   matchId,
   onLogged,
@@ -34,7 +35,8 @@ function LogSessionForm({
   onLogged: () => void;
 }) {
   const [date, setDate] = useState("");
-  const [slot, setSlot] = useState(TIME_SLOTS[0]);
+  const [fromTime, setFromTime] = useState("");
+  const [toTime, setToTime] = useState("");
   const [amount, setAmount] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,14 +46,25 @@ function LogSessionForm({
       setError("Pick the class date first.");
       return;
     }
+    if (!fromTime || !toTime) {
+      setError("Pick both a start and end time.");
+      return;
+    }
     setBusy(true);
     setError(null);
+    const timeSlot = `${formatTime12h(fromTime)} – ${formatTime12h(toTime)}`;
+    const [fromH, fromM] = fromTime.split(":").map(Number);
+    const [toH, toM] = toTime.split(":").map(Number);
+    let durationHours = (toH * 60 + toM - (fromH * 60 + fromM)) / 60;
+    if (durationHours <= 0) durationHours += 24;
+    durationHours = Math.round(durationHours * 100) / 100;
     const supabase = createClient();
     const { error: rpcError } = await supabase.rpc("log_session", {
       p_match_id: matchId,
       p_date: date,
-      p_time_slot: slot,
+      p_time_slot: timeSlot,
       p_amount: amount ? Number(amount) : null,
+      p_duration_hours: durationHours,
     });
     setBusy(false);
     if (rpcError) {
@@ -59,38 +72,47 @@ function LogSessionForm({
       return;
     }
     setDate("");
+    setFromTime("");
+    setToTime("");
     setAmount("");
     onLogged();
   }
 
   return (
     <div className="mt-3 space-y-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3">
-      <div className="grid grid-cols-3 gap-2">
-        <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          className="col-span-1 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
-        />
-        <select
-          value={slot}
-          onChange={(e) => setSlot(e.target.value)}
-          className="col-span-1 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
-        >
-          {TIME_SLOTS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-        <input
-          type="number"
-          placeholder="Amount (₹)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="col-span-1 rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
-        />
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <div>
+          <label className="mb-1 block text-[10px] uppercase tracking-wide text-slate-500">From</label>
+          <input
+            type="time"
+            value={fromTime}
+            onChange={(e) => setFromTime(e.target.value)}
+            className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+          />
+        </div>
+        <div>
+          <label className="mb-1 block text-[10px] uppercase tracking-wide text-slate-500">To</label>
+          <input
+            type="time"
+            value={toTime}
+            onChange={(e) => setToTime(e.target.value)}
+            className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+          />
+        </div>
       </div>
+      <input
+        type="number"
+        placeholder="Amount (₹)"
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+      />
       {error && <p className="text-xs text-red-400">{error}</p>}
       <button
         onClick={submit}
@@ -189,12 +211,31 @@ export default function TeacherDashboard() {
           </span>
           <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
         </div>
-        <button
-          onClick={fetchData}
-          className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
-        >
-          Refresh Data
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/Teacher/profile"
+            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
+          >
+            My Profile
+          </Link>
+          <button
+            onClick={fetchData}
+            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
+          >
+            Refresh Data
+          </button>
+          <button
+            onClick={async () => {
+              const supabase = createClient();
+              await supabase.auth.signOut();
+              router.push("/");
+              router.refresh();
+            }}
+            className="text-xs bg-red-950/50 hover:bg-red-900/50 text-red-300 px-3 py-1.5 rounded border border-red-800/50 transition-colors"
+          >
+            Log out
+          </button>
+        </div>
       </header>
 
       {errorBanner && (
@@ -362,6 +403,7 @@ export default function TeacherDashboard() {
                 <tr className="border-b border-slate-800 bg-slate-900 text-xs uppercase tracking-wide text-slate-500">
                   <th className="px-4 py-3">Class</th>
                   <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Hours</th>
                   <th className="px-4 py-3">Amount</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Paid</th>
@@ -375,6 +417,9 @@ export default function TeacherDashboard() {
                     </td>
                     <td className="px-4 py-3 text-slate-400">
                       {formatDate(s.date)}
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">
+                      {s.duration_hours != null ? `${s.duration_hours} hrs` : "—"}
                     </td>
                     <td className="px-4 py-3 text-slate-400">
                       {s.amount != null ? `₹${s.amount}` : "—"}

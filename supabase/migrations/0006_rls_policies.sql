@@ -25,6 +25,8 @@ alter table matches enable row level security;
 alter table class_sessions enable row level security;
 alter table payouts enable row level security;
 alter table id_counters enable row level security;
+alter table teacher_languages enable row level security;
+alter table teacher_reviews enable row level security;
 
 -- profiles: see yourself, or (if admin) everyone. Teachers/parents see each
 -- other's names/phones only through the my_* / admin_* RPCs above, which
@@ -85,15 +87,33 @@ create policy class_sessions_select on class_sessions for select
 create policy payouts_select on payouts for select
   using (is_admin() or teacher_id in (select id from teacher_profiles where user_id = auth.uid()));
 
+create policy teacher_languages_select on teacher_languages for select
+  using (
+    is_admin()
+    or teacher_id in (select id from teacher_profiles where user_id = auth.uid())
+    or teacher_id in (
+      select m.teacher_id from matches m
+      join requirements r on r.id = m.requirement_id
+      where r.parent_id = auth.uid()
+    )
+  );
+
+create policy teacher_reviews_select on teacher_reviews for select
+  using (
+    is_admin()
+    or teacher_id in (select id from teacher_profiles where user_id = auth.uid())
+    or parent_id = auth.uid()
+  );
+
 -- Table grants: SELECT only for direct queries (governed by the policies
 -- above); no INSERT/UPDATE/DELETE for the app role at all. EXECUTE on the
 -- RPC functions is what actually lets people create/change data.
 revoke all on
-  profiles, students, requirements, teacher_profiles, matches, class_sessions, payouts, id_counters
+  profiles, students, requirements, teacher_profiles, matches, class_sessions, payouts, id_counters, teacher_languages, teacher_reviews
 from authenticated, anon;
 
 grant select on
-  profiles, students, requirements, teacher_profiles, matches, class_sessions, payouts
+  profiles, students, requirements, teacher_profiles, matches, class_sessions, payouts, teacher_languages, teacher_reviews
 to authenticated;
 
 grant update (name, email) on profiles to authenticated; -- profile edits only; role stays locked

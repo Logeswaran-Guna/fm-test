@@ -1,33 +1,123 @@
-// Shared subject/category list — same set already shown on the homepage
-// (see app/components/PlatformHighlights.tsx). The developer requirements
-// spec notes this master list isn't finalized yet ("Section 8"), so forms
-// use it as suggestions (via <datalist>/chips) rather than a hard-locked
-// dropdown, letting a parent or tutor still type something not yet listed.
-export const ACADEMIC_CATEGORIES = [
-  "State Board",
-  "CBSE",
-  "ICSE",
-  "IGCSE",
-  "Engineering",
-  "Commerce",
-  "Languages",
+// Shared taxonomy used across the Find a Tutor and Become a Tutor forms
+// (and the admin dashboard's matching logic). This is exactly the kind of
+// master data the developer requirements spec says should come from the
+// founder rather than be invented ad hoc (Section 8) — treat these lists
+// as a first draft to be corrected, not a locked-in final taxonomy.
+
+export const TUTORING_FOR = ["Academics", "Creative Learning", "Soft Skills"] as const;
+export type TutoringFor = (typeof TUTORING_FOR)[number];
+
+export const BOARDS = ["State Board", "CBSE", "ICSE", "IGCSE"];
+
+// Each grade band has its own subject list. Pre-Primary/Primary don't
+// split by subject (young grades are taught holistically), Middle/
+// Secondary share a common subject set, Higher Secondary lists individual
+// subjects (per the founder's call — not combined streams like PCM/PCB).
+export const GRADE_BANDS = [
+  { label: "Pre-Primary (LKG - UKG)", subjects: ["All Subjects"] },
+  { label: "Primary (1st - 5th Std)", subjects: ["All Subjects"] },
+  {
+    label: "Middle School (6th - 8th Std)",
+    subjects: [
+      "Mathematics",
+      "Science",
+      "Social Science",
+      "English",
+      "Second Language",
+      "Computer Applications",
+    ],
+  },
+  {
+    label: "Secondary (9th - 10th Std)",
+    subjects: [
+      "Mathematics",
+      "Science",
+      "Social Science",
+      "English",
+      "Second Language",
+      "Computer Applications",
+    ],
+  },
+  {
+    label: "Higher Secondary (11th - 12th Std)",
+    subjects: [
+      "Physics",
+      "Chemistry",
+      "Mathematics",
+      "Biology",
+      "Computer Science",
+      "Economics",
+      "Business Studies",
+      "Accountancy",
+      "History",
+      "Political Science",
+      "Geography",
+      "Psychology",
+      "Sociology",
+      "English",
+    ],
+  },
+] as const;
+export type GradeBandLabel = (typeof GRADE_BANDS)[number]["label"];
+
+export const CREATIVE_MUSIC_ITEMS = [
+  "Music - Vocals",
+  "Music - Guitar",
+  "Music - Keyboard / Piano",
+  "Music - Violin",
+  "Music - Drums",
+  "Music - Flute",
+  "Music - Tabla",
+  "Music - Mridangam",
+  "Music - Veena",
+  "Music - Sitar",
+];
+export const CREATIVE_DANCE_ITEMS = [
+  "Dance - Western",
+  "Dance - Folk",
+  "Dance - Group",
+  "Dance - Zumba",
+];
+export const CREATIVE_OTHER_ITEMS = ["Art", "Abacus"];
+export const CREATIVE_LEARNING_ITEMS = [
+  ...CREATIVE_MUSIC_ITEMS,
+  ...CREATIVE_DANCE_ITEMS,
+  ...CREATIVE_OTHER_ITEMS,
 ];
 
-export const OTHER_CATEGORIES = [
+export const SOFT_SKILLS_ITEMS = [
+  "Communication Skills",
+  "Spoken English",
+  "Spoken Hindi",
+  "Presentation Skills",
   "Public Speaking",
   "Personality Development",
-  "AI & Robotics",
-  "Music & Instruments",
-  "Dance",
+  "Interview Skills",
+  "Group Discussion",
 ];
 
-export const ALL_CATEGORIES = [...ACADEMIC_CATEGORIES, ...OTHER_CATEGORIES];
+// Common languages actually taught/offered as a school subject in India.
+export const LANGUAGES = [
+  "Hindi",
+  "English",
+  "Tamil",
+  "Telugu",
+  "Kannada",
+  "Malayalam",
+  "Marathi",
+  "Gujarati",
+  "Bengali",
+  "Punjabi",
+  "Sanskrit",
+  "Urdu",
+];
 
 export const MODES = [
   "Online",
   "Home Tuition",
   "Teacher Location",
   "Community Pooling",
+  "Flexible",
 ] as const;
 export type Mode = (typeof MODES)[number];
 
@@ -39,3 +129,25 @@ export const SCHEDULE_PREFERENCES = [
 ];
 
 export const TEACHER_GENDER_PREFERENCES = ["No preference", "Male", "Female"];
+
+// 2-year steps up to 10 years, coarser non-overlapping bands after.
+export const EXPERIENCE_BANDS = [
+  "0-2 years",
+  "2-4 years",
+  "4-6 years",
+  "6-8 years",
+  "8-10 years",
+  "11-15 years",
+  "16-20 years",
+  "20+ years",
+] as const;
+export type ExperienceBand = (typeof EXPERIENCE_BANDS)[number];
+
+export const AVAILABILITY_SLOTS = [
+  "Weekday mornings",
+  "Weekday afternoons",
+  "Weekday evenings",
+  "Weekend mornings",
+  "Weekend afternoons",
+  "Weekend evenings",
+];

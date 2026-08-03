@@ -72,7 +72,10 @@ function TutorCard({
       </div>
 
       <p className="mt-3 text-xs text-slate-400">
-        Mode: {tutor.teaching_mode || "Not specified"}
+        Mode:{" "}
+        {(tutor.teaching_mode ?? []).length > 0
+          ? tutor.teaching_mode!.join(", ")
+          : "Not specified"}
       </p>
     </div>
   );

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
+import { exportToCsv, type CsvColumn } from "@/lib/csv";
 import MatchModal from "./MatchModal";
 import {
   MATCH_STATUS_LABELS,
@@ -12,7 +13,7 @@ import {
   type TutorRow,
 } from "./types";
 
-type Tab = "requirements" | "tutors" | "attendance";
+type Tab = "requirements" | "tutors" | "attendance" | "logged-classes";
 
 type SessionRow = {
   id: string;
@@ -20,9 +21,21 @@ type SessionRow = {
   match_id: string;
   match_label: string;
   date: string;
+  time_slot: string | null;
+  duration_hours: number | null;
   status: "LOGGED" | "PARENT_CONFIRMED" | "DISPUTED" | "ADMIN_VALIDATED";
   amount: number | null;
+  student_name: string | null;
+  student_grade: string | null;
+  subject: string | null;
+  teacher_display_id: string | null;
+  teacher_name: string | null;
+  teacher_phone: string | null;
+  parent_name: string | null;
+  parent_phone: string | null;
   payment_released: boolean;
+  payout_amount: number | null;
+  payout_commission_percent: number | null;
 };
 
 function formatDate(value: string | null): string {
@@ -35,6 +48,58 @@ function formatDate(value: string | null): string {
     year: "numeric",
   });
 }
+
+const REQUIREMENT_COLUMNS: CsvColumn<RequirementRow>[] = [
+  { header: "Requirement ID", value: (r) => r.display_id },
+  { header: "Parent Name", value: (r) => r.parent_name },
+  { header: "Parent Phone", value: (r) => r.parent_phone },
+  { header: "Student Name", value: (r) => r.student_name },
+  { header: "Student Grade", value: (r) => r.student_grade },
+  { header: "Subject", value: (r) => r.subject },
+  { header: "Mode", value: (r) => (r.mode ?? []).join("; ") },
+  { header: "Location", value: (r) => r.location },
+  { header: "Budget", value: (r) => r.budget },
+  { header: "Submitted", value: (r) => formatDate(r.created_at) },
+  { header: "Status", value: (r) => (r.match_status ? MATCH_STATUS_LABELS[r.match_status] : "No match yet") },
+  { header: "Teacher Name", value: (r) => r.teacher_name },
+];
+
+const TUTOR_COLUMNS: CsvColumn<TutorRow>[] = [
+  { header: "Teacher ID", value: (r) => r.display_id },
+  { header: "Full Name", value: (r) => r.name },
+  { header: "Phone", value: (r) => r.phone },
+  { header: "Email", value: (r) => r.email },
+  { header: "Qualification", value: (r) => r.qualification },
+  { header: "Experience", value: (r) => r.experience },
+  { header: "Tutoring For", value: (r) => (r.tutoring_for ?? []).join("; ") },
+  { header: "Boards", value: (r) => (r.boards ?? []).join("; ") },
+  { header: "Subjects", value: (r) => (r.subjects ?? []).join("; ") },
+  { header: "Locations", value: (r) => (r.preferred_locations ?? []).join("; ") },
+  { header: "Mode", value: (r) => (r.teaching_mode ?? []).join("; ") },
+  { header: "KYC Status", value: (r) => r.kyc_status },
+  { header: "Total Hours", value: (r) => r.total_hours },
+  { header: "Students Trained", value: (r) => r.students_trained },
+  { header: "Active Batches", value: (r) => r.active_batches },
+  { header: "Rating", value: (r) => r.rating_avg },
+  { header: "Review Count", value: (r) => r.rating_count },
+];
+
+const SESSION_COLUMNS: CsvColumn<SessionRow>[] = [
+  { header: "Class ID", value: (r) => r.display_id },
+  { header: "Match", value: (r) => r.match_label },
+  { header: "Student Name", value: (r) => r.student_name },
+  { header: "Student Grade", value: (r) => r.student_grade },
+  { header: "Subject", value: (r) => r.subject },
+  { header: "Teacher Name", value: (r) => r.teacher_name },
+  { header: "Teacher Phone", value: (r) => r.teacher_phone },
+  { header: "Date", value: (r) => formatDate(r.date) },
+  { header: "Time", value: (r) => r.time_slot },
+  { header: "Hours", value: (r) => r.duration_hours },
+  { header: "Amount", value: (r) => r.amount },
+  { header: "Status", value: (r) => r.status },
+  { header: "Paid", value: (r) => (r.payment_released ? "Yes" : "No") },
+  { header: "Payout Amount", value: (r) => r.payout_amount },
+];
 
 function RequirementStatusBadge({ row }: { row: RequirementRow }) {
   if (!row.match_status) {
@@ -120,7 +185,7 @@ export default function AdminDashboardPage() {
     const [requirementsRes, tutorsRes, sessionsRes] = await Promise.all([
       supabase.rpc("admin_requirements_queue"),
       supabase.rpc("admin_teachers_directory"),
-      supabase.rpc("my_sessions"),
+      supabase.rpc("admin_sessions_queue"),
     ]);
 
     setLoadError(null);
@@ -159,6 +224,8 @@ export default function AdminDashboardPage() {
     return tutors.filter((row) => {
       const haystack = `${(row.subjects ?? []).join(" ")} ${(
         row.preferred_locations ?? []
+      ).join(" ")} ${(row.tutoring_for ?? []).join(" ")} ${(
+        row.boards ?? []
       ).join(" ")}`.toLowerCase();
       return haystack.includes(term);
     });
@@ -168,6 +235,21 @@ export default function AdminDashboardPage() {
     () => requirements.filter((row) => !row.match_status).length,
     [requirements]
   );
+
+  function handleExport() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (activeTab === "requirements") {
+      exportToCsv(`parent-requirements-${today}.csv`, REQUIREMENT_COLUMNS, filteredRequirements);
+    } else if (activeTab === "tutors") {
+      exportToCsv(`tutor-applications-${today}.csv`, TUTOR_COLUMNS, filteredTutors);
+    } else {
+      exportToCsv(
+        activeTab === "attendance" ? `attendance-payouts-${today}.csv` : `logged-classes-${today}.csv`,
+        SESSION_COLUMNS,
+        sessions
+      );
+    }
+  }
 
   const awaitingValidation = sessions.filter((s) => s.status === "PARENT_CONFIRMED");
   const payable = sessions.filter(
@@ -310,17 +392,35 @@ export default function AdminDashboardPage() {
                   </span>
                 )}
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("logged-classes")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "logged-classes" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Logged Classes
+              </button>
             </div>
 
-            {activeTab !== "attendance" && (
-              <input
-                type="text"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by location or subject…"
-                className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
-              />
-            )}
+            <div className="flex items-center gap-3">
+              {activeTab !== "attendance" && activeTab !== "logged-classes" && (
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                  placeholder="Search by location or subject…"
+                  className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
+                />
+              )}
+              <button
+                type="button"
+                onClick={handleExport}
+                className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-slate-50"
+              >
+                Export to Excel
+              </button>
+            </div>
           </div>
 
           <div className="mt-6 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -383,13 +483,15 @@ export default function AdminDashboardPage() {
                 </tbody>
               </table>
             ) : activeTab === "tutors" ? (
-              <table className="w-full min-w-[900px] text-left text-sm">
+              <table className="w-full min-w-[1400px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <th className="px-4 py-3">Full Name</th>
                     <th className="px-4 py-3">Qualifications</th>
                     <th className="px-4 py-3">Experience</th>
+                    <th className="px-4 py-3">Tutoring For / Boards</th>
                     <th className="px-4 py-3">Subjects</th>
+                    <th className="px-4 py-3">Languages</th>
                     <th className="px-4 py-3">Locations</th>
                     <th className="px-4 py-3">Mode</th>
                     <th className="px-4 py-3">Phone</th>
@@ -398,19 +500,71 @@ export default function AdminDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredTutors.length === 0 ? (
-                    <EmptyState message="No tutor applications match your filters." colSpan={8} />
+                    <EmptyState message="No tutor applications match your filters." colSpan={10} />
                   ) : (
                     filteredTutors.map((row) => (
                       <tr key={row.id} className="align-top">
-                        <td className="px-4 py-4 font-medium text-navy">{row.name || "—"}</td>
+                        <td className="px-4 py-4 font-medium text-navy">
+                          <div className="flex items-center gap-2.5">
+                            {row.photo_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={row.photo_url}
+                                alt=""
+                                className="h-8 w-8 shrink-0 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy/10 text-xs font-semibold text-navy">
+                                {(row.name || "?").charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                            <span>{row.name || "—"}</span>
+                          </div>
+                        </td>
                         <td className="px-4 py-4 text-slate-600">{row.qualification || "—"}</td>
                         <td className="px-4 py-4 text-slate-600">{row.experience || "—"}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-1.5">
+                            {[...(row.tutoring_for ?? []), ...(row.boards ?? [])].length > 0 ? (
+                              [...(row.tutoring_for ?? []), ...(row.boards ?? [])].map((item) => (
+                                <span key={item} className="rounded-full bg-navy/5 px-2.5 py-1 text-[11px] font-medium text-navy">
+                                  {item}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-4">
                           <div className="flex flex-wrap gap-1.5">
                             {(row.subjects ?? []).length > 0 ? (
                               row.subjects!.map((subject) => (
                                 <span key={subject} className="rounded-full bg-navy/5 px-2.5 py-1 text-[11px] font-medium text-navy">
                                   {subject}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-1.5">
+                            {(row.languages ?? []).length > 0 ? (
+                              row.languages!.map((lang) => (
+                                <span
+                                  key={lang.language}
+                                  title={[
+                                    lang.can_read ? "Read" : null,
+                                    lang.can_write ? "Write" : null,
+                                    lang.can_speak ? "Speak" : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(", ")}
+                                  className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+                                >
+                                  {lang.language}
                                 </span>
                               ))
                             ) : (
@@ -431,7 +585,19 @@ export default function AdminDashboardPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4 text-slate-600">{row.teaching_mode || "—"}</td>
+                        <td className="px-4 py-4">
+                          <div className="flex flex-wrap gap-1.5">
+                            {(row.teaching_mode ?? []).length > 0 ? (
+                              row.teaching_mode!.map((mode) => (
+                                <span key={mode} className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
+                                  {mode}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="text-slate-400">—</span>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-4 py-4 text-slate-600">
                           {row.phone ? (
                             <a href={`tel:${row.phone}`} className="hover:text-amber-600">
@@ -490,7 +656,7 @@ export default function AdminDashboardPage() {
                   )}
                 </tbody>
               </table>
-            ) : (
+            ) : activeTab === "attendance" ? (
               <div className="divide-y divide-slate-100">
                 <div className="px-4 py-4">
                   <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
@@ -551,6 +717,60 @@ export default function AdminDashboardPage() {
                   </p>
                 </div>
               </div>
+            ) : (
+              <table className="w-full min-w-[1100px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <th className="px-4 py-3">Student</th>
+                    <th className="px-4 py-3">Teacher</th>
+                    <th className="px-4 py-3">Subject</th>
+                    <th className="px-4 py-3">Date &amp; Time</th>
+                    <th className="px-4 py-3">Hours</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Payout</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sessions.length === 0 ? (
+                    <EmptyState message="No classes logged yet." colSpan={8} />
+                  ) : (
+                    sessions.map((s) => (
+                      <tr key={s.id} className="align-top">
+                        <td className="px-4 py-4 text-slate-600">
+                          {s.student_name || "—"}
+                          {s.student_grade ? ` · ${s.student_grade}` : ""}
+                        </td>
+                        <td className="px-4 py-4 font-medium text-navy">
+                          {s.teacher_name || "—"}
+                          {s.teacher_phone && (
+                            <a href={`tel:${s.teacher_phone}`} className="block text-xs font-normal text-slate-400 hover:text-amber-600">
+                              {s.teacher_phone}
+                            </a>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-slate-600">{s.subject || "—"}</td>
+                        <td className="px-4 py-4 text-slate-500">
+                          {formatDate(s.date)}
+                          {s.time_slot ? ` · ${s.time_slot}` : ""}
+                        </td>
+                        <td className="px-4 py-4 text-slate-600">{s.duration_hours != null ? `${s.duration_hours} hrs` : "—"}</td>
+                        <td className="px-4 py-4 text-slate-600">{s.amount != null ? `₹${s.amount}` : "—"}</td>
+                        <td className="px-4 py-4 text-slate-600">{s.status}</td>
+                        <td className="px-4 py-4">
+                          {s.payment_released ? (
+                            <span className="text-emerald-600">
+                              Paid{s.payout_amount != null ? ` (₹${s.payout_amount})` : ""}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">Pending</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             )}
           </div>
         </div>

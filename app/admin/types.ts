@@ -9,7 +9,7 @@ export type RequirementRow = {
   id: string;
   display_id: string;
   subject: string;
-  mode: string;
+  mode: string[];
   location: string | null;
   schedule_pref: string | null;
   budget: number | null;
@@ -35,6 +35,13 @@ export type RequirementRow = {
   teacher_name: string | null;
 };
 
+export type TutorLanguage = {
+  language: string;
+  can_read: boolean;
+  can_write: boolean;
+  can_speak: boolean;
+};
+
 export type TutorRow = {
   id: string;
   display_id: string;
@@ -45,13 +52,22 @@ export type TutorRow = {
   experience: string | null;
   subjects: string[] | null;
   preferred_locations: string[] | null;
-  teaching_mode: string | null;
+  teaching_mode: string[] | null;
   availability: string[] | null;
   rate_expectation: number | null;
   bank_upi_ref: string | null;
   kyc_status: string;
   kyc_document_path: string | null;
+  photo_url: string | null;
+  tutoring_for: string[] | null;
+  boards: string[] | null;
   rating: number | null;
+  languages: TutorLanguage[] | null;
+  total_hours: number | null;
+  students_trained: number | null;
+  active_batches: number | null;
+  rating_avg: number | null;
+  rating_count: number | null;
 };
 
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
