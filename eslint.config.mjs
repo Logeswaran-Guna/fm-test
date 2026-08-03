@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Archived Express prototype — plain CommonJS reference code, not
+    // part of the active Next.js app, not meant to be linted as such.
+    "express-prototype-reference/**",
   ]),
 ]);
 

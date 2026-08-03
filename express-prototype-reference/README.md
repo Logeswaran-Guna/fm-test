@@ -1,3 +1,10 @@
+> **Archived reference only.** This Express + JSON-file prototype is not run
+> by the live app anymore. Its business logic (auth, matching state machine,
+> attendance/payout ledger, friendly-ID system) was ported into Supabase
+> Postgres functions and RLS policies under `../supabase/migrations/`, which
+> is what the Next.js app in the rest of this repo actually talks to. Kept
+> here for history and as a design reference.
+
 # Future Minds — Backend (Module 1: Data Model + Auth)
 
 Working starter project implementing **Section 5 (Data Model)** and **Section 4.7 / 7.1
