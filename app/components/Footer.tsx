@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="relative overflow-hidden bg-navy py-14 text-center text-white">
@@ -44,6 +46,9 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-white/10 pt-6 text-[11.5px] text-white/40">
           <span>Future Minds — Learn Today. Lead Tomorrow.</span>
+          <Link href="/privacy-policy" className="underline hover:text-white/70">
+            Privacy Policy &amp; Terms
+          </Link>
           <span>© {new Date().getFullYear()} Future Minds. All rights reserved.</span>
         </div>
       </div>

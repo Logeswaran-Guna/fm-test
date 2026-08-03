@@ -729,7 +729,16 @@ export default function BecomeATutorPage() {
                   />
                   <span>
                     I consent to Future Minds storing and processing my tutor
-                    application under DPDP Act norms.
+                    application under DPDP Act norms, as described in the{" "}
+                    <a
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-amber-700 underline"
+                    >
+                      Privacy Policy &amp; Terms
+                    </a>
+                    .
                   </span>
                 </label>
                 {errors.consent && (

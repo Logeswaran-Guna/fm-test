@@ -651,7 +651,16 @@ export default function FindTutorPage() {
                   />
                   <span>
                     I consent to Future Minds processing this requirement
-                    under DPDP Act norms.
+                    under DPDP Act norms, as described in the{" "}
+                    <a
+                      href="/privacy-policy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-amber-700 underline"
+                    >
+                      Privacy Policy &amp; Terms
+                    </a>
+                    .
                   </span>
                 </label>
                 {errors.consent && (
