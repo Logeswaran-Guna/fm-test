@@ -19,6 +19,7 @@ create or replace function submit_requirement(
   p_schedule_pref text default null,
   p_pricing_type text default null,
   p_budget numeric default null,
+  p_preferred_teacher_gender text default null,
   p_student_id text default null,       -- pass to enroll an EXISTING student in another subject
   p_student_name text default null,     -- pass (with age_grade) to register a NEW student
   p_age_grade text default null,
@@ -28,7 +29,8 @@ create or replace function submit_requirement(
   p_area_city text default null,
   p_pincode text default null,
   p_whatsapp text default null,
-  p_notes text default null
+  p_notes text default null,
+  p_prior_tutoring_experience text default null
 )
 returns requirements
 language plpgsql security definer set search_path = public as $$
@@ -49,7 +51,9 @@ begin
       address = coalesce(p_address, address),
       area_city = coalesce(p_area_city, area_city),
       pincode = coalesce(p_pincode, pincode),
-      whatsapp = coalesce(p_whatsapp, whatsapp)
+      whatsapp = coalesce(p_whatsapp, whatsapp),
+      notes = coalesce(p_notes, notes),
+      prior_tutoring_experience = coalesce(p_prior_tutoring_experience, prior_tutoring_experience)
     where id = v_student.id
     returning * into v_student;
   elsif p_student_name is not null or p_age_grade is not null then
@@ -57,13 +61,13 @@ begin
     if v_count >= 4 then
       raise exception 'You can register up to 4 students per parent account. To add a subject for an existing student instead, pass their Student ID.';
     end if;
-    insert into students (display_id, parent_id, student_name, age_grade, age, gender, address, area_city, pincode, whatsapp, notes)
-    values (next_daily_id('student_daily', 'FMSTU'), me.id, p_student_name, p_age_grade, p_age, p_gender, p_address, p_area_city, p_pincode, p_whatsapp, p_notes)
+    insert into students (display_id, parent_id, student_name, age_grade, age, gender, address, area_city, pincode, whatsapp, notes, prior_tutoring_experience)
+    values (next_daily_id('student_daily', 'FMSTU'), me.id, p_student_name, p_age_grade, p_age, p_gender, p_address, p_area_city, p_pincode, p_whatsapp, p_notes, p_prior_tutoring_experience)
     returning * into v_student;
   end if;
 
-  insert into requirements (display_id, parent_id, student_id, subject, mode, location, schedule_pref, pricing_type, budget)
-  values (next_daily_id('requirement_daily', 'FMREQ'), me.id, v_student.id, p_subject, p_mode, p_location, p_schedule_pref, p_pricing_type, p_budget)
+  insert into requirements (display_id, parent_id, student_id, subject, mode, location, schedule_pref, pricing_type, budget, preferred_teacher_gender)
+  values (next_daily_id('requirement_daily', 'FMREQ'), me.id, v_student.id, p_subject, p_mode, p_location, p_schedule_pref, p_pricing_type, p_budget, p_preferred_teacher_gender)
   returning * into v_req;
 
   return v_req;
@@ -463,5 +467,49 @@ begin
   update class_sessions set payout_id = v_payout.id where id = any(v_session_ids);
 
   return v_payout;
+end;
+$$;
+
+-- === KYC: teacher records where their uploaded ID document landed =========
+-- Called right after a successful upload to the private kyc-documents
+-- storage bucket (see 0007_kyc_storage.sql). Resets status to PENDING so a
+-- re-upload (e.g. after a rejection) goes back through admin review.
+create or replace function set_kyc_document(p_path text)
+returns teacher_profiles
+language plpgsql security definer set search_path = public as $$
+declare
+  me profiles := current_profile();
+  v_profile teacher_profiles;
+begin
+  if me.role <> 'TEACHER' then raise exception 'Teacher only'; end if;
+
+  update teacher_profiles
+  set kyc_document_path = p_path, kyc_status = 'PENDING'
+  where user_id = me.id
+  returning * into v_profile;
+
+  if v_profile.id is null then raise exception 'Complete your teacher profile before uploading KYC documents'; end if;
+  return v_profile;
+end;
+$$;
+
+-- === KYC: admin approves or rejects a teacher's submitted ID document =====
+create or replace function set_teacher_kyc_status(p_teacher_id text, p_status text)
+returns teacher_profiles
+language plpgsql security definer set search_path = public as $$
+declare
+  me profiles := current_profile();
+  v_teacher teacher_profiles;
+begin
+  if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
+  if p_status not in ('APPROVED', 'REJECTED', 'PENDING') then
+    raise exception 'Status must be APPROVED, REJECTED, or PENDING';
+  end if;
+
+  v_teacher := find_teacher(p_teacher_id);
+  if v_teacher.id is null then raise exception 'Teacher profile not found'; end if;
+
+  update teacher_profiles set kyc_status = p_status where id = v_teacher.id returning * into v_teacher;
+  return v_teacher;
 end;
 $$;

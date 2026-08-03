@@ -5,12 +5,10 @@ import Link from "next/link";
 import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
+import { ACADEMIC_CATEGORIES, MODES, OTHER_CATEGORIES, type Mode } from "@/lib/categories";
 
 const EXPERIENCE_OPTIONS = ["0-2 years", "2-5 years", "5+ years"] as const;
-const TEACHING_MODES = ["Home Tuition", "Online Classes", "Both"] as const;
-
 type ExperienceRange = (typeof EXPERIENCE_OPTIONS)[number];
-type TeachingMode = (typeof TEACHING_MODES)[number];
 
 type FormState = {
   fullName: string;
@@ -19,9 +17,11 @@ type FormState = {
   phoneNumber: string;
   qualifications: string;
   yearsExperience: ExperienceRange | "";
-  subjectsHandled: string;
-  preferredLocations: string;
-  teachingMode: TeachingMode | "";
+  expectedRate: string;
+  subjects: string[];
+  serviceArea: string;
+  bankUpiRef: string;
+  teachingMode: Mode | "";
   consent: boolean;
 };
 
@@ -34,20 +34,15 @@ const initialFormState: FormState = {
   phoneNumber: "",
   qualifications: "",
   yearsExperience: "",
-  subjectsHandled: "",
-  preferredLocations: "",
+  expectedRate: "",
+  subjects: [],
+  serviceArea: "",
+  bankUpiRef: "",
   teachingMode: "",
   consent: false,
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function toArray(value: string): string[] {
-  return value
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-}
 
 function validate(form: FormState): FormErrors {
   const errors: FormErrors = {};
@@ -79,14 +74,14 @@ function validate(form: FormState): FormErrors {
   if (!form.yearsExperience)
     errors.yearsExperience = "Please select your experience range.";
 
-  if (!toArray(form.subjectsHandled).length)
-    errors.subjectsHandled = "List at least one subject you can teach.";
+  if (form.subjects.length === 0)
+    errors.subjects = "Pick at least one subject or area you teach.";
 
-  if (!toArray(form.preferredLocations).length)
-    errors.preferredLocations = "List at least one preferred location.";
+  if (!form.serviceArea.trim())
+    errors.serviceArea = "Service area / address is required.";
 
   if (!form.teachingMode)
-    errors.teachingMode = "Please select a teaching mode.";
+    errors.teachingMode = "Please select a mode.";
 
   if (!form.consent)
     errors.consent =
@@ -98,6 +93,7 @@ function validate(form: FormState): FormErrors {
 export default function BecomeATutorPage() {
   const [form, setForm] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [idFile, setIdFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -109,6 +105,16 @@ export default function BecomeATutorPage() {
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
+  }
+
+  function toggleSubject(value: string) {
+    setForm((prev) => ({
+      ...prev,
+      subjects: prev.subjects.includes(value)
+        ? prev.subjects.filter((s) => s !== value)
+        : [...prev.subjects, value],
+    }));
+    setErrors((prev) => (prev.subjects ? { ...prev, subjects: undefined } : prev));
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -140,13 +146,37 @@ export default function BecomeATutorPage() {
       const { error } = await supabase.rpc("upsert_teacher_profile", {
         p_qualification: form.qualifications.trim(),
         p_experience: form.yearsExperience,
-        p_subjects: toArray(form.subjectsHandled),
-        p_preferred_locations: toArray(form.preferredLocations),
+        p_subjects: form.subjects,
+        p_preferred_locations: [form.serviceArea.trim()],
         p_teaching_mode: form.teachingMode,
+        p_rate_expectation: form.expectedRate ? Number(form.expectedRate) : null,
+        p_bank_upi_ref: form.bankUpiRef.trim() || null,
         p_whatsapp: form.phoneNumber.trim(),
+        p_area_city: form.serviceArea.trim(),
       });
 
       if (error) throw new Error(error.message);
+
+      if (idFile) {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          const path = `${user.id}/${Date.now()}-${idFile.name}`;
+          const { error: uploadError } = await supabase.storage
+            .from("kyc-documents")
+            .upload(path, idFile);
+          if (uploadError) {
+            throw new Error(
+              `Profile saved, but the ID document upload failed: ${uploadError.message}. You can try uploading it again later from your dashboard.`
+            );
+          }
+          const { error: kycError } = await supabase.rpc("set_kyc_document", {
+            p_path: path,
+          });
+          if (kycError) throw new Error(kycError.message);
+        }
+      }
 
       setSuccess(true);
     } catch (err) {
@@ -162,6 +192,7 @@ export default function BecomeATutorPage() {
 
   function handleReset() {
     setForm(initialFormState);
+    setIdFile(null);
     setErrors({});
     setSubmitError(null);
     setNeedsConfirmation(false);
@@ -176,7 +207,7 @@ export default function BecomeATutorPage() {
           <div className="mx-auto max-w-3xl px-6 py-14 text-center sm:px-8">
             <div className="mx-auto flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
               <span className="h-px w-4 bg-amber" />
-              Join Our Educator Network
+              Join Our Educator Network · Step 1 of 3
               <span className="h-px w-4 bg-amber" />
             </div>
             <h1 className="mt-4 font-heading text-3xl font-bold text-white sm:text-4xl">
@@ -269,7 +300,7 @@ export default function BecomeATutorPage() {
                 placeholder="e.g. 98765 43210"
               />
               <Field
-                label="Primary Qualifications"
+                label="Highest Qualification"
                 value={form.qualifications}
                 onChange={(value) => updateField("qualifications", value)}
                 error={errors.qualifications}
@@ -311,28 +342,28 @@ export default function BecomeATutorPage() {
               </div>
 
               <Field
-                label="Subjects You Can Teach"
-                value={form.subjectsHandled}
-                onChange={(value) => updateField("subjectsHandled", value)}
-                error={errors.subjectsHandled}
-                placeholder="e.g. Mathematics, Physics, Spoken English"
-                hint="Separate multiple subjects with commas."
+                label="Expected Rate (₹ / month)"
+                type="number"
+                value={form.expectedRate}
+                onChange={(value) => updateField("expectedRate", value)}
+                placeholder="e.g. 4000"
+                hint="Optional — helps us match your expectations with parent budgets."
               />
+
               <Field
-                label="Preferred Locations / Areas"
-                value={form.preferredLocations}
-                onChange={(value) => updateField("preferredLocations", value)}
-                error={errors.preferredLocations}
-                placeholder="e.g. Anna Nagar, Adyar, Online"
-                hint="Separate multiple areas with commas."
+                label="Service Area / Address"
+                value={form.serviceArea}
+                onChange={(value) => updateField("serviceArea", value)}
+                error={errors.serviceArea}
+                placeholder="e.g. Anna Nagar, Coimbatore"
               />
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Teaching Mode
+                  Mode
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {TEACHING_MODES.map((mode) => {
+                  {MODES.map((mode) => {
                     const selected = form.teachingMode === mode;
                     return (
                       <button
@@ -356,6 +387,66 @@ export default function BecomeATutorPage() {
                     {errors.teachingMode}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Subjects &amp; classes you teach
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {ACADEMIC_CATEGORIES.map((c) => (
+                    <Chip
+                      key={c}
+                      label={c}
+                      selected={form.subjects.includes(c)}
+                      onClick={() => toggleSubject(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Other areas you teach
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {OTHER_CATEGORIES.map((c) => (
+                    <Chip
+                      key={c}
+                      label={c}
+                      selected={form.subjects.includes(c)}
+                      onClick={() => toggleSubject(c)}
+                    />
+                  ))}
+                </div>
+                {errors.subjects && (
+                  <p className="mt-1.5 text-xs text-red-600">{errors.subjects}</p>
+                )}
+              </div>
+
+              <Field
+                label="Bank Account / UPI ID"
+                value={form.bankUpiRef}
+                onChange={(value) => updateField("bankUpiRef", value)}
+                placeholder="e.g. priya@upi or account details"
+                hint="Optional now — required before your first payout."
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Government ID (for verification)
+                </label>
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+                  className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-amber/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-navy hover:file:bg-amber/20"
+                />
+                <p className="mt-1.5 text-xs text-slate-400">
+                  Optional now, but required before you can be matched with
+                  families. Stored privately — only you and our admin team
+                  can view it.
+                </p>
               </div>
 
               <div>
@@ -398,6 +489,31 @@ export default function BecomeATutorPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+function Chip({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+        selected
+          ? "border-amber bg-amber/10 text-navy"
+          : "border-slate-200 bg-white text-slate-600 hover:border-amber/50"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 

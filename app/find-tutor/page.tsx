@@ -4,9 +4,16 @@ import { useState, type FormEvent } from "react";
 import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
+import {
+  ALL_CATEGORIES,
+  MODES,
+  SCHEDULE_PREFERENCES,
+  TEACHER_GENDER_PREFERENCES,
+  type Mode,
+} from "@/lib/categories";
 
-const TEACHING_MODES = ["Home Tuition", "Online Classes", "Both"] as const;
-type TeachingMode = (typeof TEACHING_MODES)[number];
+const PRICING_TYPES = ["Fixed budget", "Negotiable"] as const;
+type PricingType = (typeof PRICING_TYPES)[number];
 
 type FormState = {
   parentName: string;
@@ -17,7 +24,13 @@ type FormState = {
   subjectsNeeded: string;
   locationAddress: string;
   phoneNumber: string;
-  mode: TeachingMode | "";
+  mode: Mode | "";
+  schedulePref: string;
+  pricingType: PricingType;
+  budget: number;
+  preferredGender: string;
+  priorExperience: string;
+  notes: string;
   consent: boolean;
 };
 
@@ -33,6 +46,12 @@ const initialFormState: FormState = {
   locationAddress: "",
   phoneNumber: "",
   mode: "",
+  schedulePref: SCHEDULE_PREFERENCES[0],
+  pricingType: "Fixed budget",
+  budget: 3500,
+  preferredGender: TEACHER_GENDER_PREFERENCES[0],
+  priorExperience: "",
+  notes: "",
   consent: false,
 };
 
@@ -61,7 +80,7 @@ function validate(form: FormState): FormErrors {
     errors.subjectsNeeded = "Please list at least one subject.";
   if (!form.locationAddress.trim())
     errors.locationAddress = "Location / address is required.";
-  if (!form.mode) errors.mode = "Please select a teaching mode.";
+  if (!form.mode) errors.mode = "Please select a mode.";
 
   const digitsOnly = form.phoneNumber.replace(/\D/g, "");
   if (!form.phoneNumber.trim()) {
@@ -135,10 +154,16 @@ export default function FindTutorPage() {
           p_mode: form.mode,
           p_consent: true,
           p_location: form.locationAddress.trim(),
+          p_schedule_pref: form.schedulePref,
+          p_pricing_type: form.pricingType,
+          p_budget: form.budget,
+          p_preferred_teacher_gender: form.preferredGender,
           p_student_id: studentId ?? undefined,
           p_student_name: studentId ? undefined : form.studentName.trim(),
           p_age_grade: studentId ? undefined : form.gradeClass.trim(),
           p_whatsapp: form.phoneNumber.trim(),
+          p_notes: form.notes.trim() || undefined,
+          p_prior_tutoring_experience: form.priorExperience.trim() || undefined,
         });
 
         if (error) throw new Error(error.message);
@@ -174,7 +199,7 @@ export default function FindTutorPage() {
           <div className="mx-auto max-w-3xl px-6 py-14 text-center sm:px-8">
             <div className="mx-auto flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
               <span className="h-px w-4 bg-amber" />
-              Get Matched
+              Get Matched · Step 1 of 4
               <span className="h-px w-4 bg-amber" />
             </div>
             <h1 className="mt-4 font-heading text-3xl font-bold text-white sm:text-4xl">
@@ -229,6 +254,9 @@ export default function FindTutorPage() {
               noValidate
               className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
             >
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Your details
+              </div>
               <Field
                 label="Parent Name"
                 value={form.parentName}
@@ -254,35 +282,6 @@ export default function FindTutorPage() {
                 placeholder="At least 8 characters"
               />
               <Field
-                label="Student Name"
-                value={form.studentName}
-                onChange={(value) => updateField("studentName", value)}
-                error={errors.studentName}
-                placeholder="e.g. Aarav Krishnan"
-              />
-              <Field
-                label="Grade / Class"
-                value={form.gradeClass}
-                onChange={(value) => updateField("gradeClass", value)}
-                error={errors.gradeClass}
-                placeholder="e.g. Class 10, CBSE"
-              />
-              <Field
-                label="Subjects Needed"
-                value={form.subjectsNeeded}
-                onChange={(value) => updateField("subjectsNeeded", value)}
-                error={errors.subjectsNeeded}
-                placeholder="e.g. Mathematics, Physics"
-                hint="Separate multiple subjects with commas — each gets tracked separately."
-              />
-              <Field
-                label="Location / Address"
-                value={form.locationAddress}
-                onChange={(value) => updateField("locationAddress", value)}
-                error={errors.locationAddress}
-                placeholder="e.g. Anna Nagar, Coimbatore"
-              />
-              <Field
                 label="Phone Number"
                 value={form.phoneNumber}
                 onChange={(value) => updateField("phoneNumber", value)}
@@ -291,12 +290,30 @@ export default function FindTutorPage() {
                 type="tel"
               />
 
+              <div className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                What you&apos;re looking for
+              </div>
+              <Field
+                label="Subject / Skill"
+                value={form.subjectsNeeded}
+                onChange={(value) => updateField("subjectsNeeded", value)}
+                error={errors.subjectsNeeded}
+                placeholder="e.g. Class 10 CBSE Mathematics"
+                hint="Separate multiple subjects with commas — each gets tracked separately."
+                list="subject-options"
+              />
+              <datalist id="subject-options">
+                {ALL_CATEGORIES.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Teaching Mode
+                  Mode
                 </label>
                 <div className="flex flex-wrap gap-2.5">
-                  {TEACHING_MODES.map((mode) => {
+                  {MODES.map((mode) => {
                     const selected = form.mode === mode;
                     return (
                       <button
@@ -318,6 +335,132 @@ export default function FindTutorPage() {
                 {errors.mode && (
                   <p className="mt-1.5 text-xs text-red-600">{errors.mode}</p>
                 )}
+              </div>
+
+              <Field
+                label="Location / Address"
+                value={form.locationAddress}
+                onChange={(value) => updateField("locationAddress", value)}
+                error={errors.locationAddress}
+                placeholder="e.g. Anna Nagar, Coimbatore"
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Schedule preference
+                </label>
+                <select
+                  value={form.schedulePref}
+                  onChange={(e) => updateField("schedulePref", e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                >
+                  {SCHEDULE_PREFERENCES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Pricing
+                </label>
+                <div className="flex gap-2.5">
+                  {PRICING_TYPES.map((pt) => {
+                    const selected = form.pricingType === pt;
+                    return (
+                      <button
+                        type="button"
+                        key={pt}
+                        onClick={() => updateField("pricingType", pt)}
+                        aria-pressed={selected}
+                        className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                          selected
+                            ? "border-amber bg-amber/10 text-navy"
+                            : "border-slate-200 bg-white text-slate-600 hover:border-amber/50"
+                        }`}
+                      >
+                        {pt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Monthly budget — <b className="text-amber-600">₹{form.budget.toLocaleString("en-IN")}</b>
+                </label>
+                <input
+                  type="range"
+                  min={500}
+                  max={12000}
+                  step={250}
+                  value={form.budget}
+                  onChange={(e) => updateField("budget", Number(e.target.value))}
+                  className="w-full accent-amber-500"
+                />
+                <div className="flex justify-between text-xs text-slate-400">
+                  <span>₹500</span>
+                  <span>₹12,000</span>
+                </div>
+              </div>
+
+              <div className="pt-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                About the learner
+              </div>
+              <Field
+                label="Student Name"
+                value={form.studentName}
+                onChange={(value) => updateField("studentName", value)}
+                error={errors.studentName}
+                placeholder="e.g. Aarav Krishnan"
+              />
+              <Field
+                label="Age / Grade / Class"
+                value={form.gradeClass}
+                onChange={(value) => updateField("gradeClass", value)}
+                error={errors.gradeClass}
+                placeholder="e.g. Class 10, CBSE"
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Preferred teacher gender
+                </label>
+                <select
+                  value={form.preferredGender}
+                  onChange={(e) => updateField("preferredGender", e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                >
+                  {TEACHER_GENDER_PREFERENCES.map((g) => (
+                    <option key={g} value={g}>
+                      {g}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Field
+                label="Prior tutoring experience"
+                value={form.priorExperience}
+                onChange={(value) => updateField("priorExperience", value)}
+                placeholder="e.g. Had a home tutor for 6 months last year"
+                hint="Optional — helps our matching team."
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Additional notes / special requirements
+                </label>
+                <textarea
+                  value={form.notes}
+                  onChange={(e) => updateField("notes", e.target.value)}
+                  rows={3}
+                  placeholder="Optional"
+                  className="w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
+                />
               </div>
 
               <div>
@@ -371,6 +514,7 @@ function Field({
   placeholder,
   type = "text",
   hint,
+  list,
 }: {
   label: string;
   value: string;
@@ -379,6 +523,7 @@ function Field({
   placeholder?: string;
   type?: string;
   hint?: string;
+  list?: string;
 }) {
   return (
     <div>
@@ -390,6 +535,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
+        list={list}
         className={`w-full rounded-lg border px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50 ${
           error ? "border-red-400" : "border-slate-200"
         }`}

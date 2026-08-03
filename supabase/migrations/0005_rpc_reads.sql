@@ -58,7 +58,7 @@ $$;
 create or replace function admin_requirements_queue()
 returns table (
   id uuid, display_id text, subject text, mode text, location text, schedule_pref text,
-  budget numeric, status requirement_status, created_at timestamptz,
+  budget numeric, preferred_teacher_gender text, status requirement_status, created_at timestamptz,
   parent_display_id text, parent_name text, parent_phone text,
   student_display_id text, student_name text, student_grade text,
   match_id uuid, match_label text, match_status match_status, match_score numeric,
@@ -71,7 +71,7 @@ begin
   if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
 
   return query
-  select r.id, r.display_id, r.subject, r.mode, r.location, r.schedule_pref, r.budget, r.status, r.created_at,
+  select r.id, r.display_id, r.subject, r.mode, r.location, r.schedule_pref, r.budget, r.preferred_teacher_gender, r.status, r.created_at,
     p.display_id, p.name, p.phone,
     s.display_id, s.student_name, s.age_grade,
     bm.id, case when bm.id is not null then match_display_id(bm) else null end, bm.status, bm.match_score,
@@ -98,7 +98,7 @@ returns table (
   id uuid, display_id text, name text, phone text, email text, qualification text,
   experience text, subjects text[], preferred_locations text[], teaching_mode text,
   availability text[], rate_expectation numeric,
-  bank_upi_ref text, kyc_status text, rating numeric
+  bank_upi_ref text, kyc_status text, kyc_document_path text, rating numeric
 )
 language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
@@ -108,7 +108,7 @@ begin
   return query
   select t.id, t.display_id, u.name, u.phone, u.email, t.qualification, t.experience,
     t.subjects, t.preferred_locations, t.teaching_mode, t.availability, t.rate_expectation,
-    t.bank_upi_ref, t.kyc_status, t.rating
+    t.bank_upi_ref, t.kyc_status, t.kyc_document_path, t.rating
   from teacher_profiles t
   join profiles u on u.id = t.user_id
   where p_subject is null or p_subject = any(t.subjects);

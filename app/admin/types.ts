@@ -13,6 +13,7 @@ export type RequirementRow = {
   location: string | null;
   schedule_pref: string | null;
   budget: number | null;
+  preferred_teacher_gender: string | null;
   status: "open" | "assigned";
   created_at: string;
   parent_display_id: string;
@@ -49,6 +50,7 @@ export type TutorRow = {
   rate_expectation: number | null;
   bank_upi_ref: string | null;
   kyc_status: string;
+  kyc_document_path: string | null;
   rating: number | null;
 };
 

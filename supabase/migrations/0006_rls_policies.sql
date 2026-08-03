@@ -5,7 +5,15 @@
 -- makes those functions the only way to mutate data, mirroring how the
 -- Express prototype was the only way to touch dev-db.json.
 
-create or replace function is_admin() returns boolean language sql stable as $$
+-- SECURITY DEFINER is load-bearing here, not just a style choice: profiles'
+-- own RLS policy (below) calls is_admin() to decide row visibility. If this
+-- function ran as the caller (the default), its internal SELECT against
+-- profiles would itself be subject to that same policy, which calls
+-- is_admin() again — infinite recursion, surfaced by Postgres as "stack
+-- depth limit exceeded" (SQLSTATE 54001). Running as definer bypasses RLS
+-- on this one lookup and breaks the cycle.
+create or replace function is_admin() returns boolean
+language sql stable security definer set search_path = public as $$
   select exists(select 1 from profiles where id = auth.uid() and role = 'ADMIN');
 $$;
 

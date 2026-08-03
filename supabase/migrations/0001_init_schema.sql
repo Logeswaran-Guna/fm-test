@@ -42,6 +42,7 @@ create table students (
   pincode text,
   whatsapp text,
   notes text,
+  prior_tutoring_experience text,    -- "Prior tutoring experience" per developer requirements spec 4.1
   created_at timestamptz not null default now()
 );
 
@@ -57,6 +58,7 @@ create table requirements (
   schedule_pref text,
   pricing_type text,
   budget numeric,
+  preferred_teacher_gender text,     -- 'No preference' | 'Male' | 'Female', per spec 4.1
   status requirement_status not null default 'open',
   created_at timestamptz not null default now()
 );
@@ -78,6 +80,7 @@ create table teacher_profiles (
   pincode text,
   whatsapp text,
   kyc_status text not null default 'PENDING',
+  kyc_document_path text,            -- path within the private kyc-documents storage bucket
   rating numeric,
   created_at timestamptz not null default now()
 );

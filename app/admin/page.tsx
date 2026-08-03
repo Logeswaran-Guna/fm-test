@@ -173,6 +173,7 @@ export default function AdminDashboardPage() {
   const payable = sessions.filter(
     (s) => s.status === "ADMIN_VALIDATED" && !s.payment_released
   );
+  const disputesOpen = sessions.filter((s) => s.status === "DISPUTED").length;
 
   async function validateSession(sessionId: string) {
     setBusyId(sessionId);
@@ -187,7 +188,9 @@ export default function AdminDashboardPage() {
   }
 
   async function releasePayout(matchId: string) {
-    const pct = window.prompt("Commission percentage for this payout?", "20");
+    // 10% default matches Model A (commission on teacher payout) from the
+    // business case; admin can override per payout.
+    const pct = window.prompt("Commission percentage for this payout?", "10");
     if (pct === null) return;
     setBusyId(matchId);
     setActionError(null);
@@ -199,6 +202,31 @@ export default function AdminDashboardPage() {
     if (error) setActionError(error.message);
     else loadData();
     setBusyId(null);
+  }
+
+  async function setKycStatus(teacherId: string, status: "APPROVED" | "REJECTED") {
+    setBusyId(teacherId);
+    setActionError(null);
+    const supabase = createClient();
+    const { error } = await supabase.rpc("set_teacher_kyc_status", {
+      p_teacher_id: teacherId,
+      p_status: status,
+    });
+    if (error) setActionError(error.message);
+    else loadData();
+    setBusyId(null);
+  }
+
+  async function viewKycDocument(path: string) {
+    const supabase = createClient();
+    const { data, error } = await supabase.storage
+      .from("kyc-documents")
+      .createSignedUrl(path, 60);
+    if (error || !data) {
+      setActionError(error?.message ?? "Could not open document.");
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   }
 
   if (checkingAuth) {
@@ -227,10 +255,11 @@ export default function AdminDashboardPage() {
               matches from one place.
             </p>
 
-            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-4">
               <MetricCard label="Total Parent Requirements" value={requirements.length} />
               <MetricCard label="Total Tutor Applications" value={tutors.length} />
               <MetricCard label="Pending Matches" value={pendingMatches} />
+              <MetricCard label="Disputes Open" value={disputesOpen} />
             </div>
           </div>
         </section>
@@ -413,9 +442,48 @@ export default function AdminDashboardPage() {
                           )}
                         </td>
                         <td className="px-4 py-4">
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                            {row.kyc_status}
-                          </span>
+                          <div className="flex flex-col items-start gap-1.5">
+                            <span
+                              className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                row.kyc_status === "APPROVED"
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : row.kyc_status === "REJECTED"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-slate-100 text-slate-600"
+                              }`}
+                            >
+                              {row.kyc_status}
+                            </span>
+                            {row.kyc_document_path && (
+                              <button
+                                type="button"
+                                onClick={() => viewKycDocument(row.kyc_document_path as string)}
+                                className="text-xs text-amber-700 underline"
+                              >
+                                View ID
+                              </button>
+                            )}
+                            {row.kyc_status !== "APPROVED" && (
+                              <button
+                                type="button"
+                                disabled={busyId === row.id || !row.kyc_document_path}
+                                onClick={() => setKycStatus(row.id, "APPROVED")}
+                                className="text-xs font-semibold text-emerald-700 underline disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {row.kyc_status !== "REJECTED" && (
+                              <button
+                                type="button"
+                                disabled={busyId === row.id || !row.kyc_document_path}
+                                onClick={() => setKycStatus(row.id, "REJECTED")}
+                                className="text-xs font-semibold text-red-600 underline disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                Reject
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
