@@ -20,7 +20,7 @@ export default function LoginBackground() {
       <Image src={loginBg} alt="" className="h-auto w-full" priority />
 
       <div className="absolute left-1/2 top-[79%] -translate-x-1/2 -translate-y-1/2">
-        <Image src={fmLockup} alt="" className="h-14 w-auto lg:h-16" />
+        <Image src={fmLockup} alt="" className="h-24 w-auto sm:h-28 lg:h-32" />
       </div>
     </div>
   );
