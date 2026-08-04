@@ -153,12 +153,14 @@ export default function Footer() {
             <span>© {new Date().getFullYear()} Future Minds. All rights reserved.</span>
           </div>
           <div className="flex items-center gap-3">
-            {SOCIAL_LINKS.map((social) => (
+            {SOCIAL_LINKS.map((social, i) => (
               <a
                 key={social.name}
                 href={social.href}
                 aria-label={social.name}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-white/15 text-white/60 transition-colors hover:border-white/40 hover:text-white"
+                className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-transform hover:-translate-y-0.5 ${
+                  i % 2 === 0 ? "bg-navy text-amber ring-1 ring-amber/40" : "bg-amber text-navy"
+                }`}
               >
                 {social.icon}
               </a>
