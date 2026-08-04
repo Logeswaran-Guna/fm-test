@@ -5,6 +5,15 @@ export type MatchStatus =
   | "CONFIRMED"
   | "DECLINED";
 
+export type EntityStatus = "ACTIVE" | "IDLE" | "REMOVED" | "DELETED";
+
+export const STATUS_COLORS: Record<EntityStatus, string> = {
+  ACTIVE: "text-emerald-600",
+  IDLE: "text-amber-600",
+  REMOVED: "text-red-600",
+  DELETED: "text-purple-600",
+};
+
 export type RequirementRow = {
   id: string;
   display_id: string;
@@ -68,6 +77,27 @@ export type TutorRow = {
   active_batches: number | null;
   rating_avg: number | null;
   rating_count: number | null;
+  user_id: string;
+  status: EntityStatus;
+};
+
+export type ParentStudent = {
+  id: string;
+  display_id: string;
+  student_name: string | null;
+  age_grade: string | null;
+  status: EntityStatus;
+};
+
+export type ParentRow = {
+  id: string;
+  display_id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  status: EntityStatus;
+  created_at: string;
+  students: ParentStudent[];
 };
 
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {

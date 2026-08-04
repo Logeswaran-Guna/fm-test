@@ -102,7 +102,8 @@ returns table (
   tutoring_for text[], boards text[], rating numeric,
   languages jsonb,
   total_hours numeric, students_trained int, active_batches int,
-  rating_avg numeric, rating_count int
+  rating_avg numeric, rating_count int,
+  user_id uuid, status entity_status
 )
 language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
@@ -123,10 +124,40 @@ begin
     coalesce((select count(distinct r.student_id) from matches m join requirements r on r.id = m.requirement_id where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
     coalesce((select count(*) from matches m where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
     (select round(avg(tr.rating), 1) from teacher_reviews tr where tr.teacher_id = t.id),
-    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int
+    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int,
+    u.id, u.status
   from teacher_profiles t
   join profiles u on u.id = t.user_id
   where p_subject is null or p_subject = any(t.subjects);
+end;
+$$;
+
+-- === admin: Manage Users — every parent, with their students nested =======
+create or replace function admin_parents_directory()
+returns table (
+  id uuid, display_id text, name text, phone text, email text,
+  status entity_status, created_at timestamptz, students jsonb
+)
+language plpgsql security definer set search_path = public as $$
+declare me profiles := current_profile();
+begin
+  if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
+
+  return query
+  select p.id, p.display_id, p.name, p.phone, p.email, p.status, p.created_at,
+    coalesce(
+      (select jsonb_agg(
+          jsonb_build_object(
+            'id', s.id, 'display_id', s.display_id, 'student_name', s.student_name,
+            'age_grade', s.age_grade, 'status', s.status
+          ) order by s.created_at
+        )
+       from students s where s.parent_id = p.id),
+      '[]'::jsonb
+    )
+  from profiles p
+  where p.role = 'PARENT'
+  order by p.created_at desc;
 end;
 $$;
 

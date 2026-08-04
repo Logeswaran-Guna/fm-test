@@ -11,6 +11,11 @@ create type user_role as enum ('PARENT', 'TEACHER', 'ADMIN');
 create type requirement_status as enum ('open', 'assigned');
 create type match_status as enum ('PROPOSED', 'DEMO_PROPOSED', 'DEMO_SCHEDULED', 'CONFIRMED', 'DECLINED');
 create type session_status as enum ('LOGGED', 'PARENT_CONFIRMED', 'DISPUTED', 'ADMIN_VALIDATED');
+-- Admin-managed lifecycle status for parent/teacher profiles and student
+-- records. ACTIVE is the default; REMOVED/DELETED are both soft states
+-- (the row is never actually dropped) so history, matches, and payout
+-- records stay intact — only visibility/usability is affected.
+create type entity_status as enum ('ACTIVE', 'IDLE', 'REMOVED', 'DELETED');
 
 -- One row per auth.users row. Role defaults to PARENT and can only become
 -- TEACHER via signup metadata — never ADMIN through public signup (see the
@@ -24,6 +29,7 @@ create table profiles (
   phone text unique not null,
   email text,
   consent_at timestamptz not null default now(),
+  status entity_status not null default 'ACTIVE',
   created_at timestamptz not null default now()
 );
 
@@ -43,6 +49,7 @@ create table students (
   whatsapp text,
   notes text,
   prior_tutoring_experience text,    -- "Prior tutoring experience" per developer requirements spec 4.1
+  status entity_status not null default 'ACTIVE',
   created_at timestamptz not null default now()
 );
 

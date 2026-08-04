@@ -7,13 +7,22 @@ import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { exportToCsv, type CsvColumn } from "@/lib/csv";
 import MatchModal from "./MatchModal";
+import ManageUsers from "./ManageUsers";
+import RegistrationForms from "./RegistrationForms";
+import { StatusBadge } from "./StatusBadge";
 import {
   MATCH_STATUS_LABELS,
   type RequirementRow,
   type TutorRow,
 } from "./types";
 
-type Tab = "requirements" | "tutors" | "attendance" | "logged-classes";
+type Tab =
+  | "requirements"
+  | "tutors"
+  | "attendance"
+  | "logged-classes"
+  | "registration-forms"
+  | "manage-users";
 
 type SessionRow = {
   id: string;
@@ -401,10 +410,31 @@ export default function AdminDashboardPage() {
               >
                 Logged Classes
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("registration-forms")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Form for Registration
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("manage-users")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "manage-users" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Manage Users
+              </button>
             </div>
 
             <div className="flex items-center gap-3">
-              {activeTab !== "attendance" && activeTab !== "logged-classes" && (
+              {activeTab !== "attendance" &&
+                activeTab !== "logged-classes" &&
+                activeTab !== "manage-users" &&
+                activeTab !== "registration-forms" && (
                 <input
                   type="text"
                   value={search}
@@ -413,13 +443,15 @@ export default function AdminDashboardPage() {
                   className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
                 />
               )}
-              <button
-                type="button"
-                onClick={handleExport}
-                className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-slate-50"
-              >
-                Export to Excel
-              </button>
+              {activeTab !== "manage-users" && activeTab !== "registration-forms" && (
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  className="whitespace-nowrap rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-slate-50"
+                >
+                  Export to Excel
+                </button>
+              )}
             </div>
           </div>
 
@@ -518,7 +550,10 @@ export default function AdminDashboardPage() {
                                 {(row.name || "?").charAt(0).toUpperCase()}
                               </span>
                             )}
-                            <span>{row.name || "—"}</span>
+                            <div>
+                              <p>{row.name || "—"}</p>
+                              <StatusBadge status={row.status} />
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-4 text-slate-600">{row.qualification || "—"}</td>
@@ -717,6 +752,10 @@ export default function AdminDashboardPage() {
                   </p>
                 </div>
               </div>
+            ) : activeTab === "manage-users" ? (
+              <ManageUsers tutors={tutors} onTutorsChanged={loadData} />
+            ) : activeTab === "registration-forms" ? (
+              <RegistrationForms />
             ) : (
               <table className="w-full min-w-[1100px] text-left text-sm">
                 <thead>
