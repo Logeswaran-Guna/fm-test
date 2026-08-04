@@ -758,11 +758,11 @@ end;
 $$;
 
 -- === admin: Manage Users — set a parent or teacher's status ================
--- Removing a PARENT cascades to their students (the family's whole record
--- is being taken down together); removing a TEACHER only affects that one
--- profile. Nothing is ever hard-deleted — DELETED is itself just a status,
--- so history/matches/payouts stay intact for accounting and dispute
--- purposes.
+-- Any status change on a PARENT cascades to their students (the family's
+-- whole record moves together, in either direction — removing OR
+-- restoring); a TEACHER only affects that one profile. Nothing is ever
+-- hard-deleted — DELETED is itself just a status, so history/matches/
+-- payouts stay intact for accounting and dispute purposes.
 create or replace function admin_set_profile_status(p_profile_id uuid, p_status entity_status)
 returns profiles
 language plpgsql security definer set search_path = public as $$
@@ -775,7 +775,7 @@ begin
   update profiles set status = p_status where id = p_profile_id returning * into v_target;
   if v_target.id is null then raise exception 'Profile not found'; end if;
 
-  if v_target.role = 'PARENT' and p_status in ('REMOVED', 'DELETED') then
+  if v_target.role = 'PARENT' then
     update students set status = p_status where parent_id = v_target.id;
   end if;
 
