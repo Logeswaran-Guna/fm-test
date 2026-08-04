@@ -1,14 +1,9 @@
-import { STATUS_COLORS, type EntityStatus } from "./types";
+import { STATUS_COLORS, type EntityStatus } from "@/lib/status";
+import SharedStatusBadge from "../components/StatusBadge";
 
 const STATUS_OPTIONS: EntityStatus[] = ["ACTIVE", "IDLE", "REMOVED", "DELETED"];
 
-export function StatusBadge({ status }: { status: EntityStatus }) {
-  return (
-    <span className={`text-xs font-semibold capitalize ${STATUS_COLORS[status]}`}>
-      {status.toLowerCase()}
-    </span>
-  );
-}
+export const StatusBadge = SharedStatusBadge;
 
 export function StatusSelect({
   status,

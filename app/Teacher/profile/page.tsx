@@ -4,8 +4,10 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import StatusBadge from "../../components/StatusBadge";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
+import type { EntityStatus } from "@/lib/status";
 import {
   AVAILABILITY_SLOTS,
   BOARDS,
@@ -52,6 +54,7 @@ type TeacherProfileRow = {
   active_batches: number | null;
   rating_avg: number | null;
   rating_count: number | null;
+  status: EntityStatus;
 };
 
 type TeacherReview = {
@@ -378,6 +381,11 @@ export default function TeacherProfilePage() {
               <div className="flex-1">
                 <p className="font-heading text-lg font-semibold text-white">{profile?.name}</p>
                 <p className="text-xs text-white/60">Teacher ID: {profile?.display_id}</p>
+                {profile && (
+                  <p className="text-xs text-white/60">
+                    Account status: <StatusBadge status={profile.status} />
+                  </p>
+                )}
                 <p className="text-xs text-white/60">
                   KYC status:{" "}
                   <span

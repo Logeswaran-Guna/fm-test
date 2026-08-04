@@ -801,3 +801,73 @@ begin
   return v_student;
 end;
 $$;
+
+-- === automatic Active/Idle status ============================================
+-- REMOVED/DELETED are exclusively admin actions and are never touched here.
+-- For everyone else: an ongoing (CONFIRMED) assignment always means ACTIVE;
+-- otherwise, no sign-in activity for 3+ months means IDLE, and anything
+-- more recent means ACTIVE. Called as a side effect of the RPCs a
+-- parent/teacher's own dashboard already loads (self-heals their own
+-- status on every visit) and of the admin directory RPCs (self-heals
+-- everyone whenever Manage Users is opened) — no cron job needed.
+create or replace function _recompute_status(p_profile_id uuid)
+returns void
+language plpgsql security definer set search_path = public as $$
+declare
+  v_role user_role;
+  v_current entity_status;
+  v_has_active boolean;
+  v_last_activity timestamptz;
+begin
+  select role, status into v_role, v_current from profiles where id = p_profile_id;
+  if v_current is null or v_current in ('REMOVED', 'DELETED') then
+    return;
+  end if;
+
+  if v_role = 'PARENT' then
+    select exists(
+      select 1 from matches m
+      join requirements r on r.id = m.requirement_id
+      where r.parent_id = p_profile_id and m.status = 'CONFIRMED'
+    ) into v_has_active;
+  elsif v_role = 'TEACHER' then
+    select exists(
+      select 1 from matches m
+      join teacher_profiles t on t.id = m.teacher_id
+      where t.user_id = p_profile_id and m.status = 'CONFIRMED'
+    ) into v_has_active;
+  else
+    return; -- admin accounts aren't tracked this way
+  end if;
+
+  if v_has_active then
+    update profiles set status = 'ACTIVE' where id = p_profile_id and status <> 'ACTIVE';
+    return;
+  end if;
+
+  select greatest(coalesce(au.last_sign_in_at, p.created_at), p.created_at)
+  into v_last_activity
+  from profiles p
+  join auth.users au on au.id = p.id
+  where p.id = p_profile_id;
+
+  if v_last_activity < now() - interval '3 months' then
+    update profiles set status = 'IDLE' where id = p_profile_id and status = 'ACTIVE';
+  else
+    update profiles set status = 'ACTIVE' where id = p_profile_id and status = 'IDLE';
+  end if;
+end;
+$$;
+
+-- Bulk sweep used by the admin directory RPCs so Manage Users always shows
+-- freshly self-healed statuses, not whatever was last computed.
+create or replace function _recompute_all_statuses()
+returns void
+language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  for v_id in select id from profiles where role in ('PARENT', 'TEACHER') and status in ('ACTIVE', 'IDLE') loop
+    perform _recompute_status(v_id);
+  end loop;
+end;
+$$;

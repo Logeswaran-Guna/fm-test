@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
+import StatusBadge from "../components/StatusBadge";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, type Profile } from "@/lib/supabase/profile";
+import type { EntityStatus } from "@/lib/status";
 
 type MatchStatus =
   | "PROPOSED"
@@ -40,6 +42,7 @@ type MyStudent = {
   display_id: string;
   student_name: string | null;
   age_grade: string | null;
+  status: EntityStatus;
 };
 
 const STATUS_LABELS: Record<MatchStatus, string> = {
@@ -306,6 +309,9 @@ export default function MyDashboardPage() {
                   <p className="mt-1 text-sm text-slate-600">
                     {parentProfile.name} <span className="text-slate-400">· {parentProfile.display_id}</span>
                   </p>
+                  <div className="mt-1">
+                    <StatusBadge status={parentProfile.status} />
+                  </div>
                 </div>
                 <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
                   {students.length} {students.length === 1 ? "kid" : "kids"} enrolled
@@ -318,9 +324,12 @@ export default function MyDashboardPage() {
                     key={s.id}
                     className="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
                   >
-                    <p className="font-heading text-sm font-semibold text-navy">
-                      {s.student_name || "Student"}
-                    </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-heading text-sm font-semibold text-navy">
+                        {s.student_name || "Student"}
+                      </p>
+                      <StatusBadge status={s.status} />
+                    </div>
                     <p className="mt-1 text-xs text-slate-500">
                       {s.display_id} · {s.age_grade || "Grade not set"}
                     </p>

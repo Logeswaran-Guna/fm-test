@@ -19,6 +19,7 @@ language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
 begin
   if me.role <> 'PARENT' then raise exception 'Parent only'; end if;
+  perform _recompute_status(me.id);
 
   return query
   select
@@ -109,6 +110,7 @@ language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
 begin
   if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
+  perform _recompute_all_statuses();
 
   return query
   select t.id, t.display_id, u.name, u.phone, u.email, t.qualification, t.experience,
@@ -142,6 +144,7 @@ language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
 begin
   if me.role <> 'ADMIN' then raise exception 'Admin only'; end if;
+  perform _recompute_all_statuses();
 
   return query
   select p.id, p.display_id, p.name, p.phone, p.email, p.status, p.created_at,
@@ -171,12 +174,14 @@ returns table (
   tutoring_for text[], boards text[], rating numeric,
   languages jsonb,
   total_hours numeric, students_trained int, active_batches int,
-  rating_avg numeric, rating_count int
+  rating_avg numeric, rating_count int,
+  status entity_status
 )
 language plpgsql security definer set search_path = public as $$
 declare me profiles := current_profile();
 begin
   if me.role <> 'TEACHER' then raise exception 'Teacher only'; end if;
+  perform _recompute_status(me.id);
 
   return query
   select t.id, t.display_id, u.name, u.phone, u.email, t.qualification, t.experience,
@@ -192,7 +197,8 @@ begin
     coalesce((select count(distinct r.student_id) from matches m join requirements r on r.id = m.requirement_id where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
     coalesce((select count(*) from matches m where m.teacher_id = t.id and m.status = 'CONFIRMED'), 0)::int,
     (select round(avg(tr.rating), 1) from teacher_reviews tr where tr.teacher_id = t.id),
-    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int
+    coalesce((select count(*) from teacher_reviews tr where tr.teacher_id = t.id), 0)::int,
+    u.status
   from teacher_profiles t
   join profiles u on u.id = t.user_id
   where t.user_id = me.id;
