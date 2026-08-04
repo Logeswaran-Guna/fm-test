@@ -113,7 +113,7 @@ export default function LoginPage() {
 
         <div className="relative">
         <LoginBackground />
-        <div className="relative z-10 mx-auto max-w-md px-6 py-16 sm:px-8 md:absolute md:left-1/2 md:top-[15%] md:w-full md:-translate-x-1/2 md:py-0">
+        <div className="relative z-10 mx-auto max-w-md px-6 py-16 sm:px-8 xl:absolute xl:left-1/2 xl:top-[15%] xl:w-full xl:-translate-x-1/2 xl:py-0">
           <div className="mb-5 flex rounded-full border border-slate-200 bg-white p-1">
             {ROLE_TABS.map((tab) => (
               <button
