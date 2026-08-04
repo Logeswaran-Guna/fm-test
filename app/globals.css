@@ -85,3 +85,20 @@ body {
     transform: rotate(360deg);
   }
 }
+
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes particle-drift {
+  0%, 100% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+  50% {
+    transform: translate(var(--dx, 10px), var(--dy, -12px));
+    opacity: 0.6;
+  }
+}

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import HeroEcosystem from "./HeroEcosystem";
 import {
   BOARDS,
   CREATIVE_LEARNING_ITEMS,
@@ -11,6 +12,15 @@ import {
 } from "@/lib/categories";
 
 const ROTATE_MS = 6000;
+
+// Which ecosystem nodes light up while each pillar tab is active — ties the
+// rotating headline directly to the living map on the right.
+const PILLAR_DOMAIN_MAP: Record<string, string[]> = {
+  tutor: ["tutors"],
+  ai: ["ai", "coding"],
+  creative: ["music", "dance"],
+  soft: ["communication", "languages"],
+};
 
 // Real, non-fabricated count of what the platform actually offers —
 // distinct subjects across every grade band, plus boards, creative
@@ -22,112 +32,6 @@ const CATEGORIES_LIVE =
   CREATIVE_LEARNING_ITEMS.length +
   SOFT_SKILLS_ITEMS.length;
 
-function FloatingAccent({
-  className,
-  animation,
-  delay = "0s",
-  children,
-}: {
-  className: string;
-  animation: string;
-  delay?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      aria-hidden
-      className={`absolute flex items-center justify-center ${className}`}
-      style={{ animation: `${animation} ${animation.includes("pulse") ? "2.6s" : "4.5s"} ease-in-out ${delay} infinite` }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function TutorVisual() {
-  return (
-    <>
-      <svg viewBox="0 0 200 200" className="h-32 w-32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="30" y="130" width="140" height="10" rx="3" opacity="0.5" />
-        <circle cx="70" cy="90" r="16" />
-        <path d="M50 130c0-14 9-24 20-24s20 10 20 24" />
-        <circle cx="140" cy="98" r="12" opacity="0.7" />
-        <path d="M122 130c0-11 7-19 18-19s18 8 18 19" opacity="0.7" />
-        <rect x="82" y="118" width="46" height="30" rx="4" />
-        <path d="M90 128h30M90 136h20" opacity="0.7" />
-      </svg>
-      <FloatingAccent className="left-2 top-3 h-9 w-9 rounded-xl bg-amber/20 text-amber" animation="float-slow">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 3L1 8l11 5 9-4.1V17h2V8z" /><path d="M5 12.5V17c0 1.7 3.1 3 7 3s7-1.3 7-3v-4.5l-7 3.2z" /></svg>
-      </FloatingAccent>
-      <FloatingAccent className="right-4 top-6 h-8 w-8 rounded-full bg-emerald-400/20 text-emerald-300" animation="pulse-soft" delay="0.6s">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><path d="M8 12l3 3 5-6" /></svg>
-      </FloatingAccent>
-    </>
-  );
-}
-
-function AiVisual() {
-  return (
-    <>
-      <svg viewBox="0 0 200 200" className="h-32 w-32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="55" y="65" width="90" height="65" rx="16" />
-        <circle cx="80" cy="95" r="6" />
-        <circle cx="120" cy="95" r="6" />
-        <path d="M80 114h40" />
-        <path d="M100 65V45" />
-        <circle cx="100" cy="40" r="5" opacity="0.7" />
-        <path d="M55 90H38M55 108H38M165 90h-17M165 108h-17" opacity="0.7" />
-        <rect x="72" y="140" width="56" height="14" rx="7" opacity="0.5" />
-      </svg>
-      <FloatingAccent className="right-2 top-4 h-9 w-9 rounded-xl bg-violet-400/20 text-violet-300" animation="spin-slow" delay="0s">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" /></svg>
-      </FloatingAccent>
-      <FloatingAccent className="left-4 bottom-16 h-7 w-7 rounded-full bg-amber/20 text-amber" animation="pulse-soft" delay="0.9s">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2l2.4 7.2H22l-6.2 4.5 2.4 7.3L12 16.5l-6.2 4.5 2.4-7.3L2 9.2h7.6z" /></svg>
-      </FloatingAccent>
-    </>
-  );
-}
-
-function CreativeVisual() {
-  return (
-    <>
-      <svg viewBox="0 0 200 200" className="h-32 w-32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="80" cy="76" r="14" />
-        <path d="M62 130c0-16 8-28 18-28s18 12 18 28" />
-        <path d="M96 108c14-4 26-16 30-32 6 2 10 8 8 16-4 16-20 26-34 28z" />
-        <circle cx="128" cy="70" r="4" opacity="0.7" />
-        <path d="M50 145q0-13 13-13t13 13-13 13-13-13z" />
-        <path d="M63 132V80" />
-      </svg>
-      <FloatingAccent className="right-3 top-6 h-8 w-8 rounded-full bg-pink-400/20 text-pink-300" animation="float-slower" delay="0.3s">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M9 3v9.28A3.5 3.5 0 108.5 15V6h9V3z" /></svg>
-      </FloatingAccent>
-      <FloatingAccent className="left-3 bottom-14 h-7 w-7 rounded-full bg-amber/20 text-amber" animation="pulse-soft" delay="0.8s">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><circle cx="8" cy="8" r="3" /><circle cx="16" cy="9" r="2.4" /><circle cx="12" cy="17" r="2.6" /></svg>
-      </FloatingAccent>
-    </>
-  );
-}
-
-function SoftSkillsVisual() {
-  return (
-    <>
-      <svg viewBox="0 0 200 200" className="h-32 w-32" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M35 55a10 10 0 0110-10h60a10 10 0 0110 10v38a10 10 0 01-10 10H70l-18 15v-15h-7a10 10 0 01-10-10z" />
-        <path d="M105 88h50a10 10 0 0110 10v28a10 10 0 01-10 10h-5v13l-15-13h-30a10 10 0 01-10-10v-6" opacity="0.7" />
-        <path d="M52 72h32M52 86h22" />
-      </svg>
-      <FloatingAccent className="right-3 top-4 h-8 w-8 rounded-full bg-sky-400/20 text-sky-300" animation="float-slow" delay="0.2s">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 2l2.6 6.6L22 9l-5.4 4.6L18 22l-6-4-6 4 1.4-8.4L2 9l7.4-.4z" /></svg>
-      </FloatingAccent>
-      <FloatingAccent className="left-2 bottom-16 h-7 w-7 rounded-full bg-amber/20 text-amber" animation="pulse-soft" delay="1.1s">
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 11v5a2 2 0 002 2h6l3 3v-3h1a2 2 0 002-2v-3a2 2 0 00-2-2H9a2 2 0 00-2 2z" /><path d="M10 8V6a2 2 0 012-2 2 2 0 012 2c0 1.5-2 2-2 4" /></svg>
-      </FloatingAccent>
-    </>
-  );
-}
-
 type Pillar = {
   key: string;
   label: string;
@@ -138,7 +42,6 @@ type Pillar = {
   lede: string;
   ctaPrimary: { text: string; href: string };
   ctaSecondary: { text: string; href: string };
-  Visual: () => React.ReactNode;
 };
 
 const PILLARS: Pillar[] = [
@@ -152,7 +55,6 @@ const PILLARS: Pillar[] = [
     lede: "Future Minds gets to know what your child needs, hand-picks the right educator, sits in on the demo, and only releases payment once you've confirmed the class actually happened.",
     ctaPrimary: { text: "Post a Requirement →", href: "/find-tutor" },
     ctaSecondary: { text: "Become a Tutor", href: "/become-a-tutor" },
-    Visual: TutorVisual,
   },
   {
     key: "ai",
@@ -164,7 +66,6 @@ const PILLARS: Pillar[] = [
     lede: "Project-based coding, robotics kits, and responsible AI usage — age-tiered tracks from first-time builders to teen AI creators.",
     ctaPrimary: { text: "Find an AI & Robotics Tutor →", href: "/find-tutor" },
     ctaSecondary: { text: "Become a Tutor", href: "/become-a-tutor" },
-    Visual: AiVisual,
   },
   {
     key: "creative",
@@ -176,7 +77,6 @@ const PILLARS: Pillar[] = [
     lede: "From classical vocals to guitar, contemporary dance to abstract art — hand-picked educators for creative growth, not just technique.",
     ctaPrimary: { text: "Find a Creative Tutor →", href: "/find-tutor" },
     ctaSecondary: { text: "Become a Tutor", href: "/become-a-tutor" },
-    Visual: CreativeVisual,
   },
   {
     key: "soft",
@@ -188,7 +88,6 @@ const PILLARS: Pillar[] = [
     lede: "Public speaking, spoken English, interview skills, and confidence-building — coached one-on-one by educators who make it feel natural.",
     ctaPrimary: { text: "Find a Soft Skills Coach →", href: "/find-tutor" },
     ctaSecondary: { text: "Become a Tutor", href: "/become-a-tutor" },
-    Visual: SoftSkillsVisual,
   },
 ];
 
@@ -224,7 +123,6 @@ export default function Hero() {
   }, []);
 
   const active = PILLARS[activeIndex];
-  const Visual = active.Visual;
 
   return (
     <section className="relative overflow-hidden bg-navy">
@@ -237,7 +135,7 @@ export default function Hero() {
         className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl"
       />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 sm:px-8 md:py-28 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 sm:px-8 md:py-28 lg:grid-cols-2 lg:items-center lg:gap-8">
         <div>
           <div className="mb-5 flex flex-wrap gap-2">
             {PILLARS.map((pillar, i) => (
@@ -318,24 +216,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative mx-auto w-full max-w-sm">
-          <div
-            key={active.key}
-            className="relative aspect-[4/5] w-full overflow-hidden rounded-3xl border border-white/10 bg-white/5"
-            style={{ animation: "fade-in-up 450ms ease" }}
-          >
-            <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-amber/20 blur-2xl" />
-            <div aria-hidden className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-amber">
-              <Visual />
-            </div>
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/40 to-transparent px-5 py-4">
-              <span className="text-xs font-semibold uppercase tracking-widest text-white/70">
-                {active.label}
-              </span>
-            </div>
-          </div>
-        </div>
+        <HeroEcosystem activeDomainKeys={PILLAR_DOMAIN_MAP[active.key] ?? []} stats={stats} />
       </div>
     </section>
   );
