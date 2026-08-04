@@ -1,6 +1,7 @@
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import PlatformHighlights from "./components/PlatformHighlights";
+import Partners from "./components/Partners";
 import Footer from "./components/Footer";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
       <main className="flex-1">
         <Hero />
         <PlatformHighlights />
+        <Partners />
       </main>
       <Footer />
     </div>
