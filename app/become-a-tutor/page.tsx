@@ -173,6 +173,7 @@ export default function BecomeATutorPage() {
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
   const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
+  const [alreadyTeacher, setAlreadyTeacher] = useState<Profile | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -180,7 +181,11 @@ export default function BecomeATutorPage() {
       const supabase = createClient();
       const profile = await getCurrentProfile(supabase);
       if (!active) return;
-      setSignedInAs(profile && profile.role !== "TEACHER" ? profile : null);
+      if (profile && profile.role === "TEACHER") {
+        setAlreadyTeacher(profile);
+      } else {
+        setSignedInAs(profile);
+      }
       setCheckingRole(false);
     })();
     return () => {
@@ -192,6 +197,7 @@ export default function BecomeATutorPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     setSignedInAs(null);
+    setAlreadyTeacher(null);
   }
 
   function updateField<K extends keyof FormState>(
@@ -377,6 +383,33 @@ export default function BecomeATutorPage() {
           {checkingRole ? (
             <div className="py-16 text-center text-sm text-slate-400">
               Checking your session…
+            </div>
+          ) : alreadyTeacher ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <h2 className="font-heading text-xl font-semibold text-navy">
+                You&apos;re already registered with us
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                {alreadyTeacher.name}, you already have a tutor account. To
+                add new skills, availability, or update your fees, edit your
+                existing profile instead. If you want to register someone
+                else as a tutor, log out of this session first.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/Teacher/profile"
+                  className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5"
+                >
+                  Edit my profile
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="rounded-xl border border-slate-200 px-6 py-3 text-sm font-semibold text-navy transition-colors hover:bg-slate-50"
+                >
+                  Log out to register someone else
+                </button>
+              </div>
             </div>
           ) : signedInAs ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">

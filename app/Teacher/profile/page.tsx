@@ -364,29 +364,29 @@ export default function TeacherProfilePage() {
           )}
 
           <div className="space-y-6">
-            <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-100">
+            <div className="flex items-center gap-4 rounded-2xl bg-navy p-5 shadow-sm">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-white/10">
                 {profile?.photo_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={profile.photo_url} alt={profile.name} className="h-full w-full object-cover" />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-slate-400">
+                  <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-white/60">
                     {profile?.name?.[0]?.toUpperCase() ?? "T"}
                   </div>
                 )}
               </div>
               <div className="flex-1">
-                <p className="font-heading text-lg font-semibold text-navy">{profile?.name}</p>
-                <p className="text-xs text-slate-500">Teacher ID: {profile?.display_id}</p>
-                <p className="text-xs text-slate-500">
+                <p className="font-heading text-lg font-semibold text-white">{profile?.name}</p>
+                <p className="text-xs text-white/60">Teacher ID: {profile?.display_id}</p>
+                <p className="text-xs text-white/60">
                   KYC status:{" "}
                   <span
                     className={
                       profile?.kyc_status === "APPROVED"
-                        ? "text-emerald-600"
+                        ? "text-emerald-400"
                         : profile?.kyc_status === "REJECTED"
-                          ? "text-red-600"
-                          : "text-amber-700"
+                          ? "text-red-400"
+                          : "text-amber-400"
                     }
                   >
                     {profile?.kyc_status}
@@ -394,7 +394,7 @@ export default function TeacherProfilePage() {
                 </p>
                 {editing && (
                   <>
-                    <label className="mt-2 inline-block cursor-pointer text-xs font-semibold text-amber-700 underline">
+                    <label className="mt-2 inline-block cursor-pointer text-xs font-semibold text-amber underline">
                       Change photo
                       <input
                         type="file"
@@ -403,7 +403,7 @@ export default function TeacherProfilePage() {
                         onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
                       />
                     </label>
-                    {photoFile && <span className="ml-2 text-xs text-slate-400">{photoFile.name} (unsaved)</span>}
+                    {photoFile && <span className="ml-2 text-xs text-white/50">{photoFile.name} (unsaved)</span>}
                   </>
                 )}
               </div>
@@ -617,9 +617,9 @@ export default function TeacherProfilePage() {
 
 function StatTile({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+    <div className="rounded-xl bg-amber p-4 text-center shadow-sm">
       <p className="font-heading text-xl font-bold text-navy">{value}</p>
-      <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-400">{label}</p>
+      <p className="mt-1 text-[11px] uppercase tracking-wide text-navy/70">{label}</p>
     </div>
   );
 }
