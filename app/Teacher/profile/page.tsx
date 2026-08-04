@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Header from "../../components/Header";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import {
@@ -293,310 +294,322 @@ export default function TeacherProfilePage() {
 
   if (checkingAuth || loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-400">
         Loading your profile…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-      <header className="mb-8 border-b border-slate-800 pb-4 flex flex-wrap justify-between items-center gap-3">
-        <div>
-          <span className="text-xs uppercase tracking-wider text-amber-500 font-semibold">
-            Instructor Portal
-          </span>
-          <h1 className="text-2xl font-bold">My Profile</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          {editing ? (
-            <button
-              type="button"
-              onClick={() => {
-                if (profile) populateFormFromRow(profile);
-                setPhotoFile(null);
-                setIdFile(null);
-                setError(null);
-                setEditing(false);
-              }}
-              className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
-            >
-              Cancel
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setEditing(true)}
-              className="text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-3 py-1.5 rounded transition-colors"
-            >
-              Edit Profile
-            </button>
-          )}
-          <Link
-            href="/Teacher"
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
-          >
-            ← Back to Dashboard
-          </Link>
-        </div>
-      </header>
-
-      {error && (
-        <div className="mb-6 max-w-3xl p-4 bg-red-950/50 border border-red-500/50 text-red-200 text-sm rounded-lg">
-          {error}
-        </div>
-      )}
-      {saved && (
-        <div className="mb-6 max-w-3xl p-4 bg-emerald-950/50 border border-emerald-500/50 text-emerald-200 text-sm rounded-lg">
-          Profile saved.
-        </div>
-      )}
-
-      <main className="max-w-3xl space-y-6">
-        <div className="flex items-center gap-4 rounded-xl border border-slate-800 bg-slate-900 p-5">
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-800">
-            {profile?.photo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={profile.photo_url} alt={profile.name} className="h-full w-full object-cover" />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-slate-500">
-                {profile?.name?.[0]?.toUpperCase() ?? "T"}
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1 bg-slate-50">
+        <section className="bg-navy">
+          <div className="mx-auto max-w-3xl px-6 py-10 sm:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
+                  <span className="h-px w-4 bg-amber" />
+                  Instructor Portal
+                </div>
+                <h1 className="mt-3 font-heading text-3xl font-bold text-white">
+                  My Profile
+                </h1>
               </div>
-            )}
+              <div className="flex items-center gap-2">
+                {editing ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (profile) populateFormFromRow(profile);
+                      setPhotoFile(null);
+                      setIdFile(null);
+                      setError(null);
+                      setEditing(false);
+                    }}
+                    className="rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+                  >
+                    Cancel
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="rounded-full bg-amber px-4 py-2 text-xs font-semibold text-navy transition-transform hover:-translate-y-0.5"
+                  >
+                    Edit Profile
+                  </button>
+                )}
+                <Link
+                  href="/Teacher"
+                  className="rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+                >
+                  ← Back to Dashboard
+                </Link>
+              </div>
+            </div>
           </div>
-          <div className="flex-1">
-            <p className="text-lg font-bold">{profile?.name}</p>
-            <p className="text-xs text-slate-400">Teacher ID: {profile?.display_id}</p>
-            <p className="text-xs text-slate-400">
-              KYC status:{" "}
-              <span
-                className={
-                  profile?.kyc_status === "APPROVED"
-                    ? "text-emerald-400"
-                    : profile?.kyc_status === "REJECTED"
-                      ? "text-red-400"
-                      : "text-amber-400"
-                }
-              >
-                {profile?.kyc_status}
-              </span>
-            </p>
-            {editing && (
+        </section>
+
+        <div className="mx-auto max-w-3xl px-6 py-8 sm:px-8">
+          {error && (
+            <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+          {saved && (
+            <div className="mb-6 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              Profile saved.
+            </div>
+          )}
+
+          <div className="space-y-6">
+            <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-full bg-slate-100">
+                {profile?.photo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={profile.photo_url} alt={profile.name} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-2xl font-bold text-slate-400">
+                    {profile?.name?.[0]?.toUpperCase() ?? "T"}
+                  </div>
+                )}
+              </div>
+              <div className="flex-1">
+                <p className="font-heading text-lg font-semibold text-navy">{profile?.name}</p>
+                <p className="text-xs text-slate-500">Teacher ID: {profile?.display_id}</p>
+                <p className="text-xs text-slate-500">
+                  KYC status:{" "}
+                  <span
+                    className={
+                      profile?.kyc_status === "APPROVED"
+                        ? "text-emerald-600"
+                        : profile?.kyc_status === "REJECTED"
+                          ? "text-red-600"
+                          : "text-amber-700"
+                    }
+                  >
+                    {profile?.kyc_status}
+                  </span>
+                </p>
+                {editing && (
+                  <>
+                    <label className="mt-2 inline-block cursor-pointer text-xs font-semibold text-amber-700 underline">
+                      Change photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                      />
+                    </label>
+                    {photoFile && <span className="ml-2 text-xs text-slate-400">{photoFile.name} (unsaved)</span>}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {!editing && profile && (
               <>
-                <label className="mt-2 inline-block cursor-pointer text-xs font-semibold text-amber-400 underline">
-                  Change photo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <StatTile value={`${profile.total_hours ?? 0} hrs`} label="Tutoring hours logged" />
+                  <StatTile value={String(profile.students_trained ?? 0)} label="Students trained" />
+                  <StatTile
+                    value={profile.rating_avg != null ? `${profile.rating_avg} ★` : "— ★"}
+                    label={
+                      profile.rating_count ? `Rating, ${profile.rating_count} review${profile.rating_count === 1 ? "" : "s"}` : "No ratings yet"
+                    }
                   />
-                </label>
-                {photoFile && <span className="ml-2 text-xs text-slate-400">{photoFile.name} (unsaved)</span>}
+                  <StatTile value={String(profile.active_batches ?? 0)} label="Active batches" />
+                </div>
+
+                <Section title="Profile Summary">
+                  <SummaryRow label="Highest Qualification" value={profile.qualification} />
+                  <SummaryRow label="Years of Experience" value={profile.experience} />
+                  <SummaryRow label="Expected Rate (₹ / month)" value={profile.rate_expectation != null ? String(profile.rate_expectation) : null} />
+                  <SummaryRow label="Service Area / Address" value={profile.preferred_locations?.[0] ?? null} />
+                  <SummaryRow label="Mode" value={(profile.teaching_mode ?? []).join(", ") || null} />
+                  <SummaryRow label="Availability" value={(profile.availability ?? []).join(", ") || null} />
+                  <SummaryRow label="Tutoring For" value={(profile.tutoring_for ?? []).join(", ") || null} />
+                  <SummaryRow label="Medium / Board" value={(profile.boards ?? []).join(", ") || null} />
+                  <SummaryRow label="Subjects & Skills" value={(profile.subjects ?? []).join(", ") || null} />
+                  <SummaryRow
+                    label="Languages Known"
+                    value={
+                      (profile.languages ?? [])
+                        .map((l) => {
+                          const abilities = [l.can_read ? "Read" : null, l.can_write ? "Write" : null, l.can_speak ? "Speak" : null]
+                            .filter(Boolean)
+                            .join("/");
+                          return abilities ? `${l.language} (${abilities})` : l.language;
+                        })
+                        .join(", ") || null
+                    }
+                  />
+                </Section>
+
+                <Section title="Parent &amp; Student Appreciation">
+                  {reviews.length === 0 ? (
+                    <p className="text-xs text-slate-400">No reviews yet.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {reviews.map((r) => (
+                        <div key={r.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                          <div className="text-amber-500">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
+                          {r.comment && <p className="mt-1.5 text-sm text-navy">&quot;{r.comment}&quot;</p>}
+                          <p className="mt-1.5 text-xs text-slate-500">
+                            — Parent of {r.student_name || "a student"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Section>
               </>
             )}
-          </div>
-        </div>
 
-        {!editing && profile && (
-          <>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <StatTile value={`${profile.total_hours ?? 0} hrs`} label="Tutoring hours logged" />
-              <StatTile value={String(profile.students_trained ?? 0)} label="Students trained" />
-              <StatTile
-                value={profile.rating_avg != null ? `${profile.rating_avg} ★` : "— ★"}
-                label={
-                  profile.rating_count ? `Rating, ${profile.rating_count} review${profile.rating_count === 1 ? "" : "s"}` : "No ratings yet"
-                }
-              />
-              <StatTile value={String(profile.active_batches ?? 0)} label="Active batches" />
-            </div>
-
-            <Section title="Profile Summary">
-              <SummaryRow label="Highest Qualification" value={profile.qualification} />
-              <SummaryRow label="Years of Experience" value={profile.experience} />
-              <SummaryRow label="Expected Rate (₹ / month)" value={profile.rate_expectation != null ? String(profile.rate_expectation) : null} />
-              <SummaryRow label="Service Area / Address" value={profile.preferred_locations?.[0] ?? null} />
-              <SummaryRow label="Mode" value={(profile.teaching_mode ?? []).join(", ") || null} />
-              <SummaryRow label="Availability" value={(profile.availability ?? []).join(", ") || null} />
-              <SummaryRow label="Tutoring For" value={(profile.tutoring_for ?? []).join(", ") || null} />
-              <SummaryRow label="Medium / Board" value={(profile.boards ?? []).join(", ") || null} />
-              <SummaryRow label="Subjects & Skills" value={(profile.subjects ?? []).join(", ") || null} />
-              <SummaryRow
-                label="Languages Known"
-                value={
-                  (profile.languages ?? [])
-                    .map((l) => {
-                      const abilities = [l.can_read ? "Read" : null, l.can_write ? "Write" : null, l.can_speak ? "Speak" : null]
-                        .filter(Boolean)
-                        .join("/");
-                      return abilities ? `${l.language} (${abilities})` : l.language;
-                    })
-                    .join(", ") || null
-                }
-              />
-            </Section>
-
-            <Section title="Parent &amp; Student Appreciation">
-              {reviews.length === 0 ? (
-                <p className="text-xs text-slate-500">No reviews yet.</p>
-              ) : (
-                <div className="space-y-3">
-                  {reviews.map((r) => (
-                    <div key={r.id} className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-                      <div className="text-amber-400">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</div>
-                      {r.comment && <p className="mt-1.5 text-sm text-slate-200">&quot;{r.comment}&quot;</p>}
-                      <p className="mt-1.5 text-xs text-slate-500">
-                        — Parent of {r.student_name || "a student"}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Section>
-          </>
-        )}
-
-        {editing && (
-        <>
-        <Section title="Basics">
-          <TextField label="Highest Qualification" value={qualification} onChange={setQualification} />
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-slate-300">Years of Experience</label>
-            <select
-              value={experience}
-              onChange={(e) => setExperience(e.target.value as ExperienceBand)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100"
-            >
-              <option value="">Select a range</option>
-              {EXPERIENCE_BANDS.map((band) => (
-                <option key={band} value={band}>
-                  {band}
-                </option>
-              ))}
-            </select>
-          </div>
-          <TextField label="Expected Rate (₹ / month)" value={rate} onChange={setRate} type="number" />
-          <TextField label="Service Area / Address" value={serviceArea} onChange={setServiceArea} />
-          <TextField label="Bank Account / UPI ID" value={bankUpiRef} onChange={setBankUpiRef} />
-        </Section>
-
-        <Section title="Mode &amp; Availability">
-          <ChipRow options={MODES as readonly string[]} selected={modes} onToggle={(v) => toggle(modes, setModes, v)} />
-          <p className="mb-1.5 mt-3 text-xs font-medium text-slate-300">Availability</p>
-          <ChipRow
-            options={AVAILABILITY_SLOTS}
-            selected={availability}
-            onToggle={(v) => toggle(availability, setAvailability, v)}
-          />
-        </Section>
-
-        <Section title="Tutoring For">
-          <ChipRow
-            options={TUTORING_FOR as readonly string[]}
-            selected={tutoringFor}
-            onToggle={(v) => toggle(tutoringFor, setTutoringFor, v)}
-          />
-        </Section>
-
-        {tutoringFor.includes("Academics") && (
-          <Section title="Academics">
-            <p className="mb-1.5 text-xs font-medium text-slate-300">Medium / Board</p>
-            <ChipRow options={BOARDS} selected={boards} onToggle={(v) => toggle(boards, setBoards, v)} />
-            <div className="mt-4 space-y-3">
-              {GRADE_BANDS.map((band) => (
-                <div key={band.label} className="rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-                  <p className="mb-2 text-xs font-semibold text-slate-300">{band.label}</p>
-                  <ChipRow
-                    options={band.subjects}
-                    selected={gradeSubjects[band.label] ?? []}
-                    onToggle={(v) => toggleGradeSubject(band.label, v)}
-                  />
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {tutoringFor.includes("Creative Learning") && (
-          <Section title="Creative Learning">
-            <ChipRow
-              options={CREATIVE_LEARNING_ITEMS}
-              selected={creativeItems}
-              onToggle={(v) => toggle(creativeItems, setCreativeItems, v)}
-            />
-          </Section>
-        )}
-
-        {tutoringFor.includes("Soft Skills") && (
-          <Section title="Soft Skills">
-            <ChipRow
-              options={SOFT_SKILLS_ITEMS}
-              selected={softSkillItems}
-              onToggle={(v) => toggle(softSkillItems, setSoftSkillItems, v)}
-            />
-          </Section>
-        )}
-
-        <Section title="Languages Known">
-          <button type="button" onClick={addLanguageRow} className="mb-3 text-xs font-semibold text-amber-400 underline">
-            + Add language
-          </button>
-          <div className="space-y-2">
-            {languages.map((row, index) => (
-              <div key={index} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-800 px-3 py-2">
+            {editing && (
+            <>
+            <Section title="Basics">
+              <TextField label="Highest Qualification" value={qualification} onChange={setQualification} />
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-navy">Years of Experience</label>
                 <select
-                  value={row.language}
-                  onChange={(e) => updateLanguageRow(index, { language: e.target.value })}
-                  className="rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-100"
+                  value={experience}
+                  onChange={(e) => setExperience(e.target.value as ExperienceBand)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-navy"
                 >
-                  {LANGUAGES.map((lang) => (
-                    <option key={lang} value={lang}>
-                      {lang}
+                  <option value="">Select a range</option>
+                  {EXPERIENCE_BANDS.map((band) => (
+                    <option key={band} value={band}>
+                      {band}
                     </option>
                   ))}
                 </select>
-                <label className="flex items-center gap-1 text-xs text-slate-400">
-                  <input type="checkbox" checked={row.canRead} onChange={(e) => updateLanguageRow(index, { canRead: e.target.checked })} />
-                  Read
-                </label>
-                <label className="flex items-center gap-1 text-xs text-slate-400">
-                  <input type="checkbox" checked={row.canWrite} onChange={(e) => updateLanguageRow(index, { canWrite: e.target.checked })} />
-                  Write
-                </label>
-                <label className="flex items-center gap-1 text-xs text-slate-400">
-                  <input type="checkbox" checked={row.canSpeak} onChange={(e) => updateLanguageRow(index, { canSpeak: e.target.checked })} />
-                  Speak
-                </label>
-                <button type="button" onClick={() => removeLanguageRow(index)} className="ml-auto text-xs text-red-400 underline">
-                  Remove
-                </button>
               </div>
-            ))}
+              <TextField label="Expected Rate (₹ / month)" value={rate} onChange={setRate} type="number" />
+              <TextField label="Service Area / Address" value={serviceArea} onChange={setServiceArea} />
+              <TextField label="Bank Account / UPI ID" value={bankUpiRef} onChange={setBankUpiRef} />
+            </Section>
+
+            <Section title="Mode &amp; Availability">
+              <ChipRow options={MODES as readonly string[]} selected={modes} onToggle={(v) => toggle(modes, setModes, v)} />
+              <p className="mb-1.5 mt-3 text-xs font-medium text-navy">Availability</p>
+              <ChipRow
+                options={AVAILABILITY_SLOTS}
+                selected={availability}
+                onToggle={(v) => toggle(availability, setAvailability, v)}
+              />
+            </Section>
+
+            <Section title="Tutoring For">
+              <ChipRow
+                options={TUTORING_FOR as readonly string[]}
+                selected={tutoringFor}
+                onToggle={(v) => toggle(tutoringFor, setTutoringFor, v)}
+              />
+            </Section>
+
+            {tutoringFor.includes("Academics") && (
+              <Section title="Academics">
+                <p className="mb-1.5 text-xs font-medium text-navy">Medium / Board</p>
+                <ChipRow options={BOARDS} selected={boards} onToggle={(v) => toggle(boards, setBoards, v)} />
+                <div className="mt-4 space-y-3">
+                  {GRADE_BANDS.map((band) => (
+                    <div key={band.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                      <p className="mb-2 text-xs font-semibold text-navy">{band.label}</p>
+                      <ChipRow
+                        options={band.subjects}
+                        selected={gradeSubjects[band.label] ?? []}
+                        onToggle={(v) => toggleGradeSubject(band.label, v)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            {tutoringFor.includes("Creative Learning") && (
+              <Section title="Creative Learning">
+                <ChipRow
+                  options={CREATIVE_LEARNING_ITEMS}
+                  selected={creativeItems}
+                  onToggle={(v) => toggle(creativeItems, setCreativeItems, v)}
+                />
+              </Section>
+            )}
+
+            {tutoringFor.includes("Soft Skills") && (
+              <Section title="Soft Skills">
+                <ChipRow
+                  options={SOFT_SKILLS_ITEMS}
+                  selected={softSkillItems}
+                  onToggle={(v) => toggle(softSkillItems, setSoftSkillItems, v)}
+                />
+              </Section>
+            )}
+
+            <Section title="Languages Known">
+              <button type="button" onClick={addLanguageRow} className="mb-3 text-xs font-semibold text-amber-700 underline">
+                + Add language
+              </button>
+              <div className="space-y-2">
+                {languages.map((row, index) => (
+                  <div key={index} className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 px-3 py-2">
+                    <select
+                      value={row.language}
+                      onChange={(e) => updateLanguageRow(index, { language: e.target.value })}
+                      className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-navy"
+                    >
+                      {LANGUAGES.map((lang) => (
+                        <option key={lang} value={lang}>
+                          {lang}
+                        </option>
+                      ))}
+                    </select>
+                    <label className="flex items-center gap-1 text-xs text-slate-500">
+                      <input type="checkbox" checked={row.canRead} onChange={(e) => updateLanguageRow(index, { canRead: e.target.checked })} />
+                      Read
+                    </label>
+                    <label className="flex items-center gap-1 text-xs text-slate-500">
+                      <input type="checkbox" checked={row.canWrite} onChange={(e) => updateLanguageRow(index, { canWrite: e.target.checked })} />
+                      Write
+                    </label>
+                    <label className="flex items-center gap-1 text-xs text-slate-500">
+                      <input type="checkbox" checked={row.canSpeak} onChange={(e) => updateLanguageRow(index, { canSpeak: e.target.checked })} />
+                      Speak
+                    </label>
+                    <button type="button" onClick={() => removeLanguageRow(index)} className="ml-auto text-xs text-red-600 underline">
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </Section>
+
+            <Section title="Government ID (KYC)">
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-amber/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-amber-700"
+              />
+              <p className="mt-1.5 text-xs text-slate-400">
+                Uploading a new document resets your KYC status to Pending for re-review.
+              </p>
+            </Section>
+
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="w-full rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saving ? "Saving…" : "Save Profile"}
+            </button>
+            </>
+            )}
           </div>
-        </Section>
-
-        <Section title="Government ID (KYC)">
-          <input
-            type="file"
-            accept="image/*,.pdf"
-            onChange={(e) => setIdFile(e.target.files?.[0] ?? null)}
-            className="block w-full text-sm text-slate-300 file:mr-4 file:rounded-lg file:border-0 file:bg-amber-500/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-amber-400"
-          />
-          <p className="mt-1.5 text-xs text-slate-500">
-            Uploading a new document resets your KYC status to Pending for re-review.
-          </p>
-        </Section>
-
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="w-full rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {saving ? "Saving…" : "Save Profile"}
-        </button>
-        </>
-        )}
+        </div>
       </main>
     </div>
   );
@@ -604,26 +617,26 @@ export default function TeacherProfilePage() {
 
 function StatTile({ value, label }: { value: string; label: string }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-4 text-center">
-      <p className="text-xl font-bold text-slate-100">{value}</p>
-      <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-500">{label}</p>
+    <div className="rounded-xl border border-slate-200 bg-white p-4 text-center shadow-sm">
+      <p className="font-heading text-xl font-bold text-navy">{value}</p>
+      <p className="mt-1 text-[11px] uppercase tracking-wide text-slate-400">{label}</p>
     </div>
   );
 }
 
 function SummaryRow({ label, value }: { label: string; value: string | null }) {
   return (
-    <div className="flex flex-col gap-0.5 border-b border-slate-800/60 pb-2 last:border-0 last:pb-0 sm:flex-row sm:justify-between">
-      <span className="text-xs font-medium text-slate-400">{label}</span>
-      <span className="text-xs text-slate-200 sm:text-right">{value || "Not set"}</span>
+    <div className="flex flex-col gap-0.5 border-b border-slate-100 pb-2 last:border-0 last:pb-0 sm:flex-row sm:justify-between">
+      <span className="text-xs font-medium text-slate-500">{label}</span>
+      <span className="text-xs text-navy sm:text-right">{value || "Not set"}</span>
     </div>
   );
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 space-y-3">
-      <h2 className="text-sm font-semibold text-slate-200">{title}</h2>
+    <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h2 className="font-heading text-sm font-semibold text-navy">{title}</h2>
       {children}
     </div>
   );
@@ -650,8 +663,8 @@ function ChipRow({
             aria-pressed={isSelected}
             className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
               isSelected
-                ? "border-amber-500 bg-amber-500/10 text-amber-300"
-                : "border-slate-700 bg-slate-950 text-slate-400 hover:border-amber-500/50"
+                ? "border-amber bg-amber/10 text-amber-700"
+                : "border-slate-200 bg-white text-slate-600 hover:border-amber/50"
             }`}
           >
             {option}
@@ -675,12 +688,12 @@ function TextField({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium text-slate-300">{label}</label>
+      <label className="mb-1.5 block text-xs font-medium text-navy">{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500/50"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
       />
     </div>
   );

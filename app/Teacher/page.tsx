@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Header from "../components/Header";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 import { SESSION_STATUS_LABELS, type MyMatch, type MySession } from "./types";
@@ -79,12 +80,12 @@ function LogSessionForm({
   }
 
   return (
-    <div className="mt-3 space-y-2 rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+    <div className="mt-3 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
       <input
         type="date"
         value={date}
         onChange={(e) => setDate(e.target.value)}
-        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy"
       />
       <div className="grid grid-cols-2 gap-2">
         <div>
@@ -93,7 +94,7 @@ function LogSessionForm({
             type="time"
             value={fromTime}
             onChange={(e) => setFromTime(e.target.value)}
-            className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy"
           />
         </div>
         <div>
@@ -102,7 +103,7 @@ function LogSessionForm({
             type="time"
             value={toTime}
             onChange={(e) => setToTime(e.target.value)}
-            className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+            className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy"
           />
         </div>
       </div>
@@ -111,9 +112,9 @@ function LogSessionForm({
         placeholder="Amount (₹)"
         value={amount}
         onChange={(e) => setAmount(e.target.value)}
-        className="w-full rounded border border-slate-700 bg-slate-900 px-2 py-1.5 text-xs text-slate-100"
+        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-xs text-navy"
       />
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-red-600">{error}</p>}
       <button
         onClick={submit}
         disabled={busy}
@@ -196,250 +197,249 @@ export default function TeacherDashboard() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950 text-sm text-slate-500">
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-400">
         Checking your session…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6">
-      <header className="mb-8 border-b border-slate-800 pb-4 flex justify-between items-center">
-        <div>
-          <span className="text-xs uppercase tracking-wider text-amber-500 font-semibold">
-            Instructor Portal
-          </span>
-          <h1 className="text-2xl font-bold">Teacher Dashboard</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/Teacher/profile"
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
-          >
-            My Profile
-          </Link>
-          <button
-            onClick={fetchData}
-            className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded border border-slate-700 transition-colors"
-          >
-            Refresh Data
-          </button>
-          <button
-            onClick={async () => {
-              const supabase = createClient();
-              await supabase.auth.signOut();
-              router.push("/");
-              router.refresh();
-            }}
-            className="text-xs bg-red-950/50 hover:bg-red-900/50 text-red-300 px-3 py-1.5 rounded border border-red-800/50 transition-colors"
-          >
-            Log out
-          </button>
-        </div>
-      </header>
-
-      {errorBanner && (
-        <div className="mb-6 p-4 bg-red-950/50 border border-red-500/50 text-red-200 text-sm rounded-lg">
-          {errorBanner}
-        </div>
-      )}
-
-      <main className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-slate-200">
-            My Matches &amp; Demos
-          </h2>
-          <span className="text-xs text-slate-400">
-            Total: {matches.length}
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-12 text-slate-500">
-            Loading your matches…
-          </div>
-        ) : matches.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-xl">
-            No matches yet. Admin will assign you a student once your profile
-            is reviewed.
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {matches.map((m) => (
-              <div
-                key={m.id}
-                className="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between hover:border-slate-700 transition-all shadow-md"
-              >
-                <div className="space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-base text-slate-100 capitalize">
-                        {m.student_name || "Student"}{" "}
-                        <span className="text-xs text-slate-400 font-normal">
-                          {m.student_grade ? `(${m.student_grade})` : ""}
-                        </span>
-                      </h3>
-                      <p className="text-xs text-slate-400 capitalize">
-                        Parent: {m.parent_name}
-                      </p>
-                    </div>
-                    <span className="text-xs px-2.5 py-1 rounded-full capitalize font-medium bg-slate-800 text-slate-300 border border-slate-700">
-                      {m.display_id}
-                    </span>
-                  </div>
-
-                  <hr className="border-slate-800/60" />
-
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>
-                      <span className="text-slate-500 block">Subject:</span>
-                      <span className="text-amber-300 font-medium capitalize">
-                        {m.subject}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-slate-500 block">Location:</span>
-                      <span className="text-slate-300 capitalize">
-                        {m.location || "N/A"}
-                      </span>
-                    </div>
-                  </div>
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1 bg-slate-50">
+        <section className="bg-navy">
+          <div className="mx-auto max-w-6xl px-6 py-10 sm:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
+                  <span className="h-px w-4 bg-amber" />
+                  Instructor Portal
                 </div>
+                <h1 className="mt-3 font-heading text-3xl font-bold text-white">
+                  Teacher Dashboard
+                </h1>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/Teacher/profile"
+                  className="rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+                >
+                  My Profile
+                </Link>
+                <button
+                  onClick={fetchData}
+                  className="rounded-full border border-white/30 px-4 py-2 text-xs font-semibold text-white transition-colors hover:border-white hover:bg-white/10"
+                >
+                  Refresh Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
-                <div className="mt-5 pt-3 border-t border-slate-800/60 space-y-2">
-                  <a
-                    href={`tel:${m.parent_phone}`}
-                    className="block text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded transition-colors text-center"
-                  >
-                    Call Parent
-                  </a>
+        <div className="mx-auto max-w-6xl px-6 py-8 sm:px-8">
+          {errorBanner && (
+            <div className="mb-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+              {errorBanner}
+            </div>
+          )}
 
-                  {m.status === "PROPOSED" && (
-                    <p className="text-center text-xs text-slate-500">
-                      Waiting for admin to propose a demo date.
-                    </p>
-                  )}
+          <div className="flex items-center justify-between">
+            <h2 className="font-heading text-lg font-semibold text-navy">
+              My Matches &amp; Demos
+            </h2>
+            <span className="text-xs text-slate-400">
+              Total: {matches.length}
+            </span>
+          </div>
 
-                  {m.status === "DEMO_PROPOSED" && !m.teacher_accepted_demo && (
-                    <div className="space-y-2">
-                      <p className="text-center text-xs text-amber-400">
-                        Demo proposed for {formatDate(m.demo_date)} (
-                        {m.demo_time_slot})
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          disabled={busyId === m.id}
-                          onClick={() => respondToDemo(m.id, true)}
-                          className="flex-1 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-3 py-1.5 rounded transition-colors disabled:opacity-60"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          disabled={busyId === m.id}
-                          onClick={() => respondToDemo(m.id, false)}
-                          className="flex-1 text-xs bg-red-700 hover:bg-red-600 text-white font-semibold px-3 py-1.5 rounded transition-colors disabled:opacity-60"
-                        >
-                          Decline
-                        </button>
+          {loading ? (
+            <div className="py-12 text-center text-sm text-slate-400">
+              Loading your matches…
+            </div>
+          ) : matches.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white py-12 text-center text-sm text-slate-400">
+              No matches yet. Admin will assign you a student once your profile
+              is reviewed.
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              {matches.map((m) => (
+                <div
+                  key={m.id}
+                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="font-heading text-base font-semibold text-navy">
+                          {m.student_name || "Student"}{" "}
+                          <span className="text-xs font-normal text-slate-400">
+                            {m.student_grade ? `(${m.student_grade})` : ""}
+                          </span>
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          Parent: {m.parent_name}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                        {m.display_id}
+                      </span>
+                    </div>
+
+                    <hr className="border-slate-100" />
+
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="block text-slate-400">Subject:</span>
+                        <span className="font-medium text-amber-700">
+                          {m.subject}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-slate-400">Location:</span>
+                        <span className="text-slate-600">
+                          {m.location || "N/A"}
+                        </span>
                       </div>
                     </div>
-                  )}
+                  </div>
 
-                  {(m.status === "DEMO_PROPOSED" || m.status === "DEMO_SCHEDULED") &&
-                    m.teacher_accepted_demo && (
-                      <p className="text-center text-xs text-slate-500">
-                        {m.status === "DEMO_SCHEDULED"
-                          ? "Demo scheduled — waiting for parent's final approval."
-                          : "You accepted — waiting for parent to accept too."}
+                  <div className="mt-5 space-y-2 border-t border-slate-100 pt-3">
+                    <a
+                      href={`tel:${m.parent_phone}`}
+                      className="block rounded-lg border border-slate-200 px-3 py-1.5 text-center text-xs font-medium text-navy transition-colors hover:bg-slate-50"
+                    >
+                      Call Parent
+                    </a>
+
+                    {m.status === "PROPOSED" && (
+                      <p className="text-center text-xs text-slate-400">
+                        Waiting for admin to propose a demo date.
                       </p>
                     )}
 
-                  {m.status === "CONFIRMED" && (
-                    <>
-                      <p className="text-center text-xs text-emerald-400">
-                        Confirmed assignment ({m.display_id})
-                      </p>
-                      {loggingFor === m.id ? (
-                        <LogSessionForm
-                          matchId={m.id}
-                          onLogged={() => {
-                            setLoggingFor(null);
-                            fetchData();
-                          }}
-                        />
-                      ) : (
-                        <button
-                          onClick={() => setLoggingFor(m.id)}
-                          className="w-full text-xs bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-3 py-1.5 rounded transition-colors"
-                        >
-                          Log a Class
-                        </button>
+                    {m.status === "DEMO_PROPOSED" && !m.teacher_accepted_demo && (
+                      <div className="space-y-2">
+                        <p className="text-center text-xs text-amber-700">
+                          Demo proposed for {formatDate(m.demo_date)} (
+                          {m.demo_time_slot})
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            disabled={busyId === m.id}
+                            onClick={() => respondToDemo(m.id, true)}
+                            className="flex-1 rounded-lg bg-amber px-3 py-2 text-xs font-semibold text-navy transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            disabled={busyId === m.id}
+                            onClick={() => respondToDemo(m.id, false)}
+                            className="flex-1 rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {(m.status === "DEMO_PROPOSED" || m.status === "DEMO_SCHEDULED") &&
+                      m.teacher_accepted_demo && (
+                        <p className="text-center text-xs text-slate-400">
+                          {m.status === "DEMO_SCHEDULED"
+                            ? "Demo scheduled — waiting for parent's final approval."
+                            : "You accepted — waiting for parent to accept too."}
+                        </p>
                       )}
-                    </>
-                  )}
+
+                    {m.status === "CONFIRMED" && (
+                      <>
+                        <p className="text-center text-xs text-emerald-600">
+                          Confirmed assignment ({m.display_id})
+                        </p>
+                        {loggingFor === m.id ? (
+                          <LogSessionForm
+                            matchId={m.id}
+                            onLogged={() => {
+                              setLoggingFor(null);
+                              fetchData();
+                            }}
+                          />
+                        ) : (
+                          <button
+                            onClick={() => setLoggingFor(m.id)}
+                            className="w-full rounded-lg bg-amber px-3 py-2 text-xs font-semibold text-navy transition-transform hover:-translate-y-0.5"
+                          >
+                            Log a Class
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
-        <div className="flex justify-between items-center pt-4">
-          <h2 className="text-lg font-semibold text-slate-200">
-            My Logged Classes
-          </h2>
-          <span className="text-xs text-slate-400">
-            Total: {sessions.length}
-          </span>
-        </div>
-
-        {sessions.length === 0 ? (
-          <div className="text-center py-8 text-slate-500 border border-dashed border-slate-800 rounded-xl">
-            No classes logged yet.
+          <div className="mt-10 flex items-center justify-between">
+            <h2 className="font-heading text-lg font-semibold text-navy">
+              My Logged Classes
+            </h2>
+            <span className="text-xs text-slate-400">
+              Total: {sessions.length}
+            </span>
           </div>
-        ) : (
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
-            <table className="w-full min-w-[700px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-800 bg-slate-900 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-4 py-3">Class</th>
-                  <th className="px-4 py-3">Date</th>
-                  <th className="px-4 py-3">Hours</th>
-                  <th className="px-4 py-3">Amount</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Paid</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800">
-                {sessions.map((s) => (
-                  <tr key={s.id}>
-                    <td className="px-4 py-3 text-slate-300">
-                      {s.display_id} · {s.match_label}
-                    </td>
-                    <td className="px-4 py-3 text-slate-400">
-                      {formatDate(s.date)}
-                    </td>
-                    <td className="px-4 py-3 text-slate-400">
-                      {s.duration_hours != null ? `${s.duration_hours} hrs` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-slate-400">
-                      {s.amount != null ? `₹${s.amount}` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-slate-300">
-                      {SESSION_STATUS_LABELS[s.status]}
-                    </td>
-                    <td className="px-4 py-3">
-                      {s.payment_released ? (
-                        <span className="text-emerald-400">Paid</span>
-                      ) : (
-                        <span className="text-slate-500">Pending</span>
-                      )}
-                    </td>
+
+          {sessions.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white py-8 text-center text-sm text-slate-400">
+              No classes logged yet.
+            </div>
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table className="w-full min-w-[700px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <th className="px-4 py-3">Class</th>
+                    <th className="px-4 py-3">Date</th>
+                    <th className="px-4 py-3">Hours</th>
+                    <th className="px-4 py-3">Amount</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Paid</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {sessions.map((s) => (
+                    <tr key={s.id}>
+                      <td className="px-4 py-3 text-navy">
+                        {s.display_id} · {s.match_label}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {formatDate(s.date)}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {s.duration_hours != null ? `${s.duration_hours} hrs` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {s.amount != null ? `₹${s.amount}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {SESSION_STATUS_LABELS[s.status]}
+                      </td>
+                      <td className="px-4 py-3">
+                        {s.payment_released ? (
+                          <span className="text-emerald-600">Paid</span>
+                        ) : (
+                          <span className="text-slate-400">Pending</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );
