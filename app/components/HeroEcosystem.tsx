@@ -23,27 +23,18 @@ const iconProps = {
   strokeLinejoin: "round" as const,
 };
 
+// Order matters: each pillar's domains sit next to each other on the ring
+// (tutors→academics→exams, then ai→coding, then music→dance, then
+// communication→languages) so a cascade reads as an adjacent 1→2→3 sweep,
+// not a jump across the circle.
 const DOMAINS: Domain[] = [
   {
-    key: "ai",
-    label: "AI & Robotics",
+    key: "tutors",
+    label: "Verified Tutors",
     icon: (
       <svg {...iconProps}>
-        <rect x="4" y="8" width="16" height="11" rx="3" />
-        <circle cx="9" cy="13.2" r="1.3" fill="currentColor" stroke="none" />
-        <circle cx="15" cy="13.2" r="1.3" fill="currentColor" stroke="none" />
-        <path d="M12 8V4" />
-        <circle cx="12" cy="3" r="1.1" />
-        <path d="M4 12.5H2M22 12.5h-2" />
-      </svg>
-    ),
-  },
-  {
-    key: "coding",
-    label: "Coding",
-    icon: (
-      <svg {...iconProps}>
-        <path d="M8.5 6.5l-5.5 5.5 5.5 5.5M15.5 6.5l5.5 5.5-5.5 5.5" />
+        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+        <path d="M8.5 12.2l2.3 2.3 4.7-4.8" />
       </svg>
     ),
   },
@@ -65,6 +56,29 @@ const DOMAINS: Domain[] = [
         <path d="M8 4h8v4a4 4 0 01-4 4 4 4 0 01-4-4V4z" />
         <path d="M6 5H4.5a2 2 0 001.9 3.4M18 5h1.5a2 2 0 01-1.9 3.4" />
         <path d="M12 12v3M9 20h6M10 17h4v3h-4z" />
+      </svg>
+    ),
+  },
+  {
+    key: "ai",
+    label: "AI & Robotics",
+    icon: (
+      <svg {...iconProps}>
+        <rect x="4" y="8" width="16" height="11" rx="3" />
+        <circle cx="9" cy="13.2" r="1.3" fill="currentColor" stroke="none" />
+        <circle cx="15" cy="13.2" r="1.3" fill="currentColor" stroke="none" />
+        <path d="M12 8V4" />
+        <circle cx="12" cy="3" r="1.1" />
+        <path d="M4 12.5H2M22 12.5h-2" />
+      </svg>
+    ),
+  },
+  {
+    key: "coding",
+    label: "Coding",
+    icon: (
+      <svg {...iconProps}>
+        <path d="M8.5 6.5l-5.5 5.5 5.5 5.5M15.5 6.5l5.5 5.5-5.5 5.5" />
       </svg>
     ),
   },
@@ -107,16 +121,6 @@ const DOMAINS: Domain[] = [
       </svg>
     ),
   },
-  {
-    key: "tutors",
-    label: "Verified Tutors",
-    icon: (
-      <svg {...iconProps}>
-        <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
-        <path d="M8.5 12.2l2.3 2.3 4.7-4.8" />
-      </svg>
-    ),
-  },
 ];
 
 const RING_RADIUS = 38;
@@ -144,15 +148,9 @@ const PARTICLES = [
   { top: "38%", left: "50%", dx: "8px", dy: "-10px", duration: "6.4s", delay: "2s" },
 ];
 
-export default function HeroEcosystem({
-  activeDomainKeys,
-  stats,
-}: {
-  activeDomainKeys: string[];
-  stats: { tutors: number; classes: number } | null;
-}) {
+export default function HeroEcosystem({ activeDomainKeys }: { activeDomainKeys: string[] }) {
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[300px] sm:max-w-[380px] lg:max-w-[440px]">
+    <div className="relative mx-auto aspect-square w-full max-w-[330px] sm:max-w-[410px] lg:max-w-[480px]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-amber/10 via-transparent to-white/5 blur-2xl"
@@ -254,23 +252,6 @@ export default function HeroEcosystem({
           </div>
         );
       })}
-
-      <div
-        aria-hidden={!stats}
-        className="absolute -left-1 top-2 hidden rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md sm:block"
-        style={{ animation: "float-slow 5s ease-in-out infinite" }}
-      >
-        <b className="block font-heading text-sm text-white">{stats ? stats.tutors : "—"}</b>
-        <span className="text-[10px] text-white/60">Verified tutors</span>
-      </div>
-      <div
-        aria-hidden={!stats}
-        className="absolute -right-1 bottom-4 hidden rounded-xl border border-white/15 bg-white/10 px-3 py-2 backdrop-blur-md sm:block"
-        style={{ animation: "float-slower 6s ease-in-out infinite" }}
-      >
-        <b className="block font-heading text-sm text-white">{stats ? stats.classes : "—"}</b>
-        <span className="text-[10px] text-white/60">Classes completed</span>
-      </div>
     </div>
   );
 }

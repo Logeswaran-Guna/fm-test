@@ -216,7 +216,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <HeroEcosystem activeDomainKeys={PILLAR_DOMAIN_MAP[active.key] ?? []} stats={stats} />
+        <HeroEcosystem activeDomainKeys={PILLAR_DOMAIN_MAP[active.key] ?? []} />
       </div>
     </section>
   );
