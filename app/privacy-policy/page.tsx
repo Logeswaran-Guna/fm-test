@@ -1,5 +1,6 @@
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import BackButton from "../components/BackButton";
 
 function Section({
   title,
@@ -22,6 +23,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BackButton />
       <main className="flex-1 bg-slate-50">
         <section className="bg-navy">
           <div className="mx-auto max-w-3xl px-6 py-14 sm:px-8">

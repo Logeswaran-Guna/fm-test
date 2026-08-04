@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
+import BackButton from "../components/BackButton";
 import PasswordField from "../components/PasswordField";
 import { createClient } from "@/lib/supabase/client";
 
@@ -53,6 +54,7 @@ export default function ResetPasswordPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BackButton />
       <main className="flex-1 bg-slate-50">
         <section className="bg-navy">
           <div className="mx-auto max-w-3xl px-6 py-14 text-center sm:px-8">

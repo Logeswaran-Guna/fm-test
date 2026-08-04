@@ -102,3 +102,43 @@ body {
     opacity: 0.6;
   }
 }
+
+@keyframes bg-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes bg-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes bg-blink {
+  0%, 100% {
+    opacity: 0.06;
+  }
+  50% {
+    opacity: 0.16;
+  }
+}
+
+@keyframes path-flow {
+  to {
+    stroke-dashoffset: -13;
+  }
+}
+
+/* Decorative motion only — respected wherever .login-bg-motion is used. */
+@media (prefers-reduced-motion: reduce) {
+  .login-bg-motion * {
+    animation: none !important;
+  }
+}

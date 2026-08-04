@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
+import BackButton from "../components/BackButton";
+import LoginBackground from "../components/LoginBackground";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, homePathForRole, type Role } from "@/lib/supabase/profile";
 
@@ -94,6 +96,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BackButton />
       <main className="flex-1 bg-slate-50">
         <section className="bg-navy">
           <div className="mx-auto max-w-3xl px-6 py-14 text-center sm:px-8">
@@ -108,7 +111,9 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <div className="mx-auto max-w-md px-6 py-12 sm:px-8">
+        <div className="relative overflow-hidden">
+        <LoginBackground />
+        <div className="relative z-10 mx-auto max-w-md px-6 py-16 sm:px-8">
           <div className="mb-5 flex rounded-full border border-slate-200 bg-white p-1">
             {ROLE_TABS.map((tab) => (
               <button
@@ -289,6 +294,7 @@ export default function LoginPage() {
               )}
             </form>
           )}
+        </div>
         </div>
       </main>
     </div>

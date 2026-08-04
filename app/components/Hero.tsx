@@ -16,7 +16,7 @@ const ROTATE_MS = 6000;
 // Which ecosystem nodes light up while each pillar tab is active — ties the
 // rotating headline directly to the living map on the right.
 const PILLAR_DOMAIN_MAP: Record<string, string[]> = {
-  tutor: ["tutors"],
+  tutor: ["tutors", "academics", "exams"],
   ai: ["ai", "coding"],
   creative: ["music", "dance"],
   soft: ["communication", "languages"],
@@ -135,7 +135,7 @@ export default function Hero() {
         className="pointer-events-none absolute -bottom-32 -left-24 h-80 w-80 rounded-full bg-white/10 blur-3xl"
       />
 
-      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-12 px-6 py-20 sm:px-8 md:py-28 lg:grid-cols-2 lg:items-center lg:gap-8">
+      <div className="relative mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-12 sm:px-8 md:py-16 lg:grid-cols-2 lg:items-center lg:gap-8">
         <div>
           <div className="mb-5 flex flex-wrap gap-2">
             {PILLARS.map((pillar, i) => (
@@ -176,11 +176,11 @@ export default function Hero() {
               {active.headlineEnd}
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+            <p className="mt-4 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
               {active.lede}
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-6 flex flex-wrap gap-4">
               <Link
                 href={active.ctaPrimary.href}
                 className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5"
@@ -196,7 +196,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="mt-12 flex flex-wrap gap-10">
+          <div className="mt-8 flex flex-wrap gap-8">
             <div>
               <b className="block font-heading text-2xl text-white">
                 {stats ? stats.tutors : "—"}

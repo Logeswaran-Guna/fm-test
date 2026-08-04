@@ -121,6 +121,9 @@ const DOMAINS: Domain[] = [
 
 const RING_RADIUS = 38;
 const START_ANGLE = -90;
+// When a pillar lights up more than one node, each one lands a beat after
+// the last — a cascade rather than everything flashing on at once.
+const CASCADE_STEP_MS = 220;
 const STEP = 360 / DOMAINS.length;
 
 const NODE_POSITIONS = DOMAINS.map((domain, i) => {
@@ -149,7 +152,7 @@ export default function HeroEcosystem({
   stats: { tutors: number; classes: number } | null;
 }) {
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[520px]">
+    <div className="relative mx-auto aspect-square w-full max-w-[300px] sm:max-w-[380px] lg:max-w-[440px]">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-full bg-gradient-to-br from-amber/10 via-transparent to-white/5 blur-2xl"
@@ -166,7 +169,9 @@ export default function HeroEcosystem({
           strokeDasharray="0.6 1.6"
         />
         {NODE_POSITIONS.map((pos) => {
-          const isActive = activeDomainKeys.includes(pos.key);
+          const activeOrder = activeDomainKeys.indexOf(pos.key);
+          const isActive = activeOrder !== -1;
+          const delayMs = isActive ? activeOrder * CASCADE_STEP_MS : 0;
           return (
             <line
               key={pos.key}
@@ -174,10 +179,13 @@ export default function HeroEcosystem({
               y1={50}
               x2={pos.x}
               y2={pos.y}
-              className={isActive ? "stroke-amber" : "stroke-white/15"}
+              className={isActive ? "stroke-amber transition-colors" : "stroke-white/15 transition-colors"}
               strokeWidth={isActive ? 0.7 : 0.4}
               strokeDasharray="1.5 2.5"
-              style={{ animation: `dash-flow ${isActive ? "1.3s" : "3s"} linear infinite` }}
+              style={{
+                animation: `dash-flow ${isActive ? "1.3s" : "3s"} linear ${delayMs}ms infinite`,
+                transitionDelay: `${delayMs}ms`,
+              }}
             />
           );
         })}
@@ -211,14 +219,16 @@ export default function HeroEcosystem({
           className="pointer-events-none absolute inset-0 -m-6 rounded-full border border-dashed border-white/15"
           style={{ animation: "spin-slow 40s linear infinite" }}
         />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-full border border-white/20 bg-white shadow-xl sm:h-24 sm:w-24">
-          <Image src={fmIcon} alt="Future Minds" className="h-11 w-auto sm:h-[3.25rem]" priority />
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/20 bg-white shadow-xl sm:h-16 sm:w-16 lg:h-20 lg:w-20">
+          <Image src={fmIcon} alt="Future Minds" className="h-8 w-auto sm:h-9 lg:h-11" priority />
         </div>
       </div>
 
       {DOMAINS.map((domain, i) => {
         const pos = NODE_POSITIONS[i];
-        const isActive = activeDomainKeys.includes(domain.key);
+        const activeOrder = activeDomainKeys.indexOf(domain.key);
+        const isActive = activeOrder !== -1;
+        const delayMs = isActive ? activeOrder * CASCADE_STEP_MS : 0;
         return (
           <div
             key={domain.key}
@@ -226,12 +236,15 @@ export default function HeroEcosystem({
             style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
           >
             <div
-              className={`flex h-12 w-12 items-center justify-center rounded-full border backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-amber group-hover:bg-amber/15 group-hover:text-amber sm:h-14 sm:w-14 ${
+              className={`flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-sm transition-all duration-300 group-hover:-translate-y-1 group-hover:border-amber group-hover:bg-amber/15 group-hover:text-amber sm:h-11 sm:w-11 lg:h-12 lg:w-12 ${
                 isActive
                   ? "border-amber bg-amber/20 text-amber shadow-lg shadow-amber/30"
                   : "border-white/15 bg-white/8 text-white/60"
               }`}
-              style={isActive ? { animation: "pulse-soft 2.2s ease-in-out infinite" } : undefined}
+              style={{
+                transitionDelay: `${delayMs}ms`,
+                ...(isActive ? { animation: `pulse-soft 2.2s ease-in-out ${delayMs}ms infinite` } : {}),
+              }}
             >
               {domain.icon}
             </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
+import BackButton from "../../components/BackButton";
 import StatusBadge from "../../components/StatusBadge";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
@@ -306,6 +307,7 @@ export default function TeacherProfilePage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
+      <BackButton />
       <main className="flex-1 bg-slate-50">
         <section className="bg-navy">
           <div className="mx-auto max-w-3xl px-6 py-10 sm:px-8">
