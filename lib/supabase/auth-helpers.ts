@@ -1,10 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Role } from "./profile";
+import { getCurrentProfile, type Role } from "./profile";
+
+const ROLE_LABEL: Record<Role, string> = {
+  PARENT: "Parent",
+  TEACHER: "Teacher",
+  ADMIN: "Admin",
+};
 
 // Public forms (find-tutor, become-a-tutor) create an account inline
-// instead of sending people through a separate signup flow first. If the
-// email is already registered, falls back to signing in with the same
-// password rather than erroring out.
+// instead of sending people through a separate signup flow first. Each
+// role requires its own account — a Parent registering as a Teacher (or
+// vice versa) must use a different email and mobile number, not reuse
+// their existing login. If the email is already registered under a
+// DIFFERENT role, this rejects with a specific message instead of
+// silently signing them into the wrong account.
 export async function signUpOrSignIn(
   supabase: SupabaseClient,
   params: { email: string; password: string; name: string; phone: string; role: Role }
@@ -50,14 +59,27 @@ export async function signUpOrSignIn(
     );
   }
 
+  // The email already has an account. Sign in to find out whose it is —
+  // not to silently proceed, but so the rejection message can be
+  // accurate, and so we never end up creating a Teacher profile on a
+  // Parent's account (or vice versa) just because the password matched.
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
   if (signInError) {
     throw new Error(
-      "An account with this email already exists, but that password doesn't match. Please use the correct password, or log in first."
+      "This email is already registered with Future Minds. Please use a different email and mobile number to sign up, or log in if this account is yours."
     );
   }
+
+  const existingProfile = await getCurrentProfile(supabase);
+  if (existingProfile && existingProfile.role !== role) {
+    await supabase.auth.signOut();
+    throw new Error(
+      `You've already registered as a ${ROLE_LABEL[existingProfile.role]} using this email and mobile number. Please use a different email and mobile number to register as a ${ROLE_LABEL[role]}.`
+    );
+  }
+
   return { hasSession: true };
 }

@@ -185,12 +185,11 @@ export default function BecomeATutorPage() {
   const [success, setSuccess] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
-  // A parent and a tutor account aren't mutually exclusive anymore — only
-  // an admin is blocked outright. Everyone else either has an existing
-  // teacher_profiles row already (existingTeacherProfile — show a
-  // pending/active message instead of the form) or doesn't yet
-  // (loggedInProfile — show the form, pre-filled, without asking them to
-  // sign up again since they're already authenticated).
+  // Each role requires its own account — a Parent (or Admin) signed in
+  // here is blocked outright (signedInAs); only a Teacher account can
+  // reach this form. existingTeacherProfile / loggedInProfile then
+  // distinguish "already applied, show status" from "logged in as a
+  // teacher but hasn't filled this out yet."
   const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
   const [existingTeacherProfile, setExistingTeacherProfile] = useState<ExistingTeacherProfile | null>(null);
   const [loggedInProfile, setLoggedInProfile] = useState<Profile | null>(null);
@@ -208,7 +207,7 @@ export default function BecomeATutorPage() {
       const profile = await getCurrentProfile(supabase);
       if (!active) return;
 
-      if (profile && profile.role === "ADMIN") {
+      if (profile && profile.role !== "TEACHER") {
         setSignedInAs(profile);
         setCheckingRole(false);
         return;
@@ -499,12 +498,12 @@ export default function BecomeATutorPage() {
           ) : signedInAs ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
-                You&apos;re signed in as an admin
+                You&apos;re signed in as a {signedInAs.role === "PARENT" ? "parent" : "admin"}
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                This form creates or updates a tutor application, so it
-                can&apos;t be used while you&apos;re signed in as{" "}
-                {signedInAs.name}. Log out to continue, or go to your own
+                This form creates a new tutor account, so it can&apos;t be
+                used while you&apos;re signed in as {signedInAs.name}. Log out
+                to continue as a tutor, or go to your own
                 dashboard.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
