@@ -53,6 +53,14 @@ type FormState = {
 
 type FormErrors = Record<string, string | undefined>;
 
+// Just the fields the pending/active messaging below needs from
+// my_teacher_profile() — not the full row.
+type ExistingTeacherProfile = {
+  name: string;
+  kyc_status: string;
+  status: string;
+};
+
 const initialFormState: FormState = {
   fullName: "",
   email: "",
@@ -93,28 +101,30 @@ function buildSubjectsArray(form: FormState): string[] {
   return out;
 }
 
-function validate(form: FormState): FormErrors {
+function validate(form: FormState, skipDetails: boolean): FormErrors {
   const errors: FormErrors = {};
 
-  if (!form.fullName.trim()) errors.fullName = "Full name is required.";
+  if (!skipDetails) {
+    if (!form.fullName.trim()) errors.fullName = "Full name is required.";
 
-  if (!form.email.trim()) {
-    errors.email = "Email address is required.";
-  } else if (!EMAIL_PATTERN.test(form.email.trim())) {
-    errors.email = "Enter a valid email address.";
-  }
+    if (!form.email.trim()) {
+      errors.email = "Email address is required.";
+    } else if (!EMAIL_PATTERN.test(form.email.trim())) {
+      errors.email = "Enter a valid email address.";
+    }
 
-  if (!form.password.trim()) {
-    errors.password = "Please choose a password.";
-  } else if (form.password.length < 8) {
-    errors.password = "Password must be at least 8 characters.";
-  }
+    if (!form.password.trim()) {
+      errors.password = "Please choose a password.";
+    } else if (form.password.length < 8) {
+      errors.password = "Password must be at least 8 characters.";
+    }
 
-  const digitsOnly = form.phoneNumber.replace(/\D/g, "");
-  if (!form.phoneNumber.trim()) {
-    errors.phoneNumber = "Phone number is required.";
-  } else if (digitsOnly.length < 10 || digitsOnly.length > 12) {
-    errors.phoneNumber = "Enter a valid phone number.";
+    const digitsOnly = form.phoneNumber.replace(/\D/g, "");
+    if (!form.phoneNumber.trim()) {
+      errors.phoneNumber = "Phone number is required.";
+    } else if (digitsOnly.length < 10 || digitsOnly.length > 12) {
+      errors.phoneNumber = "Enter a valid phone number.";
+    }
   }
 
   if (!form.qualifications.trim())
@@ -175,8 +185,15 @@ export default function BecomeATutorPage() {
   const [success, setSuccess] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [checkingRole, setCheckingRole] = useState(true);
+  // A parent and a tutor account aren't mutually exclusive anymore — only
+  // an admin is blocked outright. Everyone else either has an existing
+  // teacher_profiles row already (existingTeacherProfile — show a
+  // pending/active message instead of the form) or doesn't yet
+  // (loggedInProfile — show the form, pre-filled, without asking them to
+  // sign up again since they're already authenticated).
   const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
-  const [alreadyTeacher, setAlreadyTeacher] = useState<Profile | null>(null);
+  const [existingTeacherProfile, setExistingTeacherProfile] = useState<ExistingTeacherProfile | null>(null);
+  const [loggedInProfile, setLoggedInProfile] = useState<Profile | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const formStartedAt = useRef(0);
 
@@ -190,10 +207,22 @@ export default function BecomeATutorPage() {
       const supabase = createClient();
       const profile = await getCurrentProfile(supabase);
       if (!active) return;
-      if (profile && profile.role === "TEACHER") {
-        setAlreadyTeacher(profile);
-      } else {
+
+      if (profile && profile.role === "ADMIN") {
         setSignedInAs(profile);
+        setCheckingRole(false);
+        return;
+      }
+
+      if (profile) {
+        const { data } = await supabase.rpc("my_teacher_profile");
+        if (!active) return;
+        const existing = data?.[0] as ExistingTeacherProfile | undefined;
+        if (existing) {
+          setExistingTeacherProfile(existing);
+        } else {
+          setLoggedInProfile(profile);
+        }
       }
       setCheckingRole(false);
     })();
@@ -206,7 +235,8 @@ export default function BecomeATutorPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     setSignedInAs(null);
-    setAlreadyTeacher(null);
+    setExistingTeacherProfile(null);
+    setLoggedInProfile(null);
   }
 
   function updateField<K extends keyof FormState>(
@@ -281,7 +311,7 @@ export default function BecomeATutorPage() {
       return;
     }
 
-    const validationErrors = validate(form);
+    const validationErrors = validate(form, Boolean(loggedInProfile));
     setErrors(validationErrors);
     if (Object.keys(validationErrors).length > 0) return;
 
@@ -312,7 +342,7 @@ export default function BecomeATutorPage() {
         p_teaching_mode: form.modes,
         p_rate_expectation: form.expectedRate ? Number(form.expectedRate) : null,
         p_bank_upi_ref: form.bankUpiRef.trim() || null,
-        p_whatsapp: form.phoneNumber.trim(),
+        p_whatsapp: loggedInProfile ? loggedInProfile.phone : form.phoneNumber.trim(),
         p_area_city: form.serviceArea.trim(),
         p_tutoring_for: form.tutoringFor,
         p_boards: form.boards,
@@ -401,16 +431,54 @@ export default function BecomeATutorPage() {
             <div className="py-16 text-center text-sm text-slate-400">
               Checking your session…
             </div>
-          ) : alreadyTeacher ? (
+          ) : existingTeacherProfile?.kyc_status === "PENDING" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <h2 className="font-heading text-xl font-semibold text-navy">
+                You&apos;re already registered — and waiting for approval
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                {existingTeacherProfile.name}, your tutor application is in
+                and our team is reviewing your ID document. We&apos;ll be in
+                touch once it&apos;s verified — no need to submit again.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/Teacher/profile"
+                  className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5"
+                >
+                  View my application
+                </Link>
+              </div>
+            </div>
+          ) : existingTeacherProfile?.kyc_status === "REJECTED" ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
+              <h2 className="font-heading text-xl font-semibold text-navy">
+                Your application needs another look
+              </h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                {existingTeacherProfile.name}, we weren&apos;t able to verify
+                your application as submitted. Update your profile and ID
+                document and we&apos;ll take another look.
+              </p>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <Link
+                  href="/Teacher/profile"
+                  className="rounded-xl bg-amber px-6 py-3 text-sm font-semibold text-navy shadow-lg shadow-amber/30 transition-transform hover:-translate-y-0.5"
+                >
+                  Update my profile
+                </Link>
+              </div>
+            </div>
+          ) : existingTeacherProfile ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
                 You&apos;re already registered with us
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                {alreadyTeacher.name}, you already have a tutor account. To
-                add new skills, availability, or update your fees, edit your
-                existing profile instead. If you want to register someone
-                else as a tutor, log out of this session first.
+                {existingTeacherProfile.name}, you already have a tutor
+                account — please log in instead of registering a new
+                application. To add new skills, availability, or update your
+                fees, edit your existing profile.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Link
@@ -431,12 +499,13 @@ export default function BecomeATutorPage() {
           ) : signedInAs ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
-                You&apos;re signed in as a {signedInAs.role === "PARENT" ? "parent" : "admin"}
+                You&apos;re signed in as an admin
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                This form creates a new tutor account, so it can&apos;t be
-                used while you&apos;re signed in as {signedInAs.name}. Log out
-                to continue as a tutor, or go to your own dashboard.
+                This form creates or updates a tutor application, so it
+                can&apos;t be used while you&apos;re signed in as{" "}
+                {signedInAs.name}. Log out to continue, or go to your own
+                dashboard.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <button
@@ -504,36 +573,44 @@ export default function BecomeATutorPage() {
               className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
             >
               <HoneypotField value={honeypot} onChange={setHoneypot} />
-              <Field
-                label="Full Name"
-                value={form.fullName}
-                onChange={(value) => updateField("fullName", value)}
-                error={errors.fullName}
-                placeholder="e.g. Priya Ramesh"
-              />
-              <Field
-                label="Email Address"
-                type="email"
-                value={form.email}
-                onChange={(value) => updateField("email", value)}
-                error={errors.email}
-                placeholder="e.g. priya.ramesh@email.com"
-              />
-              <PasswordField
-                label="Password"
-                value={form.password}
-                onChange={(value) => updateField("password", value)}
-                error={errors.password}
-                placeholder="At least 8 characters"
-              />
-              <Field
-                label="Phone Number"
-                type="tel"
-                value={form.phoneNumber}
-                onChange={(value) => updateField("phoneNumber", value)}
-                error={errors.phoneNumber}
-                placeholder="e.g. 98765 43210"
-              />
+              {loggedInProfile ? (
+                <p className="rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-500">
+                  Registering as <strong>{loggedInProfile.name}</strong> ({loggedInProfile.email || loggedInProfile.phone}).
+                </p>
+              ) : (
+                <>
+                  <Field
+                    label="Full Name"
+                    value={form.fullName}
+                    onChange={(value) => updateField("fullName", value)}
+                    error={errors.fullName}
+                    placeholder="e.g. Priya Ramesh"
+                  />
+                  <Field
+                    label="Email Address"
+                    type="email"
+                    value={form.email}
+                    onChange={(value) => updateField("email", value)}
+                    error={errors.email}
+                    placeholder="e.g. priya.ramesh@email.com"
+                  />
+                  <PasswordField
+                    label="Password"
+                    value={form.password}
+                    onChange={(value) => updateField("password", value)}
+                    error={errors.password}
+                    placeholder="At least 8 characters"
+                  />
+                  <Field
+                    label="Phone Number"
+                    type="tel"
+                    value={form.phoneNumber}
+                    onChange={(value) => updateField("phoneNumber", value)}
+                    error={errors.phoneNumber}
+                    placeholder="e.g. 98765 43210"
+                  />
+                </>
+              )}
               <Field
                 label="Highest Qualification"
                 value={form.qualifications}

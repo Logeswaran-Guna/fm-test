@@ -173,7 +173,10 @@ export default function FindTutorPage() {
       const supabase = createClient();
       const profile = await getCurrentProfile(supabase);
       if (!active) return;
-      if (profile && profile.role !== "PARENT") {
+      // A parent and teacher account are no longer mutually exclusive —
+      // someone can be both. Only an admin account is actually blocked
+      // from using this form.
+      if (profile && profile.role === "ADMIN") {
         setSignedInAs(profile);
       } else {
         setLoggedInParent(profile);
@@ -338,12 +341,12 @@ export default function FindTutorPage() {
           ) : signedInAs ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
-                You&apos;re signed in as a {signedInAs.role === "TEACHER" ? "tutor" : "admin"}
+                You&apos;re signed in as an admin
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                This form creates a new parent account, so it can&apos;t be
-                used while you&apos;re signed in as {signedInAs.name}. Log out
-                to continue as a parent, or go to your own dashboard.
+                This form creates or adds to a family&apos;s requirements, so it
+                can&apos;t be used while you&apos;re signed in as {signedInAs.name}.
+                Log out to continue, or go to your own dashboard.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <button
