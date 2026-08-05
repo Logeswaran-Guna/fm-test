@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
 import LoginBackground from "../components/LoginBackground";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, homePathForRole, type Role } from "@/lib/supabase/profile";
+import fmLockup from "../../public/images/fm-lockup.png";
 
 const ROLE_TABS: { label: string; role: Role }[] = [
   { label: "Admin", role: "ADMIN" },
@@ -114,6 +116,16 @@ export default function LoginPage() {
         <div className="relative">
         <LoginBackground />
         <div className="relative z-10 mx-auto max-w-md px-6 py-16 sm:px-8 xl:absolute xl:left-1/2 xl:top-[15%] xl:w-full xl:-translate-x-1/2 xl:py-0">
+          {/* Below xl the illustrated background is hidden entirely (see
+              LoginBackground's comment for why — the fixed-height card
+              would collide with it at narrower widths). This is that
+              breakpoint's own treatment, not a fallback: a normal-flow
+              logo that can never overlap anything, since it just pushes
+              the role tabs down like any other block content. */}
+          <div className="mb-8 flex justify-center xl:hidden">
+            <Image src={fmLockup} alt="Future Minds" className="h-14 w-auto sm:h-16" />
+          </div>
+
           <div className="mb-5 flex rounded-full border border-slate-200 bg-white p-1">
             {ROLE_TABS.map((tab) => (
               <button
