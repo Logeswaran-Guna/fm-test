@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
               Legal
             </div>
             <h1 className="mt-4 font-heading text-3xl font-bold text-white sm:text-4xl">
-              Privacy Policy &amp; Terms of Use
+              Privacy Policy
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-white/60">
               Last updated: 3 August 2026 · Applies to the Future Minds tutor
@@ -239,28 +239,15 @@ export default function PrivacyPolicyPage() {
             </Section>
 
             <Section title="11. Terms of use">
-              <ul className="list-disc space-y-1.5 pl-5">
-                <li>
-                  Future Minds is a matching and coordination service.
-                  Tutors listed on the platform are independent educators,
-                  not employees of Future Minds.
-                </li>
-                <li>
-                  Our team reviews each requirement, shortlists suitable
-                  educators, and coordinates the relationship through
-                  enrollment and attendance — we do not guarantee the outcome
-                  of any tuition arrangement.
-                </li>
-                <li>
-                  Parents and tutors are responsible for the conduct of
-                  classes arranged through the platform.
-                </li>
-                <li>
-                  We may suspend or remove an account for misuse, fraud, or
-                  violation of these terms.
-                </li>
-                <li>These terms are governed by the laws of India.</li>
-              </ul>
+              <p>
+                This page covers privacy specifically. For the full rules
+                covering accounts, fees and commission, cancellations,
+                conduct, and liability, see our{" "}
+                <a href="/terms" className="font-semibold text-amber-700 underline">
+                  Terms of Service
+                </a>
+                .
+              </p>
             </Section>
 
             <Section title="12. Changes to this policy">

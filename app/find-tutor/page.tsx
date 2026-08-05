@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
 import PasswordField from "../components/PasswordField";
+import HoneypotField from "../components/HoneypotField";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
+import { isLikelyBot } from "@/lib/antiSpam";
 import {
   BOARDS,
   CREATIVE_LEARNING_ITEMS,
@@ -158,6 +160,12 @@ export default function FindTutorPage() {
   const [checkingRole, setCheckingRole] = useState(true);
   const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
   const [loggedInParent, setLoggedInParent] = useState<Profile | null>(null);
+  const [honeypot, setHoneypot] = useState("");
+  const formStartedAt = useRef(0);
+
+  useEffect(() => {
+    formStartedAt.current = Date.now();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -215,6 +223,14 @@ export default function FindTutorPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isLikelyBot(honeypot, formStartedAt.current)) {
+      // Don't reveal detection — show the same success state a real
+      // submission would, without ever writing to the database.
+      setSubmittedParentName(loggedInParent ? loggedInParent.name : form.parentName.trim());
+      setSuccess(true);
+      return;
+    }
 
     const validationErrors = validate(form, Boolean(loggedInParent));
     setErrors(validationErrors);
@@ -386,6 +402,7 @@ export default function FindTutorPage() {
               noValidate
               className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
             >
+              <HoneypotField value={honeypot} onChange={setHoneypot} />
               {loggedInParent ? (
                 <p className="rounded-lg bg-slate-50 px-4 py-3 text-xs text-slate-500">
                   Submitting as <strong>{loggedInParent.name}</strong> ({loggedInParent.email || loggedInParent.phone}).

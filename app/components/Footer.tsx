@@ -148,7 +148,10 @@ export default function Footer() {
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] text-white/40">
             <span>Future Minds — Learn Today. Lead Tomorrow.</span>
             <Link href="/privacy-policy" className="underline hover:text-white/70">
-              Privacy Policy &amp; Terms
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="underline hover:text-white/70">
+              Terms of Service
             </Link>
             <span>© {new Date().getFullYear()} Future Minds. All rights reserved.</span>
           </div>
