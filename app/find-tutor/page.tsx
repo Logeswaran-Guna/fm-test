@@ -662,6 +662,19 @@ export default function FindTutorPage() {
                 />
               </div>
 
+              <div className="rounded-lg bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+                <strong className="text-navy">On fees:</strong>
+                {" "}class fees are paid directly to the tutor, as agreed between you. Once you approve a tutor,
+                Future Minds charges a one-time platform fee of 20% of your monthly budget, paid directly to us.
+                The tutor separately pays Future Minds a 10% commission from their own earnings every month, for as
+                long as the class stays active. For Community Pooling batches, it&apos;s different: both sides pay
+                a recurring 10% each month instead — see{" "}
+                <a href="/tutor-platform" className="font-semibold text-amber-700 underline">
+                  how Community Pooling works
+                </a>
+                .
+              </div>
+
               <div>
                 <label className="flex items-start gap-3 text-sm text-slate-600">
                   <input

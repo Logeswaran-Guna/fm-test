@@ -50,8 +50,8 @@ export default function TermsPage() {
             <code className="rounded bg-amber-100 px-1">
               [confirm before publishing]
             </code>
-            , which need business decisions (e.g. commission rate, refund
-            policy specifics) that aren&apos;t mine to make.
+            , which need business decisions (e.g. refund policy specifics,
+            registered business details) that aren&apos;t mine to make.
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-6 py-2 shadow-sm sm:px-8">
@@ -157,10 +157,25 @@ export default function TermsPage() {
               <p>
                 Future Minds does not currently process class fees through
                 the platform. Parents pay tutors directly, as agreed between
-                them. Future Minds separately charges the tutor a service
-                commission for the matching, verification, and coordination
-                provided — <em>[confirm before publishing — commission
-                percentage/structure]</em>.
+                them. For a standard (non-pooled) match, once you approve a
+                tutor, Future Minds charges you a one-time platform fee of
+                20% of your submitted budget, paid directly to Future Minds.
+                Separately, Future Minds charges the tutor a flat 10% service
+                commission, deducted from their payout, recurring every month
+                for as long as the batch stays active, for the matching,
+                verification, attendance-tracking, and coordination provided.
+              </p>
+              <p>
+                Community Pooling batches work differently: instead of a
+                one-time parent fee, both sides pay a recurring 10% every
+                month for as long as the pooled batch stays active — Future
+                Minds deducts a flat 10% from the teacher&apos;s payout{" "}
+                <em>and</em>{" "}
+                separately collects a flat 10% from each participating
+                household&apos;s monthly share of the pooled amount. Both the
+                parent-side one-time fee and the pooling parent-side monthly
+                fee are tracked and collected manually by our team, the same
+                way payouts are, until an in-platform payment option exists.
               </p>
               <p>
                 We may introduce in-platform payment options (for example,

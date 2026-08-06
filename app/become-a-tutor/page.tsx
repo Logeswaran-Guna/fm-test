@@ -846,6 +846,18 @@ export default function BecomeATutorPage() {
                 </p>
               </div>
 
+              <div className="rounded-lg bg-slate-50 px-4 py-3 text-xs leading-relaxed text-slate-500">
+                <strong className="text-navy">On fees:</strong>
+                {" "}parents pay you directly, as agreed between you. Future Minds deducts a 10% commission from
+                your payout every month, for as long as the class stays active — separately, the parent pays
+                Future Minds a one-time 20% platform fee directly once they approve you, which doesn&apos;t come
+                out of your payout. For Community Pooling batches specifically, it&apos;s different: Future Minds
+                takes a recurring 10% from your payout{" "}
+                <em>and</em>{" "}
+                a separate recurring 10% from each participating household, every month for as long as the pooled
+                batch stays active.
+              </div>
+
               <div>
                 <label className="flex items-start gap-3 text-sm text-slate-600">
                   <input

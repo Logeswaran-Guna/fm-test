@@ -10,9 +10,11 @@ import { exportToCsv, type CsvColumn } from "@/lib/csv";
 import MatchModal from "./MatchModal";
 import ManageUsers from "./ManageUsers";
 import RegistrationForms from "./RegistrationForms";
+import PoolingTab from "./PoolingTab";
 import { StatusBadge } from "./StatusBadge";
 import {
   MATCH_STATUS_LABELS,
+  type PoolingGroupRow,
   type RequirementRow,
   type TutorRow,
 } from "./types";
@@ -22,6 +24,7 @@ type Tab =
   | "tutors"
   | "attendance"
   | "logged-classes"
+  | "pooling"
   | "registration-forms"
   | "manage-users";
 
@@ -71,7 +74,10 @@ const REQUIREMENT_COLUMNS: CsvColumn<RequirementRow>[] = [
   { header: "Budget", value: (r) => r.budget },
   { header: "Submitted", value: (r) => formatDate(r.created_at) },
   { header: "Status", value: (r) => (r.match_status ? MATCH_STATUS_LABELS[r.match_status] : "No match yet") },
+  { header: "Match Score", value: (r) => r.match_score },
   { header: "Teacher Name", value: (r) => r.teacher_name },
+  { header: "Parent One-Time Fee", value: (r) => r.parent_onetime_fee_amount },
+  { header: "Parent Fee Collected", value: (r) => (r.parent_fee_collected ? "Yes" : "No") },
 ];
 
 const TUTOR_COLUMNS: CsvColumn<TutorRow>[] = [
@@ -127,10 +133,17 @@ function RequirementStatusBadge({ row }: { row: RequirementRow }) {
     DECLINED: "bg-red-100 text-red-700",
   };
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${styles[row.match_status]}`}
-    >
-      {MATCH_STATUS_LABELS[row.match_status]}
+    <span className="inline-flex items-center gap-1.5">
+      <span
+        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${styles[row.match_status]}`}
+      >
+        {MATCH_STATUS_LABELS[row.match_status]}
+      </span>
+      {row.match_score != null && (
+        <span className="inline-flex items-center rounded-full bg-navy/5 px-2 py-1 text-[11px] font-bold text-navy/70">
+          {row.match_score}%
+        </span>
+      )}
     </span>
   );
 }
@@ -163,6 +176,7 @@ export default function AdminDashboardPage() {
   const [requirements, setRequirements] = useState<RequirementRow[]>([]);
   const [tutors, setTutors] = useState<TutorRow[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [poolingGroups, setPoolingGroups] = useState<PoolingGroupRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -192,24 +206,27 @@ export default function AdminDashboardPage() {
   async function loadData() {
     const supabase = createClient();
 
-    const [requirementsRes, tutorsRes, sessionsRes] = await Promise.all([
+    const [requirementsRes, tutorsRes, sessionsRes, poolingRes] = await Promise.all([
       supabase.rpc("admin_requirements_queue"),
       supabase.rpc("admin_teachers_directory"),
       supabase.rpc("admin_sessions_queue"),
+      supabase.rpc("admin_pooling_groups"),
     ]);
 
     setLoadError(null);
-    if (requirementsRes.error || tutorsRes.error || sessionsRes.error) {
+    if (requirementsRes.error || tutorsRes.error || sessionsRes.error || poolingRes.error) {
       setLoadError(
         requirementsRes.error?.message ||
           tutorsRes.error?.message ||
           sessionsRes.error?.message ||
+          poolingRes.error?.message ||
           "Failed to load dashboard data."
       );
     } else {
       setRequirements((requirementsRes.data as RequirementRow[]) ?? []);
       setTutors((tutorsRes.data as TutorRow[]) ?? []);
       setSessions((sessionsRes.data as SessionRow[]) ?? []);
+      setPoolingGroups((poolingRes.data as PoolingGroupRow[]) ?? []);
     }
     setLoading(false);
   }
@@ -414,6 +431,15 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("pooling")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "pooling" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Community Pooling
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("registration-forms")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
@@ -436,7 +462,8 @@ export default function AdminDashboardPage() {
               {activeTab !== "attendance" &&
                 activeTab !== "logged-classes" &&
                 activeTab !== "manage-users" &&
-                activeTab !== "registration-forms" && (
+                activeTab !== "registration-forms" &&
+                activeTab !== "pooling" && (
                 <input
                   type="text"
                   value={search}
@@ -445,7 +472,9 @@ export default function AdminDashboardPage() {
                   className="w-full max-w-xs rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber/50"
                 />
               )}
-              {activeTab !== "manage-users" && activeTab !== "registration-forms" && (
+              {activeTab !== "manage-users" &&
+                activeTab !== "registration-forms" &&
+                activeTab !== "pooling" && (
                 <button
                   type="button"
                   onClick={handleExport}
@@ -753,6 +782,15 @@ export default function AdminDashboardPage() {
                     file).
                   </p>
                 </div>
+              </div>
+            ) : activeTab === "pooling" ? (
+              <div className="p-5">
+                <PoolingTab
+                  groups={poolingGroups}
+                  requirements={requirements}
+                  tutors={tutors}
+                  onUpdated={loadData}
+                />
               </div>
             ) : activeTab === "manage-users" ? (
               <ManageUsers tutors={tutors} onTutorsChanged={loadData} />

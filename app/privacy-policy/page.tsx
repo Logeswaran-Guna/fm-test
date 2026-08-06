@@ -199,9 +199,21 @@ export default function PrivacyPolicyPage() {
               <p>
                 Future Minds does not currently process class fees through
                 the platform. Parents pay tutors directly, as agreed between
-                them. Future Minds separately collects its own service
-                commission from the tutor for the matching, verification, and
-                coordination service provided. This section will be updated
+                them. For a standard match, Future Minds charges the parent a
+                one-time 20% platform fee once they approve a tutor, and
+                separately collects its own flat 10% service commission from
+                the tutor, deducted from their payout every month for as long
+                as the batch stays active, for the matching, verification,
+                and coordination service provided.
+              </p>
+              <p>
+                For Community Pooling batches, it&apos;s different: both
+                sides pay a recurring 10% every month instead of a one-time
+                fee — Future Minds collects a flat 10% platform fee from each
+                participating household&apos;s monthly share of the pooled
+                amount, in addition to the tutor&apos;s own recurring 10%.
+                All of this is tracked and collected manually by our team,
+                the same way tutor payouts are. This section will be updated
                 if the platform begins collecting payments directly in the
                 future.
               </p>

@@ -3,9 +3,20 @@ export type CsvColumn<T> = {
   value: (row: T) => string | number | null | undefined;
 };
 
-function escapeCsvValue(value: unknown): string {
+export function escapeCsvValue(value: unknown): string {
   const s = value == null ? "" : String(value);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+// Pure string-building, split out from exportToCsv so it's testable without
+// a DOM (Blob/URL/document are browser-only side effects, not logic).
+export function buildCsv<T>(columns: CsvColumn<T>[], rows: T[]): string {
+  const header = columns.map((c) => escapeCsvValue(c.header)).join(",");
+  const lines = rows.map((row) =>
+    columns.map((c) => escapeCsvValue(c.value(row))).join(",")
+  );
+  // Leading BOM so Excel opens the UTF-8 file (e.g. ₹) without mangling it.
+  return "﻿" + [header, ...lines].join("\n");
 }
 
 export function exportToCsv<T>(
@@ -13,12 +24,7 @@ export function exportToCsv<T>(
   columns: CsvColumn<T>[],
   rows: T[]
 ) {
-  const header = columns.map((c) => escapeCsvValue(c.header)).join(",");
-  const lines = rows.map((row) =>
-    columns.map((c) => escapeCsvValue(c.value(row))).join(",")
-  );
-  // Leading BOM so Excel opens the UTF-8 file (e.g. ₹) without mangling it.
-  const csv = "﻿" + [header, ...lines].join("\n");
+  const csv = buildCsv(columns, rows);
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

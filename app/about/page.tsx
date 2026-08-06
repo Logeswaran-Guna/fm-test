@@ -37,6 +37,10 @@ export default function AboutPage() {
             <p className="mt-3 max-w-2xl text-sm text-white/60">
               Based in Coimbatore, Tamil Nadu, and built for how Indian families actually find and trust an educator.
             </p>
+            <p className="mt-2 max-w-2xl text-xs text-white/40">
+              Every number on this site — tutors onboarded, classes completed, categories live — reflects real,
+              live data from the platform, not placeholder marketing figures.
+            </p>
           </div>
         </section>
 
@@ -72,6 +76,55 @@ export default function AboutPage() {
               </p>
             </Section>
 
+            <Section title="Our fees, transparently">
+              <p>
+                For a standard match, once you approve a tutor, Future Minds charges a one-time platform fee of
+                20% of your monthly budget — paid directly to us, separate from what you pay the tutor. The tutor
+                separately pays Future Minds a 10% commission from their own earnings, recurring every month for as
+                long as the class stays active, until the batch closes. Every rupee of that fee maps to real,
+                ongoing work, not just a cut for existing:
+              </p>
+              <ul className="list-disc space-y-1.5 pl-5">
+                <li>
+                  <strong className="text-navy">Profile maintenance</strong>
+                  {" — "}verifying a tutor&apos;s identity (KYC) once, then keeping their profile, subjects, and
+                  availability accurate as they take on more classes.
+                </li>
+                <li>
+                  <strong className="text-navy">Platform fee</strong>
+                  {" — "}the hosting, database, admin dashboard, and matching tools that keep every family&apos;s and
+                  tutor&apos;s records running and secure.
+                </li>
+                <li>
+                  <strong className="text-navy">Commission for the handshake</strong>
+                  {" — "}our team reviewing each requirement, shortlisting suitable educators, and coordinating the
+                  introduction and demo class — the actual matching work, not just a listing.
+                </li>
+                <li>
+                  <strong className="text-navy">Attendance, with parent validation</strong>
+                  {" — "}every class a tutor logs has to be confirmed by the parent before it counts toward a
+                  payout; we build and maintain that verification step so payment is never released on an
+                  unconfirmed claim.
+                </li>
+                <li>
+                  <strong className="text-navy">Administrative cost</strong>
+                  {" — "}a person on our team reviews KYC documents, resolves disputes, and processes every payout
+                  by hand at this stage — real, ongoing labor, not an automated cut.
+                </li>
+              </ul>
+              <p>
+                Community Pooling works differently: instead of a one-time parent fee, both sides pay a recurring
+                10% every month for as long as the pooled batch stays active — 10% of the tutor&apos;s payout{" "}
+                <em>and</em>{" "}
+                a separate 10% of each participating household&apos;s monthly share, since coordinating several
+                families onto one shared batch is ongoing work each month, not a one-time introduction. See{" "}
+                <a href="/tutor-platform" className="font-semibold text-amber-700 underline">
+                  how Community Pooling works
+                </a>{" "}
+                for the full breakdown.
+              </p>
+            </Section>
+
             <Section title="Two verticals, one mission">
               <p>
                 Future Minds runs two connected efforts: a tutor discovery
@@ -86,8 +139,8 @@ export default function AboutPage() {
             <Section title="Where we're based">
               <p>
                 Future Minds is headquartered in Old Pallavaram, Chennai,
-                with a branch in Gudiyattam, Vellore — built with Coimbatore
-                and Tamil Nadu families in mind first, and growing from
+                with a branch in Gudiyattam, Vellore — built with Tamil Nadu
+                and South Indian families in mind first, and growing from
                 there.
               </p>
             </Section>
