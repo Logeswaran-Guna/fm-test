@@ -11,9 +11,12 @@ import MatchModal from "./MatchModal";
 import ManageUsers from "./ManageUsers";
 import RegistrationForms from "./RegistrationForms";
 import PoolingTab from "./PoolingTab";
+import AcademyTab from "./AcademyTab";
 import { StatusBadge } from "./StatusBadge";
 import {
   MATCH_STATUS_LABELS,
+  type AcademyCourseRow,
+  type AcademyEnrollmentRow,
   type PoolingGroupRow,
   type RequirementRow,
   type TutorRow,
@@ -25,6 +28,7 @@ type Tab =
   | "attendance"
   | "logged-classes"
   | "pooling"
+  | "academy"
   | "registration-forms"
   | "manage-users";
 
@@ -177,6 +181,8 @@ export default function AdminDashboardPage() {
   const [tutors, setTutors] = useState<TutorRow[]>([]);
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [poolingGroups, setPoolingGroups] = useState<PoolingGroupRow[]>([]);
+  const [academyCourses, setAcademyCourses] = useState<AcademyCourseRow[]>([]);
+  const [academyEnrollments, setAcademyEnrollments] = useState<AcademyEnrollmentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -206,20 +212,31 @@ export default function AdminDashboardPage() {
   async function loadData() {
     const supabase = createClient();
 
-    const [requirementsRes, tutorsRes, sessionsRes, poolingRes] = await Promise.all([
+    const [requirementsRes, tutorsRes, sessionsRes, poolingRes, coursesRes, enrollmentsRes] = await Promise.all([
       supabase.rpc("admin_requirements_queue"),
       supabase.rpc("admin_teachers_directory"),
       supabase.rpc("admin_sessions_queue"),
       supabase.rpc("admin_pooling_groups"),
+      supabase.rpc("admin_academy_courses"),
+      supabase.rpc("admin_academy_enrollments"),
     ]);
 
     setLoadError(null);
-    if (requirementsRes.error || tutorsRes.error || sessionsRes.error || poolingRes.error) {
+    if (
+      requirementsRes.error ||
+      tutorsRes.error ||
+      sessionsRes.error ||
+      poolingRes.error ||
+      coursesRes.error ||
+      enrollmentsRes.error
+    ) {
       setLoadError(
         requirementsRes.error?.message ||
           tutorsRes.error?.message ||
           sessionsRes.error?.message ||
           poolingRes.error?.message ||
+          coursesRes.error?.message ||
+          enrollmentsRes.error?.message ||
           "Failed to load dashboard data."
       );
     } else {
@@ -227,6 +244,8 @@ export default function AdminDashboardPage() {
       setTutors((tutorsRes.data as TutorRow[]) ?? []);
       setSessions((sessionsRes.data as SessionRow[]) ?? []);
       setPoolingGroups((poolingRes.data as PoolingGroupRow[]) ?? []);
+      setAcademyCourses((coursesRes.data as AcademyCourseRow[]) ?? []);
+      setAcademyEnrollments((enrollmentsRes.data as AcademyEnrollmentRow[]) ?? []);
     }
     setLoading(false);
   }
@@ -440,6 +459,15 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("academy")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "academy" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Academy
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("registration-forms")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
@@ -463,7 +491,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "logged-classes" &&
                 activeTab !== "manage-users" &&
                 activeTab !== "registration-forms" &&
-                activeTab !== "pooling" && (
+                activeTab !== "pooling" &&
+                activeTab !== "academy" && (
                 <input
                   type="text"
                   value={search}
@@ -474,7 +503,8 @@ export default function AdminDashboardPage() {
               )}
               {activeTab !== "manage-users" &&
                 activeTab !== "registration-forms" &&
-                activeTab !== "pooling" && (
+                activeTab !== "pooling" &&
+                activeTab !== "academy" && (
                 <button
                   type="button"
                   onClick={handleExport}
@@ -792,6 +822,8 @@ export default function AdminDashboardPage() {
                   onUpdated={loadData}
                 />
               </div>
+            ) : activeTab === "academy" ? (
+              <AcademyTab courses={academyCourses} enrollments={academyEnrollments} onUpdated={loadData} />
             ) : activeTab === "manage-users" ? (
               <ManageUsers tutors={tutors} onTutorsChanged={loadData} />
             ) : activeTab === "registration-forms" ? (

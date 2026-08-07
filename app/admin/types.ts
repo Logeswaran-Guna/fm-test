@@ -129,6 +129,40 @@ export type PoolingGroupRow = {
   members: PoolingMember[];
 };
 
+export type AcademyCourseStatus = "OPEN" | "COMING_SOON" | "CLOSED";
+
+export type AcademyCourseRow = {
+  id: string;
+  display_id: string;
+  title: string;
+  age_range: string | null;
+  format: string | null;
+  description: string | null;
+  duration: string | null;
+  price: number | null;
+  status: AcademyCourseStatus;
+  display_order: number;
+  image_url: string | null;
+  enrollment_count: number;
+};
+
+export type AcademyEnrollmentStatus = "NEW" | "CONTACTED" | "ENROLLED" | "DECLINED";
+
+export type AcademyEnrollmentRow = {
+  id: string;
+  display_id: string;
+  course_id: string;
+  course_title: string;
+  enrollee_name: string;
+  student_name: string | null;
+  student_age: string | null;
+  contact_phone: string;
+  contact_email: string | null;
+  notes: string | null;
+  status: AcademyEnrollmentStatus;
+  created_at: string;
+};
+
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   PROPOSED: "Match Proposed",
   DEMO_PROPOSED: "Demo Proposed",

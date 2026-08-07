@@ -2,6 +2,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BackButton from "../components/BackButton";
 import { PillarHero, PillarSectionHeading, CardGrid, PillarCTAs } from "../components/PillarPage";
+import AcademyCatalog from "./AcademyCatalog";
 
 const formatIcon = {
   viewBox: "0 0 24 24",
@@ -122,8 +123,17 @@ export default function AiRoboticsPage() {
         />
 
         <div className="mx-auto max-w-6xl px-6 py-16 sm:px-8">
-          <PillarSectionHeading title="What it covers — tracks by age & audience" />
-          <CardGrid items={tracks} />
+          <PillarSectionHeading title="Courses open for enrollment" />
+          <AcademyCatalog />
+          <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-400">
+            Submitting an enrollment request doesn&apos;t charge you anything — our team will contact you directly
+            to confirm your spot and arrange payment. No card details are collected on this site.
+          </p>
+
+          <div className="mt-14">
+            <PillarSectionHeading title="What it covers — tracks by age & audience" />
+            <CardGrid items={tracks} />
+          </div>
 
           <div className="mt-14">
             <PillarSectionHeading title="How it works" />
@@ -135,15 +145,6 @@ export default function AiRoboticsPage() {
             <div className="mt-6">
               <CardGrid items={offerings} />
             </div>
-          </div>
-
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-white p-6 text-center sm:p-8">
-            <h3 className="font-heading text-lg font-semibold text-navy">Enrollment &amp; payments</h3>
-            <p className="mx-auto mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Online course enrollment and payment aren&apos;t live on the site yet — for now, our team coordinates
-              enrollment, batch scheduling and payment directly. Reach out and we&apos;ll get you or your child into
-              the right track.
-            </p>
           </div>
 
           <PillarCTAs primary={{ text: "Enquire About AI & Robotics →", href: "mailto:hello@futureminds.in" }} />
