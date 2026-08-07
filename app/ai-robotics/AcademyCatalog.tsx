@@ -205,7 +205,7 @@ export default function AcademyCatalog() {
         {courses.map((course) => (
           <div
             key={course.id}
-            className="flex gap-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+            className="flex gap-12 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
           >
             {course.image_url && (
               <div
@@ -241,11 +241,13 @@ export default function AcademyCatalog() {
               {course.description && (
                 <p className="mt-3 text-sm leading-relaxed text-slate-500">{course.description}</p>
               )}
-              <div className="mt-4 flex items-center justify-between">
-                <p className="text-sm font-semibold text-navy">
-                  {formatPrice(course.price)}
-                  {course.duration && <span className="ml-1 font-normal text-slate-400">· {course.duration}</span>}
-                </p>
+              <div className="mt-4 flex items-end justify-between">
+                <div className="text-sm">
+                  <p className="font-semibold text-navy">
+                    Fee: {course.price != null ? `Rs.${course.price.toLocaleString("en-IN")}` : "Contact us for pricing"}
+                  </p>
+                  {course.duration && <p className="mt-0.5 font-semibold text-navy">Duration: {course.duration}</p>}
+                </div>
                 {course.status === "OPEN" ? (
                   <button
                     type="button"
