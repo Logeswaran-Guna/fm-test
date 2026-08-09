@@ -86,11 +86,16 @@ export default function ReferralCard() {
     if (!summary || typeof window === "undefined") return;
     const path = kind === "parent" ? "/find-tutor" : "/become-a-tutor";
     const url = `${window.location.origin}${path}?ref=${encodeURIComponent(summary.referral_code)}`;
-    const text = SHARE_MESSAGES[kind];
+    const combined = `${SHARE_MESSAGES[kind]}\n\n${url}`;
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: "Future Minds", text, url });
+        // Deliberately NOT passing `url` as its own field — WhatsApp (and
+        // some other Android share targets) silently drop `text` and show
+        // only `url` when both are given separately. Folding everything
+        // into one `text` string is the reliable way to get the message
+        // to actually show up alongside the link.
+        await navigator.share({ title: "Future Minds", text: combined });
         return;
       } catch (err) {
         // AbortError = the visitor closed the share sheet themselves —
@@ -101,7 +106,7 @@ export default function ReferralCard() {
     }
 
     try {
-      await navigator.clipboard.writeText(`${text}\n${url}`);
+      await navigator.clipboard.writeText(combined);
       setCopiedLink(kind);
       setTimeout(() => setCopiedLink(null), 2000);
     } catch {
