@@ -38,6 +38,8 @@ function makeRequirement(overrides: Partial<RequirementRow> = {}): RequirementRo
     teacher_name: null,
     parent_onetime_fee_amount: null,
     parent_fee_collected: null,
+    referral_discount_amount: null,
+    referral_discount_code: null,
     ...overrides,
   };
 }

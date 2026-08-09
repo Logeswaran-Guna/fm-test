@@ -16,9 +16,16 @@ const ROLE_LABEL: Record<Role, string> = {
 // silently signing them into the wrong account.
 export async function signUpOrSignIn(
   supabase: SupabaseClient,
-  params: { email: string; password: string; name: string; phone: string; role: Role }
+  params: {
+    email: string;
+    password: string;
+    name: string;
+    phone: string;
+    role: Role;
+    referralCode?: string;
+  }
 ): Promise<{ hasSession: boolean }> {
-  const { email, password, name, phone, role } = params;
+  const { email, password, name, phone, role, referralCode } = params;
 
   // Already logged in (e.g. a parent revisiting the form for a second
   // subject)? Skip signUp entirely — Supabase silently no-ops signUp for
@@ -36,7 +43,15 @@ export async function signUpOrSignIn(
     {
       email,
       password,
-      options: { data: { name, phone, role, consent: true } },
+      options: {
+        data: {
+          name,
+          phone,
+          role,
+          consent: true,
+          ...(referralCode?.trim() ? { referral_code: referralCode.trim() } : {}),
+        },
+      },
     }
   );
 

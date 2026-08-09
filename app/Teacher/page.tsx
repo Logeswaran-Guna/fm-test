@@ -5,9 +5,33 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
+import ReferralCard from "../components/ReferralCard";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
+import { exportToCsv, type CsvColumn } from "@/lib/csv";
 import { SESSION_STATUS_LABELS, type MyMatch, type MySession } from "./types";
+
+type MyPayout = {
+  id: string;
+  period: string | null;
+  gross_amount: number;
+  commission_percent: number;
+  commission_deducted: number;
+  amount: number;
+  status: string;
+  released_at: string;
+  referral_discount_amount: number | null;
+};
+
+const PAYOUT_COLUMNS: CsvColumn<MyPayout>[] = [
+  { header: "Period", value: (r) => r.period },
+  { header: "Gross Amount", value: (r) => r.gross_amount },
+  { header: "Commission %", value: (r) => r.commission_percent },
+  { header: "Commission Deducted", value: (r) => r.commission_deducted },
+  { header: "Referral Discount", value: (r) => r.referral_discount_amount },
+  { header: "Net Amount", value: (r) => r.amount },
+  { header: "Status", value: (r) => r.status },
+];
 
 function formatDate(value: string | null): string {
   if (!value) return "—";
@@ -136,6 +160,7 @@ export default function TeacherDashboard() {
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [loggingFor, setLoggingFor] = useState<string | null>(null);
+  const [statementBusy, setStatementBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -196,6 +221,23 @@ export default function TeacherDashboard() {
     setBusyId(null);
   }
 
+  async function downloadStatement() {
+    setStatementBusy(true);
+    setErrorBanner(null);
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("my_payouts");
+    if (error) {
+      setErrorBanner(error.message);
+    } else {
+      exportToCsv(
+        `my-payout-statement-${new Date().toISOString().slice(0, 10)}.csv`,
+        PAYOUT_COLUMNS,
+        (data as MyPayout[]) ?? []
+      );
+    }
+    setStatementBusy(false);
+  }
+
   if (checkingAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-400">
@@ -245,6 +287,10 @@ export default function TeacherDashboard() {
               {errorBanner}
             </div>
           )}
+
+          <div className="mb-8">
+            <ReferralCard />
+          </div>
 
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-semibold text-navy">
@@ -384,13 +430,23 @@ export default function TeacherDashboard() {
             </div>
           )}
 
-          <div className="mt-10 flex items-center justify-between">
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
             <h2 className="font-heading text-lg font-semibold text-navy">
               My Logged Classes
             </h2>
-            <span className="text-xs text-slate-400">
-              Total: {sessions.length}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-400">
+                Total: {sessions.length}
+              </span>
+              <button
+                type="button"
+                disabled={statementBusy}
+                onClick={downloadStatement}
+                className="rounded-lg border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-navy transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {statementBusy ? "Preparing…" : "Download My Payout Statement"}
+              </button>
+            </div>
           </div>
 
           {sessions.length === 0 ? (

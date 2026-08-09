@@ -34,6 +34,7 @@ type FormState = {
   gradeClass: string;
   locationAddress: string;
   phoneNumber: string;
+  referralCode: string;
   modes: Mode[];
   schedulePref: string;
   pricingType: PricingType;
@@ -59,6 +60,7 @@ const initialFormState: FormState = {
   gradeClass: "",
   locationAddress: "",
   phoneNumber: "",
+  referralCode: "",
   modes: [],
   schedulePref: SCHEDULE_PREFERENCES[0],
   pricingType: "Fixed budget",
@@ -252,6 +254,7 @@ export default function FindTutorPage() {
           name: form.parentName.trim(),
           phone: form.phoneNumber.trim(),
           role: "PARENT",
+          referralCode: form.referralCode,
         });
 
         if (!hasSession) {
@@ -444,6 +447,13 @@ export default function FindTutorPage() {
                     error={errors.phoneNumber}
                     placeholder="e.g. 98765 43210"
                     type="tel"
+                  />
+                  <Field
+                    label="Referral Code (optional)"
+                    value={form.referralCode}
+                    onChange={(value) => updateField("referralCode", value)}
+                    placeholder="e.g. FMPAR260803-01"
+                    hint="Were you referred by another parent or tutor? Enter their code here."
                   />
                 </>
               )}

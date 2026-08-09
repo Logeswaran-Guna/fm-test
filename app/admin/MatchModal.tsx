@@ -136,6 +136,31 @@ export default function MatchModal({
     }
   }
 
+  const [discountCode, setDiscountCode] = useState("");
+
+  async function applyDiscountCode() {
+    if (!discountCode.trim()) {
+      setError("Enter a discount code first.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const supabase = createClient();
+      const { error: rpcError } = await supabase.rpc("admin_apply_discount_to_fee", {
+        p_match_id: requirement.match_id,
+        p_code: discountCode.trim(),
+      });
+      if (rpcError) throw new Error(rpcError.message);
+      setDiscountCode("");
+      onUpdated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not apply the discount code.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function toggleParentFeeCollected() {
     setBusy(true);
     setError(null);
@@ -427,6 +452,38 @@ export default function MatchModal({
                 <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
                   Paid once, directly to Future Minds, separate from the teacher&apos;s own recurring 10% monthly
                   commission (tracked via Attendance &amp; Payouts).
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 px-4 py-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                  Referral discount
+                </h3>
+                {requirement.referral_discount_amount != null ? (
+                  <p className="mt-2 text-sm text-emerald-700">
+                    Rs {requirement.referral_discount_amount.toLocaleString("en-IN")} applied
+                    {requirement.referral_discount_code ? ` (${requirement.referral_discount_code})` : ""}.
+                  </p>
+                ) : (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <input
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value)}
+                      placeholder="Parent's discount code (e.g. FMDISC…)"
+                      className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                    />
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={applyDiscountCode}
+                      className="shrink-0 rounded-full bg-amber px-3.5 py-2 text-xs font-semibold text-navy transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                )}
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-400">
+                  Capped at 50% of this parent&apos;s one-time fee, no matter the code&apos;s face value.
                 </p>
               </div>
             </div>

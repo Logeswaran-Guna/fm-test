@@ -13,6 +13,8 @@ import RegistrationForms from "./RegistrationForms";
 import PoolingTab from "./PoolingTab";
 import AcademyTab from "./AcademyTab";
 import NotificationsTab from "./NotificationsTab";
+import ReferralsTab from "./ReferralsTab";
+import FunnelStats from "./FunnelStats";
 import { StatusBadge } from "./StatusBadge";
 import {
   MATCH_STATUS_LABELS,
@@ -31,6 +33,7 @@ type Tab =
   | "pooling"
   | "academy"
   | "notifications"
+  | "referrals"
   | "registration-forms"
   | "manage-users";
 
@@ -123,6 +126,30 @@ const SESSION_COLUMNS: CsvColumn<SessionRow>[] = [
   { header: "Payout Amount", value: (r) => r.payout_amount },
 ];
 
+type PayoutRow = {
+  id: string;
+  period: string | null;
+  gross_amount: number;
+  commission_percent: number;
+  commission_deducted: number;
+  amount: number;
+  status: string;
+  released_at: string;
+  referral_discount_amount: number | null;
+  referral_discount_code: string | null;
+};
+
+const PAYOUT_COLUMNS: CsvColumn<PayoutRow>[] = [
+  { header: "Period", value: (r) => r.period },
+  { header: "Gross Amount", value: (r) => r.gross_amount },
+  { header: "Commission %", value: (r) => r.commission_percent },
+  { header: "Commission Deducted", value: (r) => r.commission_deducted },
+  { header: "Referral Discount", value: (r) => r.referral_discount_amount },
+  { header: "Net Amount", value: (r) => r.amount },
+  { header: "Status", value: (r) => r.status },
+  { header: "Released", value: (r) => formatDate(r.released_at) },
+];
+
 function RequirementStatusBadge({ row }: { row: RequirementRow }) {
   if (!row.match_status) {
     return (
@@ -193,6 +220,8 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = useState<Tab>("requirements");
   const [search, setSearch] = useState("");
   const [matchTarget, setMatchTarget] = useState<RequirementRow | null>(null);
+  const [statementTeacherId, setStatementTeacherId] = useState("");
+  const [statementBusy, setStatementBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -325,13 +354,58 @@ export default function AdminDashboardPage() {
     setBusyId(matchId);
     setActionError(null);
     const supabase = createClient();
-    const { error } = await supabase.rpc("release_payout", {
+    const { data, error } = await supabase.rpc("release_payout", {
       p_match_id: matchId,
       p_commission_percent: Number(pct) || 0,
     });
-    if (error) setActionError(error.message);
-    else loadData();
+    if (error) {
+      setActionError(error.message);
+      setBusyId(null);
+      return;
+    }
+
+    const code = window.prompt(
+      "Teacher's referral discount code, if any (leave blank to skip):",
+      ""
+    );
+    if (code && code.trim()) {
+      const payoutId = (data as { id: string } | null)?.id;
+      if (payoutId) {
+        const { error: discountError } = await supabase.rpc("admin_apply_discount_to_payout", {
+          p_payout_id: payoutId,
+          p_code: code.trim(),
+        });
+        if (discountError) setActionError(discountError.message);
+      }
+    }
+
+    loadData();
     setBusyId(null);
+  }
+
+  async function downloadPayoutStatement() {
+    if (!statementTeacherId) {
+      setActionError("Pick a tutor first.");
+      return;
+    }
+    setStatementBusy(true);
+    setActionError(null);
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc("admin_teacher_payouts", {
+      p_teacher_id: statementTeacherId,
+    });
+    if (error) {
+      setActionError(error.message);
+    } else {
+      const teacher = tutors.find((t) => t.id === statementTeacherId);
+      const today = new Date().toISOString().slice(0, 10);
+      exportToCsv(
+        `payout-statement-${teacher?.display_id ?? statementTeacherId}-${today}.csv`,
+        PAYOUT_COLUMNS,
+        (data as PayoutRow[]) ?? []
+      );
+    }
+    setStatementBusy(false);
   }
 
   async function setKycStatus(teacherId: string, status: "APPROVED" | "REJECTED") {
@@ -479,6 +553,15 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("referrals")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "referrals" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Referrals
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("registration-forms")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
@@ -504,7 +587,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "registration-forms" &&
                 activeTab !== "pooling" &&
                 activeTab !== "academy" &&
-                activeTab !== "notifications" && (
+                activeTab !== "notifications" &&
+                activeTab !== "referrals" && (
                 <input
                   type="text"
                   value={search}
@@ -517,7 +601,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "registration-forms" &&
                 activeTab !== "pooling" &&
                 activeTab !== "academy" &&
-                activeTab !== "notifications" && (
+                activeTab !== "notifications" &&
+                activeTab !== "referrals" && (
                 <button
                   type="button"
                   onClick={handleExport}
@@ -535,7 +620,9 @@ export default function AdminDashboardPage() {
                 Loading dashboard data…
               </div>
             ) : activeTab === "requirements" ? (
-              <table className="w-full min-w-[900px] text-left text-sm">
+              <>
+                <FunnelStats />
+                <table className="w-full min-w-[900px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <th className="px-4 py-3">Parent Name</th>
@@ -587,7 +674,8 @@ export default function AdminDashboardPage() {
                     ))
                   )}
                 </tbody>
-              </table>
+                </table>
+              </>
             ) : activeTab === "tutors" ? (
               <table className="w-full min-w-[1400px] text-left text-sm">
                 <thead>
@@ -825,6 +913,34 @@ export default function AdminDashboardPage() {
                     file).
                   </p>
                 </div>
+
+                <div className="px-4 py-4">
+                  <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Payout Statements
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <select
+                      value={statementTeacherId}
+                      onChange={(e) => setStatementTeacherId(e.target.value)}
+                      className="min-w-[220px] rounded-lg border border-slate-200 px-3 py-2 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                    >
+                      <option value="">Select a tutor…</option>
+                      {tutors.map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.name || t.display_id}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      disabled={statementBusy || !statementTeacherId}
+                      onClick={downloadPayoutStatement}
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {statementBusy ? "Preparing…" : "Download Statement"}
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : activeTab === "pooling" ? (
               <div className="p-5">
@@ -839,6 +955,8 @@ export default function AdminDashboardPage() {
               <AcademyTab courses={academyCourses} enrollments={academyEnrollments} onUpdated={loadData} />
             ) : activeTab === "notifications" ? (
               <NotificationsTab />
+            ) : activeTab === "referrals" ? (
+              <ReferralsTab />
             ) : activeTab === "manage-users" ? (
               <ManageUsers tutors={tutors} onTutorsChanged={loadData} />
             ) : activeTab === "registration-forms" ? (

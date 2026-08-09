@@ -36,6 +36,7 @@ type FormState = {
   email: string;
   password: string;
   phoneNumber: string;
+  referralCode: string;
   qualifications: string;
   yearsExperience: ExperienceBand | "";
   expectedRate: string;
@@ -69,6 +70,7 @@ const initialFormState: FormState = {
   email: "",
   password: "",
   phoneNumber: "",
+  referralCode: "",
   qualifications: "",
   yearsExperience: "",
   expectedRate: "",
@@ -332,6 +334,7 @@ export default function BecomeATutorPage() {
         name: form.fullName.trim(),
         phone: form.phoneNumber.trim(),
         role: "TEACHER",
+        referralCode: form.referralCode,
       });
 
       if (!hasSession) {
@@ -616,6 +619,13 @@ export default function BecomeATutorPage() {
                     onChange={(value) => updateField("phoneNumber", value)}
                     error={errors.phoneNumber}
                     placeholder="e.g. 98765 43210"
+                  />
+                  <Field
+                    label="Referral Code (optional)"
+                    value={form.referralCode}
+                    onChange={(value) => updateField("referralCode", value)}
+                    placeholder="e.g. FMTEACH260803-01"
+                    hint="Were you referred by another parent or tutor? Enter their code here."
                   />
                 </>
               )}

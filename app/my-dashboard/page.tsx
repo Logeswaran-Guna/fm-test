@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
 import StatusBadge from "../components/StatusBadge";
+import MatchedTutorCard from "../components/MatchedTutorCard";
+import ReferralCard from "../components/ReferralCard";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, type Profile } from "@/lib/supabase/profile";
 import type { EntityStatus } from "@/lib/status";
@@ -367,6 +369,12 @@ export default function MyDashboardPage() {
             </div>
           )}
 
+          {!loading && parentProfile && (
+            <div className="mb-8">
+              <ReferralCard />
+            </div>
+          )}
+
           {loading ? (
             <div className="py-16 text-center text-sm text-slate-400">
               Loading your requirements…
@@ -406,10 +414,13 @@ export default function MyDashboardPage() {
                   </p>
 
                   {!r.match_status && (
-                    <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
-                      Our team is reviewing this requirement and will match
-                      you with a tutor soon.
-                    </p>
+                    <>
+                      <p className="mt-4 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500">
+                        Our team is reviewing this requirement and will match
+                        you with a tutor soon.
+                      </p>
+                      <MatchedTutorCard requirementId={r.id} />
+                    </>
                   )}
 
                   {r.match_status === "PROPOSED" && (

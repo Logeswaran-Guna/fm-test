@@ -39,6 +39,8 @@ export type RequirementRow = {
   teacher_name: string | null;
   parent_onetime_fee_amount: number | null;
   parent_fee_collected: boolean | null;
+  referral_discount_amount: number | null;
+  referral_discount_code: string | null;
 };
 
 export type TutorLanguage = {
