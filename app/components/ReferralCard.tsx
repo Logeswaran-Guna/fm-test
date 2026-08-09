@@ -30,6 +30,11 @@ const SHARE_MESSAGES: Record<"parent" | "tutor", string> = {
     "I've been earning solid extra income tutoring through Future Minds — real, vetted student matches, no cold outreach or bidding required. If you're a tutor too, it's worth a look:",
 };
 
+const EMAIL_SUBJECTS: Record<"parent" | "tutor", string> = {
+  parent: "A tutor recommendation from Future Minds",
+  tutor: "Thought you'd want to know about Future Minds",
+};
+
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, {
     day: "2-digit",
@@ -107,7 +112,9 @@ export default function ReferralCard() {
   // On desktop Windows in particular, WhatsApp/Telegram/Instagram web
   // essentially never show up there even if you use them daily, so the
   // generic "Share" button alone was missing them entirely.
-  async function shareVia(platform: "whatsapp" | "telegram" | "facebook" | "instagram" | "more") {
+  async function shareVia(
+    platform: "whatsapp" | "telegram" | "facebook" | "instagram" | "sms" | "email" | "more"
+  ) {
     if (!summary || typeof window === "undefined") return;
     const kind = shareAudience;
     const { message, url, combined } = buildShareParts(kind);
@@ -140,6 +147,20 @@ export default function ReferralCard() {
       // only thing that works, so the visitor can paste it into a DM,
       // story, or bio link themselves.
       await copyCombined(kind, combined);
+      return;
+    }
+    if (platform === "sms") {
+      // The sms: URI's query separator differs by platform — iOS wants
+      // "&", Android wants "?" — and there's no reliable feature-detect
+      // for it, so this branches on user agent (the standard workaround).
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      window.location.href = `sms:${isIOS ? "&" : "?"}body=${encodeURIComponent(combined)}`;
+      return;
+    }
+    if (platform === "email") {
+      window.location.href = `mailto:?subject=${encodeURIComponent(
+        EMAIL_SUBJECTS[kind]
+      )}&body=${encodeURIComponent(combined)}`;
       return;
     }
 
@@ -266,6 +287,29 @@ export default function ReferralCard() {
           </button>
           <button
             type="button"
+            onClick={() => shareVia("sms")}
+            aria-label="Share via SMS"
+            title="SMS"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => shareVia("email")}
+            aria-label="Share via Email"
+            title="Email"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="M3 7l9 6 9-6" />
+            </svg>
+          </button>
+          <button
+            type="button"
             onClick={() => shareVia("more")}
             className="rounded-full border border-slate-200 px-3 py-2 text-[11px] font-semibold text-navy transition-colors hover:bg-slate-50"
           >
@@ -275,6 +319,7 @@ export default function ReferralCard() {
         <p className="mt-1.5 text-[11px] text-slate-400">
           Opening the link fills in your code automatically for whoever you send it to. Instagram has no
           pre-filled share option, so that one copies the message instead — paste it into a DM or story.
+          SMS and Email open your device&apos;s own messaging/mail app.
         </p>
       </div>
 
