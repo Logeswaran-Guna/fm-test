@@ -16,6 +16,7 @@ export type RequirementRow = {
   mode: string[];
   location: string | null;
   schedule_pref: string | null;
+  time_preference: string | null;
   budget: number | null;
   preferred_teacher_gender: string | null;
   status: "open" | "assigned";
@@ -62,6 +63,8 @@ export type TutorRow = {
   preferred_locations: string[] | null;
   teaching_mode: string[] | null;
   availability: string[] | null;
+  schedule_pref: string | null;
+  time_preference: string | null;
   rate_expectation: number | null;
   bank_upi_ref: string | null;
   kyc_status: string;

@@ -642,6 +642,7 @@ export default function AdminDashboardPage() {
                     <th className="px-4 py-3">Student &amp; Grade</th>
                     <th className="px-4 py-3">Subject</th>
                     <th className="px-4 py-3">Location</th>
+                    <th className="px-4 py-3">Schedule</th>
                     <th className="px-4 py-3">Contact</th>
                     <th className="px-4 py-3">Submitted</th>
                     <th className="px-4 py-3">Status</th>
@@ -650,7 +651,7 @@ export default function AdminDashboardPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredRequirements.length === 0 ? (
-                    <EmptyState message="No parent requirements match your filters." colSpan={8} />
+                    <EmptyState message="No parent requirements match your filters." colSpan={9} />
                   ) : (
                     filteredRequirements.map((row) => (
                       <tr key={row.id} className="align-top">
@@ -661,6 +662,10 @@ export default function AdminDashboardPage() {
                         </td>
                         <td className="px-4 py-4 text-slate-600">{row.subject}</td>
                         <td className="px-4 py-4 text-slate-600">{row.location || "—"}</td>
+                        <td className="px-4 py-4 text-slate-600">
+                          {row.schedule_pref || "—"}
+                          {row.time_preference ? ` · ${row.time_preference}` : ""}
+                        </td>
                         <td className="px-4 py-4 text-slate-600">
                           {row.parent_phone ? (
                             <a href={`tel:${row.parent_phone}`} className="hover:text-amber-600">
@@ -701,13 +706,14 @@ export default function AdminDashboardPage() {
                     <th className="px-4 py-3">Languages</th>
                     <th className="px-4 py-3">Locations</th>
                     <th className="px-4 py-3">Mode</th>
+                    <th className="px-4 py-3">Schedule</th>
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">KYC</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredTutors.length === 0 ? (
-                    <EmptyState message="No tutor applications match your filters." colSpan={10} />
+                    <EmptyState message="No tutor applications match your filters." colSpan={11} />
                   ) : (
                     filteredTutors.map((row) => (
                       <tr key={row.id} className="align-top">
@@ -807,6 +813,10 @@ export default function AdminDashboardPage() {
                               <span className="text-slate-400">—</span>
                             )}
                           </div>
+                        </td>
+                        <td className="px-4 py-4 text-slate-600">
+                          {row.schedule_pref || "—"}
+                          {row.time_preference ? ` · ${row.time_preference}` : ""}
                         </td>
                         <td className="px-4 py-4 text-slate-600">
                           {row.phone ? (

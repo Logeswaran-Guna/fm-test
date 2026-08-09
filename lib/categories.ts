@@ -136,6 +136,26 @@ export const SCHEDULE_PREFERENCES = [
   "Flexible",
 ];
 
+// Narrower time windows offered once a schedule preference is picked.
+// "Flexible" has no entry here — it already means no specific time
+// constraint, so the time-preference question is skipped entirely for it.
+export const TIME_PREFERENCES_BY_SCHEDULE: Record<string, string[]> = {
+  "Weekday evenings": ["4PM - 6PM", "5PM - 7PM", "6PM - 8PM", "7PM - 9PM", "Flexible"],
+  "Weekday mornings": ["6AM - 7AM", "7AM - 8AM", "Flexible"],
+  "Weekends only": [
+    "9AM - 11AM",
+    "10AM - 12PM",
+    "11AM - 1PM",
+    "12PM - 2PM",
+    "1PM - 3PM",
+    "2PM - 4PM",
+    "3PM - 5PM",
+    "4PM - 6PM",
+    "5PM - 7PM",
+    "Flexible",
+  ],
+};
+
 export const TEACHER_GENDER_PREFERENCES = ["No preference", "Male", "Female"];
 
 // 2-year steps up to 10 years, coarser non-overlapping bands after.

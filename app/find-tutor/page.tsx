@@ -17,6 +17,7 @@ import {
   MODES,
   SCHEDULE_PREFERENCES,
   SOFT_SKILLS_ITEMS,
+  TIME_PREFERENCES_BY_SCHEDULE,
   TEACHER_GENDER_PREFERENCES,
   TUTORING_FOR,
   type Mode,
@@ -32,11 +33,14 @@ type FormState = {
   password: string;
   studentName: string;
   gradeClass: string;
-  locationAddress: string;
+  location: string;
   phoneNumber: string;
   referralCode: string;
   modes: Mode[];
+  address: string;
+  pincode: string;
   schedulePref: string;
+  timePreference: string;
   pricingType: PricingType;
   budget: number;
   preferredGender: string;
@@ -58,11 +62,14 @@ const initialFormState: FormState = {
   password: "",
   studentName: "",
   gradeClass: "",
-  locationAddress: "",
+  location: "",
   phoneNumber: "",
   referralCode: "",
   modes: [],
+  address: "",
+  pincode: "",
   schedulePref: SCHEDULE_PREFERENCES[0],
+  timePreference: TIME_PREFERENCES_BY_SCHEDULE[SCHEDULE_PREFERENCES[0]]?.[0] ?? "",
   pricingType: "Fixed budget",
   budget: 3500,
   preferredGender: TEACHER_GENDER_PREFERENCES[0],
@@ -122,8 +129,13 @@ function validate(form: FormState, skipAccountFields: boolean): FormErrors {
 
   if (!form.studentName.trim()) errors.studentName = "Student name is required.";
   if (!form.gradeClass.trim()) errors.gradeClass = "Grade / class is required.";
-  if (!form.locationAddress.trim())
-    errors.locationAddress = "Location / address is required.";
+  if (!form.location.trim()) errors.location = "Location is required.";
+  if (!form.address.trim()) errors.address = "Address is required.";
+  if (!form.pincode.trim()) {
+    errors.pincode = "Pincode is required.";
+  } else if (!/^\d{6}$/.test(form.pincode.trim())) {
+    errors.pincode = "Enter a valid 6-digit pincode.";
+  }
   if (form.modes.length === 0) errors.modes = "Please select at least one mode.";
 
   if (form.tutoringFor.length === 0)
@@ -286,8 +298,11 @@ export default function FindTutorPage() {
           p_subject: subject,
           p_mode: form.modes,
           p_consent: true,
-          p_location: form.locationAddress.trim(),
+          p_location: form.location.trim(),
+          p_address: form.address.trim(),
+          p_pincode: form.pincode.trim(),
           p_schedule_pref: form.schedulePref,
+          p_time_preference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref] ? form.timePreference : undefined,
           p_pricing_type: form.pricingType,
           p_budget: form.budget,
           p_preferred_teacher_gender: form.preferredGender,
@@ -563,11 +578,27 @@ export default function FindTutorPage() {
               />
 
               <Field
-                label="Location / Address"
-                value={form.locationAddress}
-                onChange={(value) => updateField("locationAddress", value)}
-                error={errors.locationAddress}
+                label="Location"
+                value={form.location}
+                onChange={(value) => updateField("location", value)}
+                error={errors.location}
                 placeholder="e.g. Anna Nagar, Coimbatore"
+              />
+
+              <Field
+                label="Address"
+                value={form.address}
+                onChange={(value) => updateField("address", value)}
+                error={errors.address}
+                placeholder="Full address — house/flat no., street, area"
+              />
+
+              <Field
+                label="Pincode"
+                value={form.pincode}
+                onChange={(value) => updateField("pincode", value.replace(/\D/g, "").slice(0, 6))}
+                error={errors.pincode}
+                placeholder="e.g. 641001"
               />
 
               <div>
@@ -576,7 +607,11 @@ export default function FindTutorPage() {
                 </label>
                 <select
                   value={form.schedulePref}
-                  onChange={(e) => updateField("schedulePref", e.target.value)}
+                  onChange={(e) => {
+                    const nextSchedule = e.target.value;
+                    updateField("schedulePref", nextSchedule);
+                    updateField("timePreference", TIME_PREFERENCES_BY_SCHEDULE[nextSchedule]?.[0] ?? "");
+                  }}
                   className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
                 >
                   {SCHEDULE_PREFERENCES.map((s) => (
@@ -586,6 +621,25 @@ export default function FindTutorPage() {
                   ))}
                 </select>
               </div>
+
+              {TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref] && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-navy">
+                    Time preference
+                  </label>
+                  <select
+                    value={form.timePreference}
+                    onChange={(e) => updateField("timePreference", e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                  >
+                    {TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref].map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">Pricing</label>

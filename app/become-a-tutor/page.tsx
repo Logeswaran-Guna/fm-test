@@ -17,7 +17,9 @@ import {
   GRADE_BANDS,
   LANGUAGES,
   MODES,
+  SCHEDULE_PREFERENCES,
   SOFT_SKILLS_ITEMS,
+  TIME_PREFERENCES_BY_SCHEDULE,
   TUTORING_FOR,
   type ExperienceBand,
   type Mode,
@@ -40,7 +42,11 @@ type FormState = {
   qualifications: string;
   yearsExperience: ExperienceBand | "";
   expectedRate: string;
-  serviceArea: string;
+  location: string;
+  address: string;
+  pincode: string;
+  schedulePref: string;
+  timePreference: string;
   bankUpiRef: string;
   bankIfsc: string;
   bankHolderName: string;
@@ -74,7 +80,11 @@ const initialFormState: FormState = {
   qualifications: "",
   yearsExperience: "",
   expectedRate: "",
-  serviceArea: "",
+  location: "",
+  address: "",
+  pincode: "",
+  schedulePref: "",
+  timePreference: "",
   bankUpiRef: "",
   bankIfsc: "",
   bankHolderName: "",
@@ -141,8 +151,19 @@ function validate(form: FormState, skipDetails: boolean): FormErrors {
   if (!form.yearsExperience)
     errors.yearsExperience = "Please select your experience range.";
 
-  if (!form.serviceArea.trim())
-    errors.serviceArea = "Service area / address is required.";
+  if (!form.location.trim()) errors.location = "Location is required.";
+  if (!form.address.trim()) errors.address = "Address is required.";
+  if (!form.pincode.trim()) {
+    errors.pincode = "Pincode is required.";
+  } else if (!/^\d{6}$/.test(form.pincode.trim())) {
+    errors.pincode = "Enter a valid 6-digit pincode.";
+  }
+
+  if (!form.schedulePref) errors.schedulePref = "Please select a schedule preference.";
+
+  if (form.languages.length === 0) {
+    errors.languages = "Add at least one language you speak.";
+  }
 
   if (form.modes.length === 0) errors.modes = "Pick at least one mode.";
 
@@ -358,7 +379,7 @@ export default function BecomeATutorPage() {
         p_qualification: form.qualifications.trim(),
         p_experience: form.yearsExperience,
         p_subjects: buildSubjectsArray(form),
-        p_preferred_locations: [form.serviceArea.trim()],
+        p_preferred_locations: [form.location.trim()],
         p_teaching_mode: form.modes,
         p_rate_expectation: form.expectedRate ? Number(form.expectedRate) : null,
         p_bank_upi_ref: form.bankUpiRef.trim() || null,
@@ -366,9 +387,13 @@ export default function BecomeATutorPage() {
         p_bank_holder_name: form.bankHolderName.trim() || null,
         p_bank_branch: form.bankBranch.trim() || null,
         p_whatsapp: loggedInProfile ? loggedInProfile.phone : form.phoneNumber.trim(),
-        p_area_city: form.serviceArea.trim(),
+        p_address: form.address.trim(),
+        p_pincode: form.pincode.trim(),
+        p_area_city: form.location.trim(),
         p_tutoring_for: form.tutoringFor,
         p_boards: form.boards,
+        p_schedule_pref: form.schedulePref || null,
+        p_time_preference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref] ? form.timePreference : null,
       });
 
       if (error) throw new Error(error.message);
@@ -689,12 +714,76 @@ export default function BecomeATutorPage() {
               />
 
               <Field
-                label="Service Area / Address"
-                value={form.serviceArea}
-                onChange={(value) => updateField("serviceArea", value)}
-                error={errors.serviceArea}
+                label="Location"
+                value={form.location}
+                onChange={(value) => updateField("location", value)}
+                error={errors.location}
                 placeholder="e.g. Anna Nagar, Coimbatore"
               />
+
+              <Field
+                label="Address"
+                value={form.address}
+                onChange={(value) => updateField("address", value)}
+                error={errors.address}
+                placeholder="Full address — house/flat no., street, area"
+              />
+
+              <Field
+                label="Pincode"
+                value={form.pincode}
+                onChange={(value) => updateField("pincode", value.replace(/\D/g, "").slice(0, 6))}
+                error={errors.pincode}
+                placeholder="e.g. 641001"
+              />
+
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-navy">
+                  Schedule preference
+                </label>
+                <select
+                  value={form.schedulePref}
+                  onChange={(e) => {
+                    const nextSchedule = e.target.value;
+                    updateField("schedulePref", nextSchedule);
+                    updateField("timePreference", TIME_PREFERENCES_BY_SCHEDULE[nextSchedule]?.[0] ?? "");
+                  }}
+                  className={`w-full rounded-lg border bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50 ${
+                    errors.schedulePref ? "border-red-400" : "border-slate-200"
+                  }`}
+                >
+                  <option value="" disabled>
+                    Select
+                  </option>
+                  {SCHEDULE_PREFERENCES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                {errors.schedulePref && (
+                  <p className="mt-1.5 text-xs text-red-600">{errors.schedulePref}</p>
+                )}
+              </div>
+
+              {TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref] && (
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-navy">
+                    Time preference
+                  </label>
+                  <select
+                    value={form.timePreference}
+                    onChange={(e) => updateField("timePreference", e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-navy focus:outline-none focus:ring-2 focus:ring-amber/50"
+                  >
+                    {TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref].map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <ChipGroup
                 label="Mode (select all that apply)"
@@ -796,7 +885,9 @@ export default function BecomeATutorPage() {
                   </button>
                 </div>
                 {form.languages.length === 0 ? (
-                  <p className="text-xs text-slate-400">Optional.</p>
+                  <p className={`text-xs ${errors.languages ? "text-red-600" : "text-slate-400"}`}>
+                    {errors.languages ?? "Add at least one language you speak."}
+                  </p>
                 ) : (
                   <div className="space-y-2">
                     {form.languages.map((row, index) => (

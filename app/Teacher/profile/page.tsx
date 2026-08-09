@@ -17,7 +17,9 @@ import {
   GRADE_BANDS,
   LANGUAGES,
   MODES,
+  SCHEDULE_PREFERENCES,
   SOFT_SKILLS_ITEMS,
+  TIME_PREFERENCES_BY_SCHEDULE,
   TUTORING_FOR,
   type ExperienceBand,
 } from "@/lib/categories";
@@ -41,6 +43,10 @@ type TeacherProfileRow = {
   preferred_locations: string[] | null;
   teaching_mode: string[] | null;
   availability: string[] | null;
+  schedule_pref: string | null;
+  time_preference: string | null;
+  address: string | null;
+  pincode: string | null;
   rate_expectation: number | null;
   bank_upi_ref: string | null;
   bank_ifsc: string | null;
@@ -124,13 +130,17 @@ export default function TeacherProfilePage() {
   const [qualification, setQualification] = useState("");
   const [experience, setExperience] = useState<ExperienceBand | "">("");
   const [rate, setRate] = useState("");
-  const [serviceArea, setServiceArea] = useState("");
+  const [location, setLocation] = useState("");
+  const [address, setAddress] = useState("");
+  const [pincode, setPincode] = useState("");
   const [bankUpiRef, setBankUpiRef] = useState("");
   const [bankIfsc, setBankIfsc] = useState("");
   const [bankHolderName, setBankHolderName] = useState("");
   const [bankBranch, setBankBranch] = useState("");
   const [modes, setModes] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
+  const [schedulePref, setSchedulePref] = useState("");
+  const [timePreference, setTimePreference] = useState("");
   const [tutoringFor, setTutoringFor] = useState<string[]>([]);
   const [boards, setBoards] = useState<string[]>([]);
   const [gradeSubjects, setGradeSubjects] = useState<Record<string, string[]>>({});
@@ -161,13 +171,17 @@ export default function TeacherProfilePage() {
     setQualification(row.qualification ?? "");
     setExperience((row.experience as ExperienceBand) ?? "");
     setRate(row.rate_expectation != null ? String(row.rate_expectation) : "");
-    setServiceArea(row.preferred_locations?.[0] ?? "");
+    setLocation(row.preferred_locations?.[0] ?? "");
+    setAddress(row.address ?? "");
+    setPincode(row.pincode ?? "");
     setBankUpiRef(row.bank_upi_ref ?? "");
     setBankIfsc(row.bank_ifsc ?? "");
     setBankHolderName(row.bank_holder_name ?? "");
     setBankBranch(row.bank_branch ?? "");
     setModes(row.teaching_mode ?? []);
     setAvailability(row.availability ?? []);
+    setSchedulePref(row.schedule_pref ?? "");
+    setTimePreference(row.time_preference ?? "");
     setTutoringFor(row.tutoring_for ?? []);
     setBoards(row.boards ?? []);
     const parsed = parseSubjects(row.subjects ?? []);
@@ -237,8 +251,30 @@ export default function TeacherProfilePage() {
   }
 
   async function handleSave() {
-    setSaving(true);
     setError(null);
+
+    if (!location.trim()) {
+      setError("Location is required.");
+      return;
+    }
+    if (!address.trim()) {
+      setError("Address is required.");
+      return;
+    }
+    if (!/^\d{6}$/.test(pincode.trim())) {
+      setError("A valid 6-digit pincode is required.");
+      return;
+    }
+    if (!schedulePref) {
+      setError("Please select a schedule preference.");
+      return;
+    }
+    if (languages.length === 0) {
+      setError("Add at least one language you speak.");
+      return;
+    }
+
+    setSaving(true);
     setSaved(false);
     try {
       const supabase = createClient();
@@ -247,7 +283,7 @@ export default function TeacherProfilePage() {
         p_qualification: qualification.trim() || null,
         p_experience: experience || null,
         p_subjects: buildSubjectsArray(tutoringFor, gradeSubjects, creativeItems, softSkillItems),
-        p_preferred_locations: serviceArea.trim() ? [serviceArea.trim()] : null,
+        p_preferred_locations: [location.trim()],
         p_teaching_mode: modes,
         p_availability: availability,
         p_rate_expectation: rate ? Number(rate) : null,
@@ -255,9 +291,13 @@ export default function TeacherProfilePage() {
         p_bank_ifsc: bankIfsc.trim() || null,
         p_bank_holder_name: bankHolderName.trim() || null,
         p_bank_branch: bankBranch.trim() || null,
-        p_area_city: serviceArea.trim() || null,
+        p_address: address.trim(),
+        p_pincode: pincode.trim(),
+        p_area_city: location.trim(),
         p_tutoring_for: tutoringFor,
         p_boards: boards,
+        p_schedule_pref: schedulePref,
+        p_time_preference: TIME_PREFERENCES_BY_SCHEDULE[schedulePref] ? timePreference : null,
       });
       if (upsertError) throw new Error(upsertError.message);
 
@@ -449,9 +489,13 @@ export default function TeacherProfilePage() {
                   <SummaryRow label="Highest Qualification" value={profile.qualification} />
                   <SummaryRow label="Years of Experience" value={profile.experience} />
                   <SummaryRow label="Expected Rate (₹ / month)" value={profile.rate_expectation != null ? String(profile.rate_expectation) : null} />
-                  <SummaryRow label="Service Area / Address" value={profile.preferred_locations?.[0] ?? null} />
+                  <SummaryRow label="Location" value={profile.preferred_locations?.[0] ?? null} />
+                  <SummaryRow label="Address" value={profile.address} />
+                  <SummaryRow label="Pincode" value={profile.pincode} />
                   <SummaryRow label="Mode" value={(profile.teaching_mode ?? []).join(", ") || null} />
                   <SummaryRow label="Availability" value={(profile.availability ?? []).join(", ") || null} />
+                  <SummaryRow label="Schedule preference" value={profile.schedule_pref} />
+                  <SummaryRow label="Time preference" value={profile.time_preference} />
                   <SummaryRow label="Tutoring For" value={(profile.tutoring_for ?? []).join(", ") || null} />
                   <SummaryRow label="Medium / Board" value={(profile.boards ?? []).join(", ") || null} />
                   <SummaryRow label="Subjects & Skills" value={(profile.subjects ?? []).join(", ") || null} />
@@ -510,7 +554,13 @@ export default function TeacherProfilePage() {
                 </select>
               </div>
               <TextField label="Expected Rate (₹ / month)" value={rate} onChange={setRate} type="number" />
-              <TextField label="Service Area / Address" value={serviceArea} onChange={setServiceArea} />
+              <TextField label="Location" value={location} onChange={setLocation} />
+              <TextField label="Address" value={address} onChange={setAddress} />
+              <TextField
+                label="Pincode"
+                value={pincode}
+                onChange={(v) => setPincode(v.replace(/\D/g, "").slice(0, 6))}
+              />
               <TextField label="Bank Account / UPI ID" value={bankUpiRef} onChange={setBankUpiRef} />
               {bankUpiRef.trim() !== "" && !bankUpiRef.includes("@") && (
                 <div className="grid grid-cols-1 gap-3 rounded-lg bg-slate-50 p-3 sm:grid-cols-3">
@@ -532,6 +582,45 @@ export default function TeacherProfilePage() {
                 selected={availability}
                 onToggle={(v) => toggle(availability, setAvailability, v)}
               />
+              <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-navy">Schedule preference</label>
+                  <select
+                    value={schedulePref}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      setSchedulePref(next);
+                      setTimePreference(TIME_PREFERENCES_BY_SCHEDULE[next]?.[0] ?? "");
+                    }}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-navy"
+                  >
+                    <option value="" disabled>
+                      Select
+                    </option>
+                    {SCHEDULE_PREFERENCES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {TIME_PREFERENCES_BY_SCHEDULE[schedulePref] && (
+                  <div>
+                    <label className="mb-1.5 block text-xs font-medium text-navy">Time preference</label>
+                    <select
+                      value={timePreference}
+                      onChange={(e) => setTimePreference(e.target.value)}
+                      className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-navy"
+                    >
+                      {TIME_PREFERENCES_BY_SCHEDULE[schedulePref].map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
             </Section>
 
             <Section title="Tutoring For">
