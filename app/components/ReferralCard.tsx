@@ -21,6 +21,15 @@ type DiscountCode = {
   created_at: string;
 };
 
+// Full liberty on wording here by design — these are the actual messages
+// sent on the referrer's behalf when they tap Share, not internal copy.
+const SHARE_MESSAGES: Record<"parent" | "tutor", string> = {
+  parent:
+    "We found a genuinely good tutor for our child through Future Minds — they actually match and vet tutors instead of just listing them, and it's worked out really well for us. If you're tutor-hunting too, give them a try:",
+  tutor:
+    "I've been earning solid extra income tutoring through Future Minds — real, vetted student matches, no cold outreach or bidding required. If you're a tutor too, it's worth a look:",
+};
+
 function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, {
     day: "2-digit",
@@ -77,12 +86,27 @@ export default function ReferralCard() {
     if (!summary || typeof window === "undefined") return;
     const path = kind === "parent" ? "/find-tutor" : "/become-a-tutor";
     const url = `${window.location.origin}${path}?ref=${encodeURIComponent(summary.referral_code)}`;
+    const text = SHARE_MESSAGES[kind];
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Future Minds", text, url });
+        return;
+      } catch (err) {
+        // AbortError = the visitor closed the share sheet themselves —
+        // not a failure, nothing to fall back to. Any other error (share
+        // genuinely unsupported for this payload) falls through to copy.
+        if (err instanceof Error && err.name === "AbortError") return;
+      }
+    }
+
     try {
-      await navigator.clipboard.writeText(url);
+      await navigator.clipboard.writeText(`${text}\n${url}`);
       setCopiedLink(kind);
       setTimeout(() => setCopiedLink(null), 2000);
     } catch {
-      // Same clipboard-permission fallback as copyCode() — nothing else to do.
+      // Clipboard access can fail too (permissions, insecure context) —
+      // the code chip above is still there to copy by hand either way.
     }
   }
 
@@ -131,18 +155,19 @@ export default function ReferralCard() {
           onClick={() => shareLink("parent")}
           className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
         >
-          {copiedLink === "parent" ? "Link copied!" : "Share link — needs a tutor"}
+          {copiedLink === "parent" ? "Message copied!" : "Share with a parent"}
         </button>
         <button
           type="button"
           onClick={() => shareLink("tutor")}
           className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
         >
-          {copiedLink === "tutor" ? "Link copied!" : "Share link — is a tutor"}
+          {copiedLink === "tutor" ? "Message copied!" : "Share with a tutor"}
         </button>
       </div>
       <p className="mt-1.5 text-[11px] text-slate-400">
-        Opening a shared link fills in your code automatically — or they can just paste the code above by hand.
+        Opens your share menu with a ready-made message and link — or copies it if sharing isn&apos;t supported
+        here. Opening the link fills in your code automatically for whoever you send it to.
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-3 text-center">
