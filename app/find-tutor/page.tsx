@@ -169,6 +169,20 @@ export default function FindTutorPage() {
     formStartedAt.current = Date.now();
   }, []);
 
+  // Auto-fill from a shared referral link (?ref=CODE) — read directly off
+  // window.location rather than useSearchParams() so this page can stay
+  // statically prerendered (useSearchParams would force it dynamic /
+  // require a Suspense boundary). Only fills an empty field, never
+  // overwrites something the visitor already typed.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (!ref) return;
+    Promise.resolve().then(() => {
+      setForm((f) => (f.referralCode ? f : { ...f, referralCode: ref }));
+    });
+  }, []);
+
   useEffect(() => {
     let active = true;
     (async () => {

@@ -39,6 +39,7 @@ export default function ReferralCard() {
   const [busy, setBusy] = useState(false);
   const [redeemInput, setRedeemInput] = useState("100");
   const [copied, setCopied] = useState(false);
+  const [copiedLink, setCopiedLink] = useState<"parent" | "tutor" | null>(null);
 
   async function load() {
     const supabase = createClient();
@@ -69,6 +70,19 @@ export default function ReferralCard() {
     } catch {
       // Clipboard access can fail (permissions, insecure context) — the
       // code is still visible on screen to copy by hand either way.
+    }
+  }
+
+  async function shareLink(kind: "parent" | "tutor") {
+    if (!summary || typeof window === "undefined") return;
+    const path = kind === "parent" ? "/find-tutor" : "/become-a-tutor";
+    const url = `${window.location.origin}${path}?ref=${encodeURIComponent(summary.referral_code)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedLink(kind);
+      setTimeout(() => setCopiedLink(null), 2000);
+    } catch {
+      // Same clipboard-permission fallback as copyCode() — nothing else to do.
     }
   }
 
@@ -107,9 +121,29 @@ export default function ReferralCard() {
           onClick={copyCode}
           className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-slate-50"
         >
-          {copied ? "Copied!" : "Copy"}
+          {copied ? "Copied!" : "Copy Code"}
         </button>
       </div>
+
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          onClick={() => shareLink("parent")}
+          className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
+        >
+          {copiedLink === "parent" ? "Link copied!" : "Share link — needs a tutor"}
+        </button>
+        <button
+          type="button"
+          onClick={() => shareLink("tutor")}
+          className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
+        >
+          {copiedLink === "tutor" ? "Link copied!" : "Share link — is a tutor"}
+        </button>
+      </div>
+      <p className="mt-1.5 text-[11px] text-slate-400">
+        Opening a shared link fills in your code automatically — or they can just paste the code above by hand.
+      </p>
 
       <div className="mt-4 grid grid-cols-3 gap-3 text-center">
         <div className="rounded-lg bg-slate-50 px-2 py-2.5">

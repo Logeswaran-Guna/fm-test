@@ -119,6 +119,7 @@ export default function Footer() {
           <FooterColumn title="Quick Links">
             <Link href="/" className="block hover:text-white">Home</Link>
             <Link href="/about" className="block hover:text-white">About Us</Link>
+            <Link href="/faq" className="block hover:text-white">FAQ</Link>
             <a href="mailto:careers@futureminds.in" className="block hover:text-white">Careers</a>
           </FooterColumn>
 

@@ -208,6 +208,18 @@ export default function BecomeATutorPage() {
     formStartedAt.current = Date.now();
   }, []);
 
+  // Auto-fill from a shared referral link (?ref=CODE) — see find-tutor
+  // page for why this reads window.location directly instead of using
+  // useSearchParams().
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (!ref) return;
+    Promise.resolve().then(() => {
+      setForm((f) => (f.referralCode ? f : { ...f, referralCode: ref }));
+    });
+  }, []);
+
   useEffect(() => {
     let active = true;
     (async () => {
