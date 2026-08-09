@@ -32,7 +32,21 @@ export async function updateSession(request: NextRequest) {
 
   // Touches the session so expired tokens get refreshed and the new
   // cookies are written to the response before it reaches the browser.
-  await supabase.auth.getUser();
+  // Bounded by a timeout: this runs on nearly every request (see the
+  // matcher below), and auth-js retries a slow/flaky network call with
+  // its own backoff — without a cap here, one bad connection to Supabase
+  // stalls every single page load (observed: 27s on one request). If it
+  // times out or errors, the request just proceeds with whatever session
+  // cookie it already had rather than hanging the whole site.
+  try {
+    await Promise.race([
+      supabase.auth.getUser(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("auth refresh timed out")), 4000)),
+    ]);
+  } catch {
+    // Non-fatal — worst case this request's session cookie doesn't get
+    // refreshed; the next successful request will catch it up.
+  }
 
   return response;
 }
