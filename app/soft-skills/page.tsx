@@ -53,6 +53,36 @@ const programs = [
       </svg>
     ),
   },
+  {
+    title: "Foreign Languages",
+    description: "German, French, Japanese & Chinese — conversational and exam-track options.",
+    icon: (
+      <svg {...formatIcon}>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M3 12h18M12 3c2.5 2.5 4 5.8 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.8-4-9s1.5-6.5 4-9z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Handwriting",
+    description: "Legibility, speed and correct grip — for young learners building writing habits.",
+    icon: (
+      <svg {...formatIcon}>
+        <path d="M4 20l3.5-1 11-11a2.1 2.1 0 00-3-3l-11 11z" />
+        <path d="M14.5 6L18 9.5" />
+      </svg>
+    ),
+  },
+  {
+    title: "Phonics",
+    description: "Sound-letter foundations that build strong, confident early readers.",
+    icon: (
+      <svg {...formatIcon}>
+        <path d="M4 6.5a3 3 0 013-3h10a3 3 0 013 3v6a3 3 0 01-3 3H10l-4.5 3.5v-3.5A3 3 0 014 12.5z" />
+        <path d="M8 9.5h8M8 12h5" />
+      </svg>
+    ),
+  },
 ];
 
 const formats = [

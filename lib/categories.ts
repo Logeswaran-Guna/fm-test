@@ -96,6 +96,12 @@ export const SOFT_SKILLS_ITEMS = [
   "Personality Development",
   "Interview Skills",
   "Group Discussion",
+  "French",
+  "German",
+  "Japanese",
+  "Chinese",
+  "Handwriting",
+  "Phonics",
 ];
 
 // Common languages actually taught/offered as a school subject in India.
