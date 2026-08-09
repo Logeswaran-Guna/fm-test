@@ -127,8 +127,8 @@ export default function Footer() {
             <a href="mailto:hello@futureminds.in" className="block hover:text-white">
               hello@futureminds.in
             </a>
-            <a href="tel:+919876543210" className="block hover:text-white">
-              +91 98765 43210
+            <a href="tel:+917200227081" className="block hover:text-white">
+              +91 72002 27081
             </a>
           </FooterColumn>
 

@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 
-// Business WhatsApp number — placeholder, matches Footer's placeholder
-// contact number. Replace with the real number before launch.
-const WHATSAPP_NUMBER = "919876543210";
+const WHATSAPP_NUMBER = "917200227081";
 
 function WhatsAppIcon({ size }: { size: number }) {
   return (
