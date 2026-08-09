@@ -131,6 +131,19 @@ export type PoolingGroupRow = {
   members: PoolingMember[];
 };
 
+export type PartnerStatus = "VISIBLE" | "DISABLED" | "REMOVED";
+
+export type PartnerRow = {
+  id: string;
+  display_id: string;
+  name: string;
+  location: string | null;
+  logo_url: string | null;
+  status: PartnerStatus;
+  display_order: number;
+  created_at: string;
+};
+
 export type AcademyCourseStatus = "OPEN" | "COMING_SOON" | "CLOSED";
 
 export type AcademyCourseRow = {

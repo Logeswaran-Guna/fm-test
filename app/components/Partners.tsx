@@ -1,55 +1,55 @@
-function FmPreSchoolsLogo() {
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+type Partner = {
+  id: string;
+  name: string;
+  location: string | null;
+  logo_url: string | null;
+};
+
+function PartnerLogo({ partner }: { partner: Partner }) {
   return (
-    <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
-        <rect width="40" height="40" rx="10" fill="#0a192f" />
-        <circle cx="20" cy="16" r="5" fill="#f59e0b" />
-        <path d="M10 30c0-6 4.5-10 10-10s10 4 10 10" stroke="#fff" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
+    <div className="flex items-center gap-3.5">
+      {partner.logo_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={partner.logo_url}
+          alt={`${partner.name} logo`}
+          className="h-14 w-14 shrink-0 rounded-full object-cover"
+        />
+      ) : (
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy font-heading text-lg font-bold text-amber">
+          {partner.name.charAt(0)}
+        </div>
+      )}
       <div className="leading-tight">
-        <p className="font-heading text-sm font-bold text-navy">FM Pre Schools</p>
-        <p className="text-[10px] uppercase tracking-wide text-slate-400">Early learning</p>
+        <p className="font-heading text-base font-bold text-navy">{partner.name}</p>
+        {partner.location && (
+          <p className="text-[10px] uppercase tracking-wide text-slate-400">{partner.location}</p>
+        )}
       </div>
     </div>
   );
 }
-
-function FmAcademyLogo() {
-  return (
-    <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
-        <rect width="40" height="40" rx="10" fill="#0a192f" />
-        <path d="M20 12l13 6-13 6-13-6z" fill="#f59e0b" />
-        <path d="M13 20v6c0 2.2 3.1 4 7 4s7-1.8 7-4v-6" stroke="#fff" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      </svg>
-      <div className="leading-tight">
-        <p className="font-heading text-sm font-bold text-navy">FM Academy</p>
-        <p className="text-[10px] uppercase tracking-wide text-slate-400">Future skills</p>
-      </div>
-    </div>
-  );
-}
-
-function TaprootzLogo() {
-  return (
-    <div className="flex items-center gap-2.5">
-      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden>
-        <rect width="40" height="40" rx="10" fill="#0f6e56" />
-        <path d="M20 10v12M20 22c-4 0-6 3-6 7M20 22c4 0 6 3 6 7M20 22c-2.5 2-3.5 5-3 9M20 22c2.5 2 3.5 5 3 9" stroke="#e1f5ee" strokeWidth="1.6" fill="none" strokeLinecap="round" />
-      </svg>
-      <div className="leading-tight">
-        <p className="font-heading text-sm font-bold text-navy">Taprootz Technologies</p>
-        <p className="text-[10px] uppercase tracking-wide text-slate-400">Learning technology</p>
-      </div>
-    </div>
-  );
-}
-
-const PARTNERS = [FmPreSchoolsLogo, FmAcademyLogo, TaprootzLogo];
-// Duplicated so the marquee loop is seamless at the -50% mark.
-const MARQUEE_ITEMS = [...PARTNERS, ...PARTNERS];
 
 export default function Partners() {
+  const [partners, setPartners] = useState<Partner[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .rpc("partners_public")
+      .then(({ data }) => setPartners((data ?? []) as Partner[]));
+  }, []);
+
+  if (partners.length === 0) return null;
+
+  // Duplicated so the marquee loop is seamless at the -50% mark.
+  const marqueeItems = [...partners, ...partners];
+
   return (
     <section className="border-y border-slate-200 bg-slate-50 py-14">
       <div className="mx-auto max-w-7xl px-6 sm:px-8">
@@ -76,12 +76,12 @@ export default function Partners() {
           className="flex w-max gap-4"
           style={{ animation: "marquee-scroll 28s linear infinite" }}
         >
-          {MARQUEE_ITEMS.map((Logo, i) => (
+          {marqueeItems.map((partner, i) => (
             <div
-              key={i}
+              key={`${partner.id}-${i}`}
               className="flex shrink-0 items-center rounded-2xl border border-slate-200 bg-white px-6 py-4 shadow-sm"
             >
-              <Logo />
+              <PartnerLogo partner={partner} />
             </div>
           ))}
         </div>
