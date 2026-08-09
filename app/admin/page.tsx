@@ -12,6 +12,7 @@ import ManageUsers from "./ManageUsers";
 import RegistrationForms from "./RegistrationForms";
 import PoolingTab from "./PoolingTab";
 import AcademyTab from "./AcademyTab";
+import NotificationsTab from "./NotificationsTab";
 import { StatusBadge } from "./StatusBadge";
 import {
   MATCH_STATUS_LABELS,
@@ -29,6 +30,7 @@ type Tab =
   | "logged-classes"
   | "pooling"
   | "academy"
+  | "notifications"
   | "registration-forms"
   | "manage-users";
 
@@ -468,6 +470,15 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("notifications")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "notifications" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Notifications
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("registration-forms")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
@@ -492,7 +503,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "manage-users" &&
                 activeTab !== "registration-forms" &&
                 activeTab !== "pooling" &&
-                activeTab !== "academy" && (
+                activeTab !== "academy" &&
+                activeTab !== "notifications" && (
                 <input
                   type="text"
                   value={search}
@@ -504,7 +516,8 @@ export default function AdminDashboardPage() {
               {activeTab !== "manage-users" &&
                 activeTab !== "registration-forms" &&
                 activeTab !== "pooling" &&
-                activeTab !== "academy" && (
+                activeTab !== "academy" &&
+                activeTab !== "notifications" && (
                 <button
                   type="button"
                   onClick={handleExport}
@@ -824,6 +837,8 @@ export default function AdminDashboardPage() {
               </div>
             ) : activeTab === "academy" ? (
               <AcademyTab courses={academyCourses} enrollments={academyEnrollments} onUpdated={loadData} />
+            ) : activeTab === "notifications" ? (
+              <NotificationsTab />
             ) : activeTab === "manage-users" ? (
               <ManageUsers tutors={tutors} onTutorsChanged={loadData} />
             ) : activeTab === "registration-forms" ? (

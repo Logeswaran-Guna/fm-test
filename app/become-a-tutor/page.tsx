@@ -41,6 +41,9 @@ type FormState = {
   expectedRate: string;
   serviceArea: string;
   bankUpiRef: string;
+  bankIfsc: string;
+  bankHolderName: string;
+  bankBranch: string;
   modes: Mode[];
   tutoringFor: TutoringFor[];
   boards: string[];
@@ -71,6 +74,9 @@ const initialFormState: FormState = {
   expectedRate: "",
   serviceArea: "",
   bankUpiRef: "",
+  bankIfsc: "",
+  bankHolderName: "",
+  bankBranch: "",
   modes: [],
   tutoringFor: [],
   boards: [],
@@ -341,6 +347,9 @@ export default function BecomeATutorPage() {
         p_teaching_mode: form.modes,
         p_rate_expectation: form.expectedRate ? Number(form.expectedRate) : null,
         p_bank_upi_ref: form.bankUpiRef.trim() || null,
+        p_bank_ifsc: form.bankIfsc.trim() || null,
+        p_bank_holder_name: form.bankHolderName.trim() || null,
+        p_bank_branch: form.bankBranch.trim() || null,
         p_whatsapp: loggedInProfile ? loggedInProfile.phone : form.phoneNumber.trim(),
         p_area_city: form.serviceArea.trim(),
         p_tutoring_for: form.tutoringFor,
@@ -825,9 +834,34 @@ export default function BecomeATutorPage() {
                 label="Bank Account / UPI ID"
                 value={form.bankUpiRef}
                 onChange={(value) => updateField("bankUpiRef", value)}
-                placeholder="e.g. priya@upi or account details"
+                placeholder="e.g. priya@upi or your account number"
                 hint="Optional now — required before your first payout."
               />
+              {form.bankUpiRef.trim() !== "" && !form.bankUpiRef.includes("@") && (
+                <div className="grid grid-cols-1 gap-4 rounded-lg bg-slate-50 p-4 sm:grid-cols-2">
+                  <p className="text-xs text-slate-500 sm:col-span-2">
+                    That looks like an account number, not a UPI ID — we&apos;ll also need these to pay you:
+                  </p>
+                  <Field
+                    label="IFSC Code"
+                    value={form.bankIfsc}
+                    onChange={(value) => updateField("bankIfsc", value)}
+                    placeholder="e.g. HDFC0001234"
+                  />
+                  <Field
+                    label="Account Holder Name"
+                    value={form.bankHolderName}
+                    onChange={(value) => updateField("bankHolderName", value)}
+                    placeholder="As per bank records"
+                  />
+                  <Field
+                    label="Branch"
+                    value={form.bankBranch}
+                    onChange={(value) => updateField("bankBranch", value)}
+                    placeholder="e.g. RS Puram, Coimbatore"
+                  />
+                </div>
+              )}
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">

@@ -43,6 +43,9 @@ type TeacherProfileRow = {
   availability: string[] | null;
   rate_expectation: number | null;
   bank_upi_ref: string | null;
+  bank_ifsc: string | null;
+  bank_holder_name: string | null;
+  bank_branch: string | null;
   kyc_status: string;
   kyc_document_path: string | null;
   photo_url: string | null;
@@ -123,6 +126,9 @@ export default function TeacherProfilePage() {
   const [rate, setRate] = useState("");
   const [serviceArea, setServiceArea] = useState("");
   const [bankUpiRef, setBankUpiRef] = useState("");
+  const [bankIfsc, setBankIfsc] = useState("");
+  const [bankHolderName, setBankHolderName] = useState("");
+  const [bankBranch, setBankBranch] = useState("");
   const [modes, setModes] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
   const [tutoringFor, setTutoringFor] = useState<string[]>([]);
@@ -157,6 +163,9 @@ export default function TeacherProfilePage() {
     setRate(row.rate_expectation != null ? String(row.rate_expectation) : "");
     setServiceArea(row.preferred_locations?.[0] ?? "");
     setBankUpiRef(row.bank_upi_ref ?? "");
+    setBankIfsc(row.bank_ifsc ?? "");
+    setBankHolderName(row.bank_holder_name ?? "");
+    setBankBranch(row.bank_branch ?? "");
     setModes(row.teaching_mode ?? []);
     setAvailability(row.availability ?? []);
     setTutoringFor(row.tutoring_for ?? []);
@@ -243,6 +252,9 @@ export default function TeacherProfilePage() {
         p_availability: availability,
         p_rate_expectation: rate ? Number(rate) : null,
         p_bank_upi_ref: bankUpiRef.trim() || null,
+        p_bank_ifsc: bankIfsc.trim() || null,
+        p_bank_holder_name: bankHolderName.trim() || null,
+        p_bank_branch: bankBranch.trim() || null,
         p_area_city: serviceArea.trim() || null,
         p_tutoring_for: tutoringFor,
         p_boards: boards,
@@ -500,6 +512,16 @@ export default function TeacherProfilePage() {
               <TextField label="Expected Rate (₹ / month)" value={rate} onChange={setRate} type="number" />
               <TextField label="Service Area / Address" value={serviceArea} onChange={setServiceArea} />
               <TextField label="Bank Account / UPI ID" value={bankUpiRef} onChange={setBankUpiRef} />
+              {bankUpiRef.trim() !== "" && !bankUpiRef.includes("@") && (
+                <div className="grid grid-cols-1 gap-3 rounded-lg bg-slate-50 p-3 sm:grid-cols-3">
+                  <p className="text-xs text-slate-500 sm:col-span-3">
+                    That looks like an account number, not a UPI ID — we&apos;ll also need these to pay you:
+                  </p>
+                  <TextField label="IFSC Code" value={bankIfsc} onChange={setBankIfsc} />
+                  <TextField label="Account Holder Name" value={bankHolderName} onChange={setBankHolderName} />
+                  <TextField label="Branch" value={bankBranch} onChange={setBankBranch} />
+                </div>
+              )}
             </Section>
 
             <Section title="Mode &amp; Availability">

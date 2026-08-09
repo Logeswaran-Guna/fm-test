@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import logo from "../../public/images/fm-header-logo.png";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, type Profile } from "@/lib/supabase/profile";
+import NotificationBell from "./NotificationBell";
 
 const tutoringServices = [
   { href: "/tutor-platform", label: "Tutor Platform" },
@@ -45,7 +46,7 @@ function TutoringServicesDropdown() {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center gap-1 text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
+        className="flex items-center gap-1 whitespace-nowrap text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
       >
         Tutoring Services
         <svg
@@ -137,7 +138,13 @@ export default function Header() {
         style={{ width: `${scrollPct}%` }}
         aria-hidden
       />
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-2.5 sm:px-8">
+      {/* No overflow-x here on purpose: overflow-x set to anything but
+          visible forces overflow-y non-visible too (that's how CSS works),
+          which clips the Tutoring Services and Notification Bell dropdown
+          panels below instead of letting them flash open — a scrollbar
+          shows up in their place instead. flex-nowrap + whitespace-nowrap
+          on every label is what actually keeps this on one line. */}
+      <div className="mx-auto flex max-w-[100rem] items-center justify-between gap-4 px-6 py-2.5 sm:px-8">
         <Link href="/" className="flex shrink-0 items-center">
           <Image
             src={logo}
@@ -147,10 +154,10 @@ export default function Header() {
           />
         </Link>
 
-        <nav className="flex flex-wrap items-center justify-end gap-x-6 gap-y-2">
+        <nav className="flex flex-nowrap items-center gap-x-4">
           <Link
             href="/"
-            className="text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
+            className="whitespace-nowrap text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
           >
             Home
           </Link>
@@ -161,7 +168,7 @@ export default function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
+              className="whitespace-nowrap text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
             >
               {link.label}
             </Link>
@@ -170,13 +177,13 @@ export default function Header() {
           <div className="flex items-center gap-2">
             <Link
               href="/find-tutor"
-              className="rounded-full border border-navy px-4 py-2 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white"
+              className="whitespace-nowrap rounded-full border border-navy px-3.5 py-1.5 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white"
             >
               Find a Tutor
             </Link>
             <Link
               href="/become-a-tutor"
-              className="rounded-full bg-navy px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-navy/85"
+              className="whitespace-nowrap rounded-full bg-navy px-3.5 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-navy/85"
             >
               Become a Tutor
             </Link>
@@ -191,21 +198,28 @@ export default function Header() {
                     ? "/Teacher"
                     : "/my-dashboard"
               }
-              className="text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
+              className="whitespace-nowrap text-[15px] font-medium text-navy/70 transition-colors hover:font-semibold hover:text-navy"
             >
               {profile.role === "ADMIN" ? "Admin Dashboard" : "My Dashboard"}
             </Link>
           )}
+        </nav>
+
+        {/* Auth controls: always pinned to the top-right corner as their own
+            group, never folded into the main nav's flow — so they can't get
+            pushed onto a second line by the nav wrapping/overflowing. */}
+        <div className="flex shrink-0 items-center gap-3">
+          {!loaded ? null : <NotificationBell profile={profile} />}
 
           {loaded && profile ? (
             <>
-              <span className="text-xs text-slate-500">
+              <span className="hidden max-w-[140px] truncate text-xs text-slate-500 lg:inline">
                 Signed in as {profile.name}
               </span>
               <button
                 type="button"
                 onClick={handleLogout}
-                className="rounded-full bg-amber px-6 py-2.5 text-[15px] font-semibold text-navy transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber/30"
+                className="whitespace-nowrap rounded-full bg-amber px-5 py-2 text-sm font-semibold text-navy transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber/30"
               >
                 Log out
               </button>
@@ -213,12 +227,12 @@ export default function Header() {
           ) : (
             <Link
               href="/login"
-              className="rounded-full bg-amber px-6 py-2.5 text-[15px] font-semibold text-navy transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber/30"
+              className="whitespace-nowrap rounded-full bg-amber px-5 py-2 text-sm font-semibold text-navy transition-transform hover:-translate-y-0.5 hover:shadow-lg hover:shadow-amber/30"
             >
               Login
             </Link>
           )}
-        </nav>
+        </div>
       </div>
     </header>
   );
