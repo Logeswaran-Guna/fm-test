@@ -76,7 +76,7 @@ export default function Footer() {
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-0 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber/10 blur-3xl"
       />
-      <div className="relative mx-auto max-w-3xl px-6 text-center sm:px-8">
+      <div className="relative mx-auto max-w-2xl px-6 text-center sm:px-8">
         <div className="mx-auto mb-6 flex w-fit items-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
           <span className="h-px w-4 bg-amber" />
           Learn Today. Lead Tomorrow.
@@ -91,8 +91,10 @@ export default function Footer() {
         <p className="mt-2 font-mono text-[11px] text-white/40">
           திருக்குறள் · குறள் 391 · பால்: பொருட்பால் · அதிகாரம்: கல்வி (40ஆம் அதிகாரம்)
         </p>
+      </div>
 
-        <div className="mt-8 grid grid-cols-1 gap-4 text-left sm:grid-cols-2">
+      <div className="relative mx-auto max-w-7xl px-6 sm:px-8">
+        <div className="mt-8 grid grid-cols-1 gap-4 text-left sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
             <p className="mb-2 font-mono text-[10.5px] uppercase tracking-widest text-amber-400">
               English
@@ -109,6 +111,32 @@ export default function Footer() {
             <p className="text-sm leading-relaxed text-white/80">
               जो सीखने योग्य है, उसे पूर्ण और त्रुटिरहित होकर सीखो; और सीखने के
               बाद, उसी अनुसार आचरण करो।
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="mb-2 font-mono text-[10.5px] uppercase tracking-widest text-amber-400">
+              മലയാളം
+            </p>
+            <p className="text-sm leading-relaxed text-white/80">
+              ആവശ്യം വേണ്ട വിജ്ഞാനം വഴിപോലഭ്യസിച്ച പിൻ ലബ്ധവിദ്യ പ്രയോഗിച്ചു
+              ജീവിതം ധന്യമാക്കണം.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="mb-2 font-mono text-[10.5px] uppercase tracking-widest text-amber-400">
+              ಕನ್ನಡ
+            </p>
+            <p className="text-sm leading-relaxed text-white/80">
+              ಕಲಿಯಬೇಕಾದ ಯೋಗ್ಯತೆಯುಳ್ಳ ಕಲಿಕೆಯನ್ನು ದೋಷವಿಲ್ಲದೆ ಕಲಿಯ ಬೇಕು. ಕಲಿತ
+              ನಂತರ ಕಲಿತ ವಿದ್ಯೆಗೆ ತಕ್ಕದಾದ ಮಾರ್ಗದಲ್ಲಿ ನಿಲ್ಲಬೇಕು.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+            <p className="mb-2 font-mono text-[10.5px] uppercase tracking-widest text-amber-400">
+              తెలుగు
+            </p>
+            <p className="text-sm leading-relaxed text-white/80">
+              అభ్యసింప పలయు నవివేకమును బాయు నాచరింపవలయు నవ్విధంబె.
             </p>
           </div>
         </div>
