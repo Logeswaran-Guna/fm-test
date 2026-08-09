@@ -1,5 +1,6 @@
 import Header from "./components/Header";
 import Hero from "./components/Hero";
+import LearnLeadBand from "./components/LearnLeadBand";
 import PlatformHighlights from "./components/PlatformHighlights";
 import Partners from "./components/Partners";
 import Footer from "./components/Footer";
@@ -10,6 +11,7 @@ export default function Home() {
       <Header />
       <main className="flex-1">
         <Hero />
+        <LearnLeadBand />
         <PlatformHighlights />
         <Partners />
       </main>

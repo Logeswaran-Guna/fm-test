@@ -5,8 +5,9 @@ import {
   PillarHero,
   PillarSectionHeading,
   ChipRow,
+  ChipPanel,
   CardGrid,
-  NumberedSteps,
+  JourneyBand,
   PillarCTAs,
 } from "../components/PillarPage";
 import { BOARDS, GRADE_BANDS } from "@/lib/categories";
@@ -62,6 +63,7 @@ const formats = [
   {
     title: "Community Pooling",
     description: "Apartments & residential groups share a class, and the cost.",
+    unique: true,
     icon: (
       <svg {...formatIcon}>
         <circle cx="8" cy="9" r="3" />
@@ -103,60 +105,86 @@ export default function TutorPlatformPage() {
 
         <div className="mx-auto max-w-6xl px-6 py-16 sm:px-8">
           <PillarSectionHeading title="Subjects & boards" />
-          <div className="space-y-6">
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Boards</p>
-              <ChipRow items={[...BOARDS]} />
-            </div>
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Grade levels</p>
-              <ChipRow items={gradeLevels} />
-            </div>
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Subjects</p>
-              <ChipRow items={allSubjects} />
-            </div>
-          </div>
-
-          <div className="mt-14">
-            <PillarSectionHeading title="How it works — for parents" />
-            <NumberedSteps steps={steps} />
-          </div>
-
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-white p-6 sm:p-8">
-            <PillarSectionHeading title="How it works — for tutors" />
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <ChipPanel>
+            <div className="space-y-6">
               <div>
-                <h4 className="font-heading text-base font-semibold text-navy">1. Apply &amp; verify</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  Register your subjects, availability, service area and expected rate, then upload an ID for KYC verification — required before you can be matched with families.
-                </p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Boards</p>
+                <ChipRow items={[...BOARDS]} />
               </div>
               <div>
-                <h4 className="font-heading text-base font-semibold text-navy">2. Get matched</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  Our team shortlists you against real, reviewed requirements — no bidding, no cold outreach to families.
-                </p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Grade levels</p>
+                <ChipRow items={gradeLevels} />
               </div>
               <div>
-                <h4 className="font-heading text-base font-semibold text-navy">3. Run the demo</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  We coordinate scheduling and communication for the trial class with the family.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-heading text-base font-semibold text-navy">4. Teach &amp; get paid</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  Log each class you teach; once the parent confirms attendance, your payout is tracked and
-                  released, minus our 10% commission — charged every month for as long as the batch stays active.
-                </p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Subjects</p>
+                <ChipRow items={allSubjects} />
               </div>
             </div>
-          </div>
+          </ChipPanel>
 
           <div className="mt-14">
             <PillarSectionHeading title="Delivery formats" />
             <CardGrid items={formats} />
+          </div>
+        </div>
+
+        <div className="mt-16">
+          <JourneyBand
+            eyebrow="The journey"
+            title="How it works — for parents"
+            description="From your first requirement to a confirmed batch, every step is coordinated by our team."
+            steps={steps}
+          />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-6 py-16 sm:px-8">
+          <div className="rounded-3xl border border-amber/30 bg-amber/5 p-6 sm:p-8">
+            <PillarSectionHeading title="How it works — for tutors" />
+            <div className="relative">
+              <div
+                aria-hidden
+                className="absolute left-0 right-0 top-6 hidden h-px bg-gradient-to-r from-transparent via-navy/20 to-transparent sm:block"
+              />
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="relative flex flex-col items-start text-left">
+                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-navy/15 bg-white font-heading text-base font-bold text-navy shadow-sm">
+                    01
+                  </div>
+                  <h4 className="mt-4 font-heading text-base font-semibold text-navy">Apply &amp; verify</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    Register your subjects, availability, service area and expected rate, then upload an ID for KYC verification — required before you can be matched with families.
+                  </p>
+                </div>
+                <div className="relative flex flex-col items-start text-left">
+                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-navy/15 bg-white font-heading text-base font-bold text-navy shadow-sm">
+                    02
+                  </div>
+                  <h4 className="mt-4 font-heading text-base font-semibold text-navy">Get matched</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    Our team shortlists you against real, reviewed requirements — no bidding, no cold outreach to families.
+                  </p>
+                </div>
+                <div className="relative flex flex-col items-start text-left">
+                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-navy/15 bg-white font-heading text-base font-bold text-navy shadow-sm">
+                    03
+                  </div>
+                  <h4 className="mt-4 font-heading text-base font-semibold text-navy">Run the demo</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    We coordinate scheduling and communication for the trial class with the family.
+                  </p>
+                </div>
+                <div className="relative flex flex-col items-start text-left">
+                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full border border-navy/15 bg-white font-heading text-base font-bold text-navy shadow-sm">
+                    04
+                  </div>
+                  <h4 className="mt-4 font-heading text-base font-semibold text-navy">Teach &amp; get paid</h4>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                    Log each class you teach; once the parent confirms attendance, your payout is tracked and
+                    released, minus our 10% commission — charged every month for as long as the batch stays active.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-14 rounded-2xl border border-amber/30 bg-amber/5 p-6 sm:p-8">
