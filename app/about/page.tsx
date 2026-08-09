@@ -35,7 +35,7 @@ export default function AboutPage() {
               A managed learning ecosystem, not a listing directory
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-white/60">
-              Based in Coimbatore, Tamil Nadu, and built for how Indian families actually find and trust an educator.
+              Based in Chennai, Tamil Nadu, and built for how Indian families actually find and trust an educator.
             </p>
             <p className="mt-2 max-w-2xl text-xs text-white/40">
               Every number on this site — tutors onboarded, classes completed, categories live — reflects real,

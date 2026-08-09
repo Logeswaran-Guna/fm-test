@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </h1>
             <p className="mt-3 max-w-2xl text-sm text-white/60">
-              Last updated: 3 August 2026 · Applies to the Future Minds tutor
+              Last updated: 9 August 2026 · Applies to the Future Minds tutor
               discovery &amp; learning management platform
             </p>
           </div>
@@ -58,7 +58,7 @@ export default function PrivacyPolicyPage() {
               <p>
                 Future Minds (&quot;Future Minds&quot;, &quot;we&quot;, &quot;us&quot;) operates a managed
                 tutor discovery and learning management platform serving
-                families and educators in Coimbatore, Tamil Nadu, India, and
+                families and educators in Chennai, Tamil Nadu, India, and
                 such other areas as we expand to.
               </p>
               <p>
@@ -85,7 +85,8 @@ export default function PrivacyPolicyPage() {
               <p>
                 <strong>From tutors:</strong> name, phone number, email
                 address, qualifications, experience, subjects and skills
-                taught, preferred teaching locations and mode, availability,
+                taught, preferred teaching locations and mode, address,
+                area/city, pincode, availability and schedule preferences,
                 expected rate, a government ID document (for identity
                 verification), bank account or UPI details (for payouts), and
                 an optional profile photo.
