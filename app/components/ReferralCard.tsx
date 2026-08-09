@@ -49,6 +49,7 @@ export default function ReferralCard() {
   const [redeemInput, setRedeemInput] = useState("100");
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState<"parent" | "tutor" | null>(null);
+  const [shareAudience, setShareAudience] = useState<"parent" | "tutor">("parent");
 
   async function load() {
     const supabase = createClient();
@@ -82,37 +83,77 @@ export default function ReferralCard() {
     }
   }
 
-  async function shareLink(kind: "parent" | "tutor") {
-    if (!summary || typeof window === "undefined") return;
+  function buildShareParts(kind: "parent" | "tutor") {
     const path = kind === "parent" ? "/find-tutor" : "/become-a-tutor";
-    const url = `${window.location.origin}${path}?ref=${encodeURIComponent(summary.referral_code)}`;
-    const combined = `${SHARE_MESSAGES[kind]}\n\n${url}`;
+    const url = `${window.location.origin}${path}?ref=${encodeURIComponent(summary!.referral_code)}`;
+    const message = SHARE_MESSAGES[kind];
+    return { message, url, combined: `${message}\n\n${url}` };
+  }
 
-    if (navigator.share) {
-      try {
-        // Deliberately NOT passing `url` as its own field — WhatsApp (and
-        // some other Android share targets) silently drop `text` and show
-        // only `url` when both are given separately. Folding everything
-        // into one `text` string is the reliable way to get the message
-        // to actually show up alongside the link.
-        await navigator.share({ title: "Future Minds", text: combined });
-        return;
-      } catch (err) {
-        // AbortError = the visitor closed the share sheet themselves —
-        // not a failure, nothing to fall back to. Any other error (share
-        // genuinely unsupported for this payload) falls through to copy.
-        if (err instanceof Error && err.name === "AbortError") return;
-      }
-    }
-
+  async function copyCombined(kind: "parent" | "tutor", combined: string) {
     try {
       await navigator.clipboard.writeText(combined);
       setCopiedLink(kind);
-      setTimeout(() => setCopiedLink(null), 2000);
+      setTimeout(() => setCopiedLink(null), 2500);
     } catch {
       // Clipboard access can fail too (permissions, insecure context) —
       // the code chip above is still there to copy by hand either way.
     }
+  }
+
+  // Explicit per-platform buttons instead of relying only on the OS share
+  // sheet (navigator.share) — that sheet only lists apps actually
+  // installed *and registered as a share target* on the current device.
+  // On desktop Windows in particular, WhatsApp/Telegram/Instagram web
+  // essentially never show up there even if you use them daily, so the
+  // generic "Share" button alone was missing them entirely.
+  async function shareVia(platform: "whatsapp" | "telegram" | "facebook" | "instagram" | "more") {
+    if (!summary || typeof window === "undefined") return;
+    const kind = shareAudience;
+    const { message, url, combined } = buildShareParts(kind);
+
+    if (platform === "whatsapp") {
+      window.open(`https://wa.me/?text=${encodeURIComponent(combined)}`, "_blank", "noopener,noreferrer");
+      return;
+    }
+    if (platform === "telegram") {
+      window.open(
+        `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(message)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      return;
+    }
+    if (platform === "facebook") {
+      // Facebook's own sharer only ever accepts a URL — it deliberately
+      // ignores custom text (anti-spam) and pulls its preview from the
+      // page's Open Graph tags instead, so there's no message to pass here.
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+        "_blank",
+        "noopener,noreferrer"
+      );
+      return;
+    }
+    if (platform === "instagram") {
+      // Instagram has no share-intent URL of any kind — copying is the
+      // only thing that works, so the visitor can paste it into a DM,
+      // story, or bio link themselves.
+      await copyCombined(kind, combined);
+      return;
+    }
+
+    // "more" — the native OS share sheet, useful on mobile for whatever
+    // isn't covered above (SMS, Mail, Signal, etc.); falls back to copy.
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "Future Minds", text: combined });
+        return;
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") return;
+      }
+    }
+    await copyCombined(kind, combined);
   }
 
   async function redeem() {
@@ -154,26 +195,88 @@ export default function ReferralCard() {
         </button>
       </div>
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => shareLink("parent")}
-          className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
-        >
-          {copiedLink === "parent" ? "Message copied!" : "Share with a parent"}
-        </button>
-        <button
-          type="button"
-          onClick={() => shareLink("tutor")}
-          className="rounded-lg bg-navy/5 px-3 py-2 text-xs font-semibold text-navy transition-colors hover:bg-navy/10"
-        >
-          {copiedLink === "tutor" ? "Message copied!" : "Share with a tutor"}
-        </button>
+      <div className="mt-3">
+        <div className="inline-flex rounded-full border border-slate-200 bg-white p-0.5">
+          <button
+            type="button"
+            onClick={() => setShareAudience("parent")}
+            className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+              shareAudience === "parent" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+            }`}
+          >
+            Share for a parent
+          </button>
+          <button
+            type="button"
+            onClick={() => setShareAudience("tutor")}
+            className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-colors ${
+              shareAudience === "tutor" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+            }`}
+          >
+            Share for a tutor
+          </button>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => shareVia("whatsapp")}
+            aria-label="Share on WhatsApp"
+            title="WhatsApp"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366]/15 text-[#1DA851] transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={17} height={17} fill="currentColor">
+              <path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 004.79 1.22h.01c5.46 0 9.9-4.44 9.9-9.9S17.5 2 12.04 2zm5.8 14.16c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.12.11-1.8-.11-.42-.13-.96-.31-1.65-.6-2.9-1.25-4.8-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3s.75-2.13 1.02-2.42c.27-.29.58-.36.78-.36h.55c.18 0 .42-.03.65.5.24.56.81 1.94.88 2.08.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.38-.43.5-.14.14-.29.29-.13.57.17.29.75 1.24 1.61 2.01 1.11 1 2.04 1.31 2.34 1.46.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.38-.24.63-.14.26.1 1.63.77 1.91.91.29.14.48.21.55.34.07.14.07.79-.17 1.46z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => shareVia("telegram")}
+            aria-label="Share on Telegram"
+            title="Telegram"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#229ED9]/15 text-[#229ED9] transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor">
+              <path d="M21.5 2.5L2 10.7c-.9.36-.87 1.65.04 1.96l4.5 1.53 1.75 5.6c.24.77 1.23.99 1.78.4l2.5-2.68 4.6 3.4c.7.52 1.7.14 1.9-.72L23 3.6c.2-.9-.7-1.6-1.5-1.1zM7.9 13.4l9.6-6.1c.2-.13.4.14.24.3l-7.8 7.1c-.3.28-.5.66-.55 1.08l-.2 1.9-1-3.9c-.08-.3.03-.63.3-.78z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => shareVia("facebook")}
+            aria-label="Share on Facebook"
+            title="Facebook"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1877F2]/15 text-[#1877F2] transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="currentColor">
+              <path d="M13.5 21v-7.5H16l.4-3H13.5V8.4c0-.87.24-1.46 1.5-1.46H16.5V4.35A20 20 0 0014.2 4.2c-2.27 0-3.83 1.38-3.83 3.93V10.5H8v3h2.37V21h3.13z" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => shareVia("instagram")}
+            aria-label="Copy message for Instagram"
+            title="Instagram (copies — no direct share)"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-fuchsia-500/15 text-fuchsia-600 transition-transform hover:-translate-y-0.5"
+          >
+            <svg viewBox="0 0 24 24" width={16} height={16} fill="none" stroke="currentColor" strokeWidth="1.8">
+              <rect x="3" y="3" width="18" height="18" rx="5" />
+              <circle cx="12" cy="12" r="4.2" />
+              <circle cx="17.2" cy="6.8" r="1" fill="currentColor" stroke="none" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            onClick={() => shareVia("more")}
+            className="rounded-full border border-slate-200 px-3 py-2 text-[11px] font-semibold text-navy transition-colors hover:bg-slate-50"
+          >
+            {copiedLink === shareAudience ? "Copied!" : "More…"}
+          </button>
+        </div>
+        <p className="mt-1.5 text-[11px] text-slate-400">
+          Opening the link fills in your code automatically for whoever you send it to. Instagram has no
+          pre-filled share option, so that one copies the message instead — paste it into a DM or story.
+        </p>
       </div>
-      <p className="mt-1.5 text-[11px] text-slate-400">
-        Opens your share menu with a ready-made message and link — or copies it if sharing isn&apos;t supported
-        here. Opening the link fills in your code automatically for whoever you send it to.
-      </p>
 
       <div className="mt-4 grid grid-cols-3 gap-3 text-center">
         <div className="rounded-lg bg-slate-50 px-2 py-2.5">
