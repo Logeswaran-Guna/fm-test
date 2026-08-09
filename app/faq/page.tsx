@@ -218,6 +218,10 @@ const TEACHER_SECTIONS: FaqSection[] = [
         q: "How does the referral program work for tutors?",
         a: "Same mechanic as parents: share your code or link from your Teacher Dashboard. Once a tutor you referred gets their own first confirmed match, you earn 100 points — redeemable for a discount on your own future payout commission, capped at 2 months of your stated monthly rate.",
       },
+      {
+        q: "Where do I find my referral code or link?",
+        a: "In the \"Refer & Earn\" section of your Teacher Dashboard — it has your code, plus a share-link button that automatically fills the code in for whoever opens it.",
+      },
     ],
   },
 ];
