@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
+import EducationBackground from "../components/EducationBackground";
 import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
 import { createClient } from "@/lib/supabase/client";
@@ -456,7 +457,7 @@ export default function BecomeATutorPage() {
     <div className="flex min-h-screen flex-col">
       <Header />
       <BackButton />
-      <main className="flex-1 bg-slate-50">
+      <main className="flex-1 bg-[#FAFBFC]">
         <section className="bg-navy">
           <div className="mx-auto max-w-3xl px-6 py-14 text-center sm:px-8">
             <div className="mx-auto flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-widest text-amber">
@@ -474,7 +475,9 @@ export default function BecomeATutorPage() {
           </div>
         </section>
 
-        <div className="mx-auto max-w-2xl px-6 py-12 sm:px-8">
+        <div className="relative overflow-hidden">
+          <EducationBackground />
+          <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 sm:px-8">
           {checkingRole ? (
             <div className="py-16 text-center text-sm text-slate-400">
               Checking your session…
@@ -1047,6 +1050,7 @@ export default function BecomeATutorPage() {
               </button>
             </form>
           )}
+          </div>
         </div>
       </main>
     </div>
