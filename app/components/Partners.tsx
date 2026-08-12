@@ -28,7 +28,7 @@ function PartnerLogo({ partner }: { partner: Partner }) {
       <div className="leading-tight">
         <p className="font-heading text-base font-bold text-navy">{partner.name}</p>
         {partner.location && (
-          <p className="text-[10px] uppercase tracking-wide text-slate-400">{partner.location}</p>
+          <p className="text-[10px] uppercase tracking-wide text-slate-600">{partner.location}</p>
         )}
       </div>
     </div>
