@@ -2,8 +2,8 @@ import Header from "./components/Header";
 import Hero from "./components/Hero";
 import LearnLeadBand from "./components/LearnLeadBand";
 import PlatformHighlights from "./components/PlatformHighlights";
-import PerksAndBenefits from "./components/PerksAndBenefits";
 import LearningCategories from "./components/LearningCategories";
+import PerksAndBenefits from "./components/PerksAndBenefits";
 import Testimonials from "./components/Testimonials";
 import Partners from "./components/Partners";
 import Footer from "./components/Footer";
@@ -16,8 +16,8 @@ export default function Home() {
         <Hero />
         <LearnLeadBand />
         <PlatformHighlights />
-        <PerksAndBenefits />
         <LearningCategories />
+        <PerksAndBenefits />
         <Testimonials />
         <Partners />
       </main>
