@@ -111,16 +111,31 @@ function PerkItem({
 
 function Typewriter({ text, start, reduceMotion }: { text: string; start: boolean; reduceMotion: boolean }) {
   const [count, setCount] = useState(reduceMotion ? text.length : 0);
+  const [phase, setPhase] = useState<"typing" | "deleting">("typing");
 
   useEffect(() => {
     if (reduceMotion) {
       const id = setTimeout(() => setCount(text.length), 0);
       return () => clearTimeout(id);
     }
-    if (!start || count >= text.length) return;
-    const id = setTimeout(() => setCount((c) => c + 1), 32);
+    if (!start) return;
+
+    if (phase === "typing") {
+      if (count < text.length) {
+        const id = setTimeout(() => setCount((c) => c + 1), 32);
+        return () => clearTimeout(id);
+      }
+      const id = setTimeout(() => setPhase("deleting"), 1800);
+      return () => clearTimeout(id);
+    }
+
+    if (count > 0) {
+      const id = setTimeout(() => setCount((c) => c - 1), 18);
+      return () => clearTimeout(id);
+    }
+    const id = setTimeout(() => setPhase("typing"), 500);
     return () => clearTimeout(id);
-  }, [start, count, text, reduceMotion]);
+  }, [start, count, phase, text, reduceMotion]);
 
   return (
     <span aria-label={text}>
