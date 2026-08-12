@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../../components/Header";
@@ -167,7 +167,7 @@ export default function TeacherProfilePage() {
     };
   }, [router]);
 
-  function populateFormFromRow(row: TeacherProfileRow) {
+  const populateFormFromRow = useCallback((row: TeacherProfileRow) => {
     setQualification(row.qualification ?? "");
     setExperience((row.experience as ExperienceBand) ?? "");
     setRate(row.rate_expectation != null ? String(row.rate_expectation) : "");
@@ -196,9 +196,9 @@ export default function TeacherProfilePage() {
         canSpeak: l.can_speak,
       }))
     );
-  }
+  }, []);
 
-  async function loadProfile() {
+  const loadProfile = useCallback(async () => {
     const supabase = createClient();
     const [profileRes, reviewsRes] = await Promise.all([
       supabase.rpc("my_teacher_profile"),
@@ -214,12 +214,12 @@ export default function TeacherProfilePage() {
     if (row) populateFormFromRow(row);
     if (!reviewsRes.error) setReviews((reviewsRes.data as TeacherReview[]) ?? []);
     setLoading(false);
-  }
+  }, [populateFormFromRow]);
 
   useEffect(() => {
     if (checkingAuth) return;
     Promise.resolve().then(loadProfile);
-  }, [checkingAuth]);
+  }, [checkingAuth, loadProfile]);
 
   function toggle(list: string[], setList: (v: string[]) => void, value: string) {
     setList(list.includes(value) ? list.filter((v) => v !== value) : [...list, value]);
