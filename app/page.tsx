@@ -4,6 +4,7 @@ import LearnLeadBand from "./components/LearnLeadBand";
 import PlatformHighlights from "./components/PlatformHighlights";
 import LearningCategories from "./components/LearningCategories";
 import PerksAndBenefits from "./components/PerksAndBenefits";
+import RegistrationFreeBand from "./components/RegistrationFreeBand";
 import Testimonials from "./components/Testimonials";
 import Partners from "./components/Partners";
 import Footer from "./components/Footer";
@@ -18,6 +19,7 @@ export default function Home() {
         <PlatformHighlights />
         <LearningCategories />
         <PerksAndBenefits />
+        <RegistrationFreeBand />
         <Testimonials />
         <Partners />
       </main>
