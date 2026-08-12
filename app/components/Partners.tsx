@@ -54,7 +54,11 @@ export default function Partners() {
     <section className="border-y border-slate-200 bg-slate-50 py-14">
       <div className="mx-auto max-w-7xl px-6 sm:px-8">
         <div className="mb-8 max-w-2xl">
-          <h2 className="font-heading text-2xl font-semibold text-navy sm:text-3xl">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
+            <span className="h-px w-6 bg-amber-700" aria-hidden />
+            Partners
+          </span>
+          <h2 className="mt-3 font-heading text-2xl font-semibold text-navy sm:text-3xl">
             Growing with trusted partners
           </h2>
           <p className="mt-2 text-sm text-slate-500 sm:text-base">
