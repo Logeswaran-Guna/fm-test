@@ -147,6 +147,20 @@ export type PartnerRow = {
   created_at: string;
 };
 
+export type TestimonialStatus = "VISIBLE" | "DISABLED" | "REMOVED";
+
+export type TestimonialRow = {
+  id: string;
+  display_id: string;
+  author_name: string;
+  author_role: string | null;
+  quote: string;
+  rating: number;
+  status: TestimonialStatus;
+  display_order: number;
+  created_at: string;
+};
+
 export type AcademyCourseStatus = "OPEN" | "COMING_SOON" | "CLOSED";
 
 export type AcademyCourseRow = {

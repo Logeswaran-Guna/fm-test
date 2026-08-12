@@ -1,6 +1,3 @@
-import { BOARDS, SOFT_SKILLS_ITEMS } from "@/lib/categories";
-import { ChipRow } from "./PillarPage";
-
 const journeySteps = [
   {
     title: "Requirement",
@@ -75,16 +72,6 @@ const deliveryFormats = [
   },
 ];
 
-const categories = [
-  ...BOARDS,
-  "Academics (Pre-Primary – Higher Secondary (K-12))",
-  "Music & Instruments",
-  "Dance",
-  "Art",
-  "Abacus",
-  ...SOFT_SKILLS_ITEMS,
-];
-
 function Eyebrow({ children, light }: { children: string; light?: boolean }) {
   return (
     <span
@@ -130,7 +117,7 @@ export default function PlatformHighlights() {
   return (
     <section className="bg-white">
       <div className="bg-navy">
-        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 md:py-20">
+        <div className="mx-auto max-w-7xl px-6 pt-16 pb-10 sm:px-8 sm:pt-20 sm:pb-12">
           <SectionHeading
             light
             eyebrow="The journey"
@@ -161,7 +148,7 @@ export default function PlatformHighlights() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 py-16 sm:px-8 md:py-20">
+      <div className="mx-auto max-w-7xl px-6 pt-10 pb-12 sm:px-8 sm:pt-12 md:pt-14 md:pb-16">
         <SectionHeading
           eyebrow="How you learn"
           title="Flexible delivery"
@@ -211,17 +198,6 @@ export default function PlatformHighlights() {
               </div>
             )
           )}
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-7xl px-6 pb-20 sm:px-8">
-        <SectionHeading
-          eyebrow="What you can learn"
-          title="Learning categories"
-          description="Academic, creative and future-skills categories live today."
-        />
-        <div className="rounded-3xl border border-amber/20 bg-amber/5 p-6 sm:p-8">
-          <ChipRow items={categories} />
         </div>
       </div>
     </section>

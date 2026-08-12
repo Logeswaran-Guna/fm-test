@@ -15,6 +15,7 @@ import AcademyTab from "./AcademyTab";
 import NotificationsTab from "./NotificationsTab";
 import ReferralsTab from "./ReferralsTab";
 import PartnersTab from "./PartnersTab";
+import TestimonialsTab from "./TestimonialsTab";
 import FunnelStats from "./FunnelStats";
 import { StatusBadge } from "./StatusBadge";
 import {
@@ -36,6 +37,7 @@ type Tab =
   | "notifications"
   | "referrals"
   | "partners"
+  | "testimonials"
   | "registration-forms"
   | "manage-users";
 
@@ -573,6 +575,15 @@ export default function AdminDashboardPage() {
               </button>
               <button
                 type="button"
+                onClick={() => setActiveTab("testimonials")}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === "testimonials" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
+                }`}
+              >
+                Testimonials
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveTab("registration-forms")}
                 className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
                   activeTab === "registration-forms" ? "bg-navy text-white" : "text-slate-500 hover:text-navy"
@@ -600,7 +611,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "academy" &&
                 activeTab !== "notifications" &&
                 activeTab !== "referrals" &&
-                activeTab !== "partners" && (
+                activeTab !== "partners" &&
+                activeTab !== "testimonials" && (
                 <input
                   type="text"
                   value={search}
@@ -615,7 +627,8 @@ export default function AdminDashboardPage() {
                 activeTab !== "academy" &&
                 activeTab !== "notifications" &&
                 activeTab !== "referrals" &&
-                activeTab !== "partners" && (
+                activeTab !== "partners" &&
+                activeTab !== "testimonials" && (
                 <button
                   type="button"
                   onClick={handleExport}
@@ -982,6 +995,8 @@ export default function AdminDashboardPage() {
               <ReferralsTab />
             ) : activeTab === "partners" ? (
               <PartnersTab />
+            ) : activeTab === "testimonials" ? (
+              <TestimonialsTab />
             ) : activeTab === "manage-users" ? (
               <ManageUsers tutors={tutors} onTutorsChanged={loadData} />
             ) : activeTab === "registration-forms" ? (
