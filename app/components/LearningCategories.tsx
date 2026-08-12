@@ -13,7 +13,7 @@ const categories = [
 
 export default function LearningCategories() {
   return (
-    <section className="bg-white pt-10 pb-14 sm:pt-12 sm:pb-16">
+    <section className="bg-white pt-6 pb-6 sm:pb-8">
       <div className="mx-auto max-w-7xl px-6 sm:px-8">
         <div className="mb-10 max-w-2xl">
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">

@@ -148,7 +148,7 @@ export default function PlatformHighlights() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-6 pt-10 pb-12 sm:px-8 sm:pt-12 md:pt-14 md:pb-16">
+      <div className="mx-auto max-w-7xl px-6 pt-10 pb-6 sm:px-8 sm:pt-12 md:pt-14">
         <SectionHeading
           eyebrow="How you learn"
           title="Flexible delivery"

@@ -2,9 +2,10 @@ import Header from "./components/Header";
 import Hero from "./components/Hero";
 import LearnLeadBand from "./components/LearnLeadBand";
 import PlatformHighlights from "./components/PlatformHighlights";
+import WaveSeparatorStrip from "./components/WaveSeparatorStrip";
 import LearningCategories from "./components/LearningCategories";
+import AIStarStrip from "./components/AIStarStrip";
 import PerksAndBenefits from "./components/PerksAndBenefits";
-import RegistrationFreeBand from "./components/RegistrationFreeBand";
 import Testimonials from "./components/Testimonials";
 import Partners from "./components/Partners";
 import Footer from "./components/Footer";
@@ -17,9 +18,10 @@ export default function Home() {
         <Hero />
         <LearnLeadBand />
         <PlatformHighlights />
+        <WaveSeparatorStrip />
         <LearningCategories />
+        <AIStarStrip />
         <PerksAndBenefits />
-        <RegistrationFreeBand />
         <Testimonials />
         <Partners />
       </main>
