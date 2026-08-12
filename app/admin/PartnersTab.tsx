@@ -165,7 +165,7 @@ export default function PartnersTab() {
   }
 
   useEffect(() => {
-    load();
+    Promise.resolve().then(() => load());
   }, []);
 
   async function createPartner() {
