@@ -215,12 +215,47 @@ function TrainingIllustration() {
 function CenterBadge() {
   return (
     <div className="flex flex-row items-center gap-4 py-2 lg:flex-col lg:gap-3 lg:py-0">
-      <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md">
-        <Image src={fmMark} alt="" aria-hidden className="h-10 w-auto" />
+      <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
+        <div
+          className="fm-badge-rays pointer-events-none absolute inset-[-30px]"
+          style={{
+            background:
+              "repeating-conic-gradient(from 0deg, rgba(249,115,22,0.55) 0deg 4deg, transparent 4deg 18deg)",
+            WebkitMaskImage: "radial-gradient(circle, black 32%, transparent 70%)",
+            maskImage: "radial-gradient(circle, black 32%, transparent 70%)",
+          }}
+          aria-hidden
+        />
+        <div
+          className="fm-badge-glow pointer-events-none absolute inset-[-10px] rounded-full bg-gradient-to-br from-[#FFD27A] to-[#EA580C] blur-xl"
+          aria-hidden
+        />
+        <div className="fm-badge-pulse relative flex h-24 w-24 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md">
+          <Image src={fmMark} alt="" aria-hidden className="h-10 w-auto" />
+        </div>
       </div>
       <p className="max-w-[11rem] text-center text-xs italic leading-relaxed text-slate-500">
         The trusted bridge between learners and educators.
       </p>
+      <style>{`
+        @keyframes fmBadgeGlow {
+          0%, 100% { opacity: 0.3; transform: scale(0.92); }
+          50% { opacity: 0.65; transform: scale(1.1); }
+        }
+        @keyframes fmBadgeRing {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4), 0 4px 12px rgba(0, 0, 0, 0.08); }
+          50% { box-shadow: 0 0 0 9px rgba(234, 88, 12, 0), 0 4px 12px rgba(0, 0, 0, 0.08); }
+        }
+        @keyframes fmBadgeRaysSpin {
+          to { transform: rotate(360deg); }
+        }
+        .fm-badge-glow { animation: fmBadgeGlow 2.6s ease-in-out infinite; }
+        .fm-badge-pulse { animation: fmBadgeRing 2.6s ease-in-out infinite; }
+        .fm-badge-rays { animation: fmBadgeRaysSpin 18s linear infinite; }
+        @media (prefers-reduced-motion: reduce) {
+          .fm-badge-glow, .fm-badge-pulse, .fm-badge-rays { animation: none; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -329,7 +364,9 @@ export default function PerksAndBenefits() {
             </div>
           </div>
 
-          <CenterBadge />
+          <div className="lg:mt-16">
+            <CenterBadge />
+          </div>
 
           <div>
             <span className="inline-flex items-center rounded-full bg-[#0f7c6c] px-3.5 py-1 font-heading text-xs font-semibold uppercase tracking-wide text-white">
