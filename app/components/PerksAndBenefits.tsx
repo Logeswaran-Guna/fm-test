@@ -146,18 +146,18 @@ const trustStrip = [
 function BenefitCard({ benefit, revealed, delayMs }: { benefit: Benefit; revealed: boolean; delayMs: number }) {
   return (
     <div
-      className={`group flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${revealed ? "" : "opacity-0"}`}
+      className={`group flex items-start gap-2.5 rounded-[18px] border border-slate-200/70 bg-white/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_1px_10px_rgba(15,23,42,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-200 hover:shadow-[0_4px_14px_rgba(15,23,42,0.08)] ${revealed ? "" : "opacity-0"}`}
       style={revealed ? { animation: `fade-in-up 550ms ease ${delayMs}ms both` } : undefined}
     >
       <span
-        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${benefit.tint}`}
+        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${benefit.tint}`}
         aria-hidden
       >
         {benefit.icon}
       </span>
       <div className="min-w-0">
-        <p className="font-heading text-sm font-semibold text-navy">{benefit.title}</p>
-        <p className="mt-0.5 text-xs leading-relaxed text-slate-500">{benefit.description}</p>
+        <p className="font-heading text-[15px] font-semibold leading-tight text-navy">{benefit.title}</p>
+        <p className="mt-0.5 text-[12.5px] leading-snug text-slate-500">{benefit.description}</p>
       </div>
     </div>
   );
@@ -212,48 +212,79 @@ function TrainingIllustration() {
   );
 }
 
-function CenterBadge() {
+// The center "bridge" — replaces the old sun-ray badge. A thin orbit ring
+// carries a few tiny colored nodes around the FM mark, a small particle
+// drifts through to suggest Parents -> FM -> Tutors, and the mark itself
+// breathes almost imperceptibly. All motion is transform/opacity only and
+// fully disabled under prefers-reduced-motion, leaving the static circle
+// + caption intact.
+function FMBridge() {
   return (
-    <div className="flex flex-row items-center gap-4 py-2 lg:flex-col lg:gap-3 lg:py-0">
-      <div className="relative flex h-24 w-24 shrink-0 items-center justify-center">
-        <div
-          className="fm-badge-rays pointer-events-none absolute inset-[-30px]"
-          style={{
-            background:
-              "repeating-conic-gradient(from 0deg, rgba(249,115,22,0.55) 0deg 4deg, transparent 4deg 18deg)",
-            WebkitMaskImage: "radial-gradient(circle, black 32%, transparent 70%)",
-            maskImage: "radial-gradient(circle, black 32%, transparent 70%)",
-          }}
-          aria-hidden
-        />
-        <div
-          className="fm-badge-glow pointer-events-none absolute inset-[-10px] rounded-full bg-gradient-to-br from-[#FFD27A] to-[#EA580C] blur-xl"
-          aria-hidden
-        />
-        <div className="fm-badge-pulse relative flex h-24 w-24 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md">
-          <Image src={fmMark} alt="" aria-hidden className="h-10 w-auto" />
+    <div className="flex flex-row items-center gap-4 py-2 lg:flex-col lg:gap-2.5 lg:py-0">
+      <div className="relative flex h-36 w-36 shrink-0 items-center justify-center">
+        <svg viewBox="0 0 128 128" className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
+          <circle cx="64" cy="64" r="54" fill="none" stroke="#0a192f" strokeOpacity="0.08" strokeWidth="1" />
+          <g className="fm-bridge-orbit" style={{ transformOrigin: "64px 64px" }}>
+            <circle cx="64" cy="10" r="3" fill="#18D4C5" />
+            <circle cx="113" cy="87" r="2.6" fill="#4FE5D7" />
+            <circle cx="19" cy="91" r="2.3" fill="#FF9933" />
+            <circle cx="33" cy="19" r="1.9" fill="#8E8CF0" />
+          </g>
+        </svg>
+
+        <div className="pointer-events-none absolute left-[-39px] right-[-39px] top-1/2 h-1.5 -translate-y-1/2 overflow-visible" aria-hidden>
+          <span className="fm-bridge-particle absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full bg-[#18D4C5] shadow-[0_0_6px_rgba(24,212,197,0.8)]" />
+        </div>
+
+        <div className="fm-bridge-glow fm-emphasis-b relative flex h-20 w-20 items-center justify-center rounded-full border border-slate-200 bg-white shadow-md">
+          <Image src={fmMark} alt="" aria-hidden className="h-9 w-auto" />
         </div>
       </div>
-      <p className="max-w-[11rem] text-center text-xs italic leading-relaxed text-slate-500">
-        The trusted bridge between learners and educators.
-      </p>
+
+      <div className="text-center lg:max-w-[10.5rem]">
+        <p className="text-[11px] italic leading-snug text-slate-500">
+          The trusted bridge between learners and educators.
+        </p>
+        <span className="mx-auto mt-1.5 block h-px w-8 bg-gradient-to-r from-[#18D4C5] via-[#4FE5D7] to-[#FF9933]" aria-hidden />
+      </div>
+
       <style>{`
-        @keyframes fmBadgeGlow {
-          0%, 100% { opacity: 0.3; transform: scale(0.92); }
-          50% { opacity: 0.65; transform: scale(1.1); }
-        }
-        @keyframes fmBadgeRing {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4), 0 4px 12px rgba(0, 0, 0, 0.08); }
-          50% { box-shadow: 0 0 0 9px rgba(234, 88, 12, 0), 0 4px 12px rgba(0, 0, 0, 0.08); }
-        }
-        @keyframes fmBadgeRaysSpin {
+        @keyframes fmBridgeOrbit {
           to { transform: rotate(360deg); }
         }
-        .fm-badge-glow { animation: fmBadgeGlow 2.6s ease-in-out infinite; }
-        .fm-badge-pulse { animation: fmBadgeRing 2.6s ease-in-out infinite; }
-        .fm-badge-rays { animation: fmBadgeRaysSpin 18s linear infinite; }
+        @keyframes fmBridgeBreathe {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.015); }
+        }
+        @keyframes fmBridgeTravel {
+          0% { transform: translateX(-39px); opacity: 0; }
+          14% { opacity: 1; }
+          50% { transform: translateX(0px); opacity: 1; }
+          86% { opacity: 1; }
+          100% { transform: translateX(39px); opacity: 0; }
+        }
+        /* Sequenced Parents -> FM -> Tutors emphasis: one shared keyframe,
+           staggered via animation-delay so each zone lights up in turn
+           every 9s. Each flash carries both brand accents at once — a
+           tight teal ring with a softer saffron-gold ring just outside
+           it — kept to a brief window near the start of each cycle so it
+           reads as a passing highlight, not a persistent glow. */
+        @keyframes fmEmphasisPulse {
+          0%, 8%, 100% {
+            box-shadow: 0 0 0 0 rgba(24, 212, 197, 0), 0 0 0 0 rgba(255, 153, 51, 0);
+          }
+          4% {
+            box-shadow: 0 0 0 4px rgba(24, 212, 197, 0.2), 0 0 0 9px rgba(255, 153, 51, 0.14);
+          }
+        }
+        .fm-bridge-orbit { animation: fmBridgeOrbit 10s linear infinite; }
+        .fm-bridge-glow { animation: fmBridgeBreathe 3.6s ease-in-out infinite, fmEmphasisPulse 9s ease-in-out 3s infinite; }
+        .fm-bridge-particle { animation: fmBridgeTravel 5s ease-in-out infinite; }
+        .fm-emphasis-a { animation: fmEmphasisPulse 9s ease-in-out 0s infinite; border-radius: 18px; }
+        .fm-emphasis-c { animation: fmEmphasisPulse 9s ease-in-out 6s infinite; border-radius: 18px; }
         @media (prefers-reduced-motion: reduce) {
-          .fm-badge-glow, .fm-badge-pulse, .fm-badge-rays { animation: none; }
+          .fm-bridge-orbit, .fm-bridge-glow, .fm-bridge-particle, .fm-emphasis-a, .fm-emphasis-c { animation: none; }
+          .fm-bridge-particle { display: none; }
         }
       `}</style>
     </div>
@@ -355,26 +386,26 @@ export default function PerksAndBenefits() {
             <span className="inline-flex items-center rounded-full bg-navy px-3.5 py-1 font-heading text-xs font-semibold uppercase tracking-wide text-amber">
               For Parents
             </span>
-            <h3 className="mt-3 font-heading text-lg font-semibold text-navy">Smarter, Safer &amp; Simpler</h3>
+            <h3 className="mt-2 font-heading text-lg font-semibold text-navy">Smarter, Safer &amp; Simpler</h3>
             <p className="mt-1 text-xs text-slate-500">Give your child the right guidance with complete peace of mind.</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="fm-emphasis-a mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {parentBenefits.map((benefit, i) => (
                 <BenefitCard key={benefit.title} benefit={benefit} revealed={revealed} delayMs={120 + i * 70} />
               ))}
             </div>
           </div>
 
-          <div className="lg:mt-16">
-            <CenterBadge />
+          <div className="lg:mt-14">
+            <FMBridge />
           </div>
 
           <div>
             <span className="inline-flex items-center rounded-full bg-[#0f7c6c] px-3.5 py-1 font-heading text-xs font-semibold uppercase tracking-wide text-white">
               For Tutors
             </span>
-            <h3 className="mt-3 font-heading text-lg font-semibold text-navy">Teach. Grow. We&apos;ll take care of the rest.</h3>
+            <h3 className="mt-2 font-heading text-lg font-semibold text-navy">Teach. Grow. We&apos;ll take care of the rest.</h3>
             <p className="mt-1 text-xs text-slate-500">Focus on what you love — we handle the support.</p>
-            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="fm-emphasis-c mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {tutorBenefits.map((benefit, i) => (
                 <BenefitCard key={benefit.title} benefit={benefit} revealed={revealed} delayMs={120 + i * 70} />
               ))}
