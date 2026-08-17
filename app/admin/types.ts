@@ -147,7 +147,7 @@ export type PartnerRow = {
   created_at: string;
 };
 
-export type TestimonialStatus = "VISIBLE" | "DISABLED" | "REMOVED";
+export type TestimonialStatus = "PENDING" | "VISIBLE" | "DISABLED" | "REMOVED";
 
 export type TestimonialRow = {
   id: string;
@@ -159,6 +159,7 @@ export type TestimonialRow = {
   status: TestimonialStatus;
   display_order: number;
   created_at: string;
+  submitted_by: string | null;
 };
 
 export type AcademyCourseStatus = "OPEN" | "COMING_SOON" | "CLOSED";

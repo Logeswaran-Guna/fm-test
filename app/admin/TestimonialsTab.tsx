@@ -5,12 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import type { TestimonialRow, TestimonialStatus } from "./types";
 
 const STATUS_STYLES: Record<TestimonialStatus, string> = {
+  PENDING: "bg-amber-100 text-amber-800",
   VISIBLE: "bg-emerald-100 text-emerald-700",
   DISABLED: "bg-slate-200 text-slate-500",
   REMOVED: "bg-red-100 text-red-600",
 };
 
-const STATUSES: TestimonialStatus[] = ["VISIBLE", "DISABLED", "REMOVED"];
+const STATUSES: TestimonialStatus[] = ["PENDING", "VISIBLE", "DISABLED", "REMOVED"];
 const RATINGS = [5, 4, 3, 2, 1];
 
 function TestimonialCard({ testimonial, onUpdated }: { testimonial: TestimonialRow; onUpdated: () => void }) {
@@ -68,10 +69,21 @@ function TestimonialCard({ testimonial, onUpdated }: { testimonial: TestimonialR
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4">
+    <div
+      className={`rounded-xl border p-4 ${
+        testimonial.status === "PENDING" ? "border-amber-300 bg-amber-50/40" : "border-slate-200 bg-white"
+      }`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{testimonial.display_id}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            {testimonial.display_id}
+            {testimonial.submitted_by && (
+              <span className="ml-2 rounded-full bg-navy/10 px-2 py-0.5 text-[10px] font-semibold normal-case tracking-normal text-navy">
+                Submitted by a real account
+              </span>
+            )}
+          </p>
           <div className="mt-1 flex flex-wrap gap-x-5 gap-y-1 text-sm">
             <button
               type="button"
@@ -93,6 +105,16 @@ function TestimonialCard({ testimonial, onUpdated }: { testimonial: TestimonialR
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {testimonial.status === "PENDING" && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => updateStatus("VISIBLE")}
+              className="rounded-full bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Approve
+            </button>
+          )}
           <select
             value={testimonial.rating}
             disabled={busy}
@@ -239,8 +261,9 @@ export default function TestimonialsTab() {
           </div>
         )}
         <p className="mt-3 text-xs text-slate-400">
-          Visible = shown on the homepage. Disabled = hidden, kept in place. Removed = hidden and sorted to the
-          bottom of this list.
+          Pending = submitted by a parent or tutor, awaiting your review — not shown on the homepage yet. Visible =
+          shown on the homepage. Disabled = hidden, kept in place. Removed = hidden and sorted to the bottom of this
+          list.
         </p>
       </div>
     </div>
