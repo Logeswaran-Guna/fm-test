@@ -176,6 +176,14 @@ export default function FindTutorPage() {
   const [loggedInParent, setLoggedInParent] = useState<Profile | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const formStartedAt = useRef(0);
+  // Survive across a retry (a fresh handleSubmit call after a mid-loop
+  // failure below) — a plain local variable inside handleSubmit would
+  // reset to null every time, so a retry would create a brand-new student
+  // for subjects that already succeeded instead of reusing the one from
+  // the first successful call, quietly burning the "4 students per
+  // parent" cap and duplicating requirements for subjects already saved.
+  const studentIdRef = useRef<string | null>(null);
+  const submittedSubjectsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     formStartedAt.current = Date.now();
@@ -290,9 +298,12 @@ export default function FindTutorPage() {
 
       const whatsapp = loggedInParent ? loggedInParent.phone : form.phoneNumber.trim();
       const subjects = buildSubjectList(form);
+      // On a fresh submission these refs are already empty; on a retry
+      // after a partial failure, this skips subjects already saved and
+      // reuses the student created by the first successful call.
+      const remaining = subjects.filter((s) => !submittedSubjectsRef.current.has(s));
 
-      let studentId: string | null = null;
-      for (const subject of subjects) {
+      for (const subject of remaining) {
         const { data, error } = await supabase.rpc("submit_requirement", {
           p_subject: subject,
           p_mode: form.modes,
@@ -305,18 +316,27 @@ export default function FindTutorPage() {
           p_pricing_type: form.pricingType,
           p_budget: form.budget,
           p_preferred_teacher_gender: form.preferredGender,
-          p_student_id: studentId ?? undefined,
-          p_student_name: studentId ? undefined : form.studentName.trim(),
-          p_age_grade: studentId ? undefined : form.gradeClass.trim(),
+          p_student_id: studentIdRef.current ?? undefined,
+          p_student_name: studentIdRef.current ? undefined : form.studentName.trim(),
+          p_age_grade: studentIdRef.current ? undefined : form.gradeClass.trim(),
           p_whatsapp: whatsapp,
           p_notes: form.notes.trim() || undefined,
           p_prior_tutoring_experience: form.priorExperience.trim() || undefined,
         });
 
-        if (error) throw new Error(error.message);
-        if (!studentId) studentId = data.student_id as string;
+        if (error) {
+          throw new Error(
+            submittedSubjectsRef.current.size > 0
+              ? `${error.message} (${submittedSubjectsRef.current.size} of ${subjects.length} subjects were already submitted — click Submit again to retry just the rest.)`
+              : error.message
+          );
+        }
+        if (!studentIdRef.current) studentIdRef.current = data.student_id as string;
+        submittedSubjectsRef.current.add(subject);
       }
 
+      studentIdRef.current = null;
+      submittedSubjectsRef.current = new Set();
       setSubmittedParentName(loggedInParent ? loggedInParent.name : form.parentName.trim());
       setSuccess(true);
     } catch (err) {
@@ -329,6 +349,8 @@ export default function FindTutorPage() {
   }
 
   function handleReset() {
+    studentIdRef.current = null;
+    submittedSubjectsRef.current = new Set();
     setForm(initialFormState);
     setErrors({});
     setSubmitError(null);
