@@ -19,6 +19,7 @@ import {
   MODES,
   SCHEDULE_PREFERENCES,
   SOFT_SKILLS_ITEMS,
+  TECH_SKILLS_ITEMS,
   TIME_PREFERENCES_BY_SCHEDULE,
   TUTORING_FOR,
   type ExperienceBand,
@@ -79,6 +80,7 @@ function parseSubjects(subjects: string[]) {
   const gradeSubjects: Record<string, string[]> = {};
   const creativeItems: string[] = [];
   const softSkillItems: string[] = [];
+  const techSkillItems: string[] = [];
   for (const s of subjects) {
     const parts = s.split(" — ");
     if (parts.length === 2 && GRADE_BANDS.some((b) => b.label === parts[0])) {
@@ -91,16 +93,21 @@ function parseSubjects(subjects: string[]) {
     }
     if ((SOFT_SKILLS_ITEMS as string[]).includes(s)) {
       softSkillItems.push(s);
+      continue;
+    }
+    if ((TECH_SKILLS_ITEMS as string[]).includes(s)) {
+      techSkillItems.push(s);
     }
   }
-  return { gradeSubjects, creativeItems, softSkillItems };
+  return { gradeSubjects, creativeItems, softSkillItems, techSkillItems };
 }
 
 function buildSubjectsArray(
   tutoringFor: string[],
   gradeSubjects: Record<string, string[]>,
   creativeItems: string[],
-  softSkillItems: string[]
+  softSkillItems: string[],
+  techSkillItems: string[]
 ): string[] {
   const out: string[] = [];
   if (tutoringFor.includes("Academics")) {
@@ -112,6 +119,7 @@ function buildSubjectsArray(
   }
   if (tutoringFor.includes("Creative Learning")) out.push(...creativeItems);
   if (tutoringFor.includes("Soft Skills")) out.push(...softSkillItems);
+  if (tutoringFor.includes("Tech-Skills Training")) out.push(...techSkillItems);
   return out;
 }
 
@@ -146,6 +154,7 @@ export default function TeacherProfilePage() {
   const [gradeSubjects, setGradeSubjects] = useState<Record<string, string[]>>({});
   const [creativeItems, setCreativeItems] = useState<string[]>([]);
   const [softSkillItems, setSoftSkillItems] = useState<string[]>([]);
+  const [techSkillItems, setTechSkillItems] = useState<string[]>([]);
   const [languages, setLanguages] = useState<LanguageRow[]>([]);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [idFile, setIdFile] = useState<File | null>(null);
@@ -188,6 +197,7 @@ export default function TeacherProfilePage() {
     setGradeSubjects(parsed.gradeSubjects);
     setCreativeItems(parsed.creativeItems);
     setSoftSkillItems(parsed.softSkillItems);
+    setTechSkillItems(parsed.techSkillItems);
     setLanguages(
       (row.languages ?? []).map((l) => ({
         language: l.language,
@@ -282,7 +292,7 @@ export default function TeacherProfilePage() {
       const { error: upsertError } = await supabase.rpc("upsert_teacher_profile", {
         p_qualification: qualification.trim() || null,
         p_experience: experience || null,
-        p_subjects: buildSubjectsArray(tutoringFor, gradeSubjects, creativeItems, softSkillItems),
+        p_subjects: buildSubjectsArray(tutoringFor, gradeSubjects, creativeItems, softSkillItems, techSkillItems),
         p_preferred_locations: [location.trim()],
         p_teaching_mode: modes,
         p_availability: availability,
@@ -666,6 +676,16 @@ export default function TeacherProfilePage() {
                   options={SOFT_SKILLS_ITEMS}
                   selected={softSkillItems}
                   onToggle={(v) => toggle(softSkillItems, setSoftSkillItems, v)}
+                />
+              </Section>
+            )}
+
+            {tutoringFor.includes("Tech-Skills Training") && (
+              <Section title="Tech-Skills Training">
+                <ChipRow
+                  options={TECH_SKILLS_ITEMS}
+                  selected={techSkillItems}
+                  onToggle={(v) => toggle(techSkillItems, setTechSkillItems, v)}
                 />
               </Section>
             )}

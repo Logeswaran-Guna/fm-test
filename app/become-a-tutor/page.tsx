@@ -20,6 +20,7 @@ import {
   MODES,
   SCHEDULE_PREFERENCES,
   SOFT_SKILLS_ITEMS,
+  TECH_SKILLS_ITEMS,
   TIME_PREFERENCES_BY_SCHEDULE,
   TUTORING_FOR,
   type ExperienceBand,
@@ -58,6 +59,7 @@ type FormState = {
   gradeSubjects: Record<string, string[]>;
   creativeItems: string[];
   softSkillItems: string[];
+  techSkillItems: string[];
   languages: LanguageRow[];
   consent: boolean;
 };
@@ -96,6 +98,7 @@ const initialFormState: FormState = {
   gradeSubjects: {},
   creativeItems: [],
   softSkillItems: [],
+  techSkillItems: [],
   languages: [],
   consent: false,
 };
@@ -116,6 +119,9 @@ function buildSubjectsArray(form: FormState): string[] {
   }
   if (form.tutoringFor.includes("Soft Skills")) {
     out.push(...form.softSkillItems);
+  }
+  if (form.tutoringFor.includes("Tech-Skills Training")) {
+    out.push(...form.techSkillItems);
   }
   return out;
 }
@@ -193,6 +199,13 @@ function validate(form: FormState, skipDetails: boolean): FormErrors {
     form.softSkillItems.length === 0
   ) {
     errors.softSkillItems = "Pick at least one soft skill area.";
+  }
+
+  if (
+    form.tutoringFor.includes("Tech-Skills Training") &&
+    form.techSkillItems.length === 0
+  ) {
+    errors.techSkillItems = "Pick at least one tech skill.";
   }
 
   if (buildSubjectsArray(form).length === 0) {
@@ -288,7 +301,7 @@ export default function BecomeATutorPage() {
     setErrors((prev) => (prev[key] ? { ...prev, [key]: undefined } : prev));
   }
 
-  function toggleInArray<K extends "modes" | "tutoringFor" | "boards" | "creativeItems" | "softSkillItems">(
+  function toggleInArray<K extends "modes" | "tutoringFor" | "boards" | "creativeItems" | "softSkillItems" | "techSkillItems">(
     key: K,
     value: FormState[K][number]
   ) {
@@ -874,6 +887,21 @@ export default function BecomeATutorPage() {
                 </div>
               )}
 
+              {form.tutoringFor.includes("Tech-Skills Training") && (
+                <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Tech-Skills Training
+                  </p>
+                  <ChipGroup
+                    label="Areas you teach"
+                    options={TECH_SKILLS_ITEMS}
+                    selected={form.techSkillItems}
+                    onToggle={(v) => toggleInArray("techSkillItems", v)}
+                    error={errors.techSkillItems}
+                  />
+                </div>
+              )}
+
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="block text-sm font-medium text-navy">
@@ -990,9 +1018,9 @@ export default function BecomeATutorPage() {
                   className="block w-full text-sm text-slate-600 file:mr-4 file:rounded-lg file:border-0 file:bg-amber/10 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-navy hover:file:bg-amber/20"
                 />
                 <p className="mt-1.5 text-xs text-slate-400">
-                  Optional now, but required before you can be matched with
-                  families. Stored privately — only you and our admin team
-                  can view it.
+                  You can submit your application without this, but our team
+                  can&apos;t match you with families until it&apos;s provided.
+                  Stored privately — only you and our admin team can view it.
                 </p>
               </div>
 

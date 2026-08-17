@@ -4,7 +4,7 @@
 // founder rather than be invented ad hoc (Section 8) — treat these lists
 // as a first draft to be corrected, not a locked-in final taxonomy.
 
-export const TUTORING_FOR = ["Academics", "Creative Learning", "Soft Skills"] as const;
+export const TUTORING_FOR = ["Academics", "Creative Learning", "Soft Skills", "Tech-Skills Training"] as const;
 export type TutoringFor = (typeof TUTORING_FOR)[number];
 
 export const BOARDS = ["State Board", "CBSE", "ICSE", "IGCSE"];
@@ -85,6 +85,24 @@ export const CREATIVE_LEARNING_ITEMS = [
   ...CREATIVE_MUSIC_ITEMS,
   ...CREATIVE_DANCE_ITEMS,
   ...CREATIVE_OTHER_ITEMS,
+];
+
+// Feeds admin's view of tutor supply for the Academy course catalog shown
+// on the AI & Robotics page — admin_teachers_directory() already surfaces
+// each tutor's full subjects list, these items just show up in it like any
+// other tutoring-for category.
+export const TECH_SKILLS_ITEMS = [
+  "Java",
+  "Python",
+  "JavaScript",
+  "SQL",
+  "AWS",
+  "Google Cloud Platform (GCP)",
+  "Microsoft Azure",
+  "Data Structures & Algorithms",
+  "Web Development",
+  "Machine Learning",
+  "DevOps",
 ];
 
 export const SOFT_SKILLS_ITEMS = [
