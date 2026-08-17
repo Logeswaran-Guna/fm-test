@@ -37,7 +37,7 @@ export default function AboutPage() {
             <p className="mt-3 max-w-2xl text-sm text-white/60">
               Based in Chennai, Tamil Nadu, and built for how Indian families actually find and trust an educator.
             </p>
-            <p className="mt-2 max-w-2xl text-xs text-white/40">
+            <p className="mt-2 max-w-2xl text-xs text-white/50">
               Every number on this site — tutors onboarded, classes completed, categories live — reflects real,
               live data from the platform, not placeholder marketing figures.
             </p>

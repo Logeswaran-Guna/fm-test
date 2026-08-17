@@ -109,7 +109,7 @@ export function CardGrid({
               <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}>
                 {item.icon}
               </div>
-              <h4 className="mt-3 font-heading text-base font-semibold text-white">{item.title}</h4>
+              <h3 className="mt-3 font-heading text-base font-semibold text-white">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-slate-300">{item.description}</p>
               <p className="mt-3 text-xs font-medium text-amber">
                 {item.uniqueNote ?? "Not offered by other tutoring platforms"}
@@ -129,7 +129,7 @@ export function CardGrid({
             <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${tint}`}>
               {item.icon}
             </div>
-            <h4 className="mt-3 font-heading text-base font-semibold text-navy">{item.title}</h4>
+            <h3 className="mt-3 font-heading text-base font-semibold text-navy">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-slate-500">{item.description}</p>
           </div>
         );
@@ -177,7 +177,7 @@ export function JourneyBand({
                 <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-amber/40 bg-[#132a4d] font-heading text-lg font-bold text-amber shadow-[0_0_0_6px_rgba(10,25,47,1),0_8px_20px_rgba(0,0,0,0.35)]">
                   {String(i + 1).padStart(2, "0")}
                 </div>
-                <h4 className="mt-5 font-heading text-base font-semibold text-white">{step.title}</h4>
+                <h3 className="mt-5 font-heading text-base font-semibold text-white">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-300">{step.description}</p>
               </div>
             ))}

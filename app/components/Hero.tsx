@@ -214,7 +214,7 @@ export default function Hero() {
               <span className="text-xs text-white/50">Learning categories live</span>
             </div>
           </div>
-          <p className="mt-3 max-w-md text-[11px] italic text-white/40">
+          <p className="mt-3 max-w-md text-[11px] italic text-white/50">
             Live, unedited numbers — we&apos;re early, and growing one verified match at a time.
           </p>
         </div>

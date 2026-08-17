@@ -88,7 +88,7 @@ export default function Footer() {
           <br />
           நிற்க அதற்குத் தக.
         </p>
-        <p className="mt-2 font-mono text-[11px] text-white/40">
+        <p className="mt-2 font-mono text-[11px] text-white/50">
           திருக்குறள் · குறள் 391 · பால்: பொருட்பால் · அதிகாரம்: கல்வி (40ஆம் அதிகாரம்)
         </p>
       </div>
@@ -168,7 +168,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] text-white/40">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[11.5px] text-white/50">
             <span>Future Minds — Learn Today. Lead Tomorrow.</span>
             <Link href="/privacy-policy" className="underline hover:text-white/70">
               Privacy Policy

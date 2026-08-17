@@ -135,9 +135,9 @@ export default function PlatformHighlights() {
                   <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-full border border-amber/40 bg-[#132a4d] font-heading text-lg font-bold text-amber shadow-[0_0_0_6px_rgba(10,25,47,1),0_8px_20px_rgba(0,0,0,0.35)]">
                     {String(i + 1).padStart(2, "0")}
                   </div>
-                  <h4 className="mt-5 font-heading text-base font-semibold text-white">
+                  <h3 className="mt-5 font-heading text-base font-semibold text-white">
                     {step.title}
-                  </h4>
+                  </h3>
                   <p className="mt-2 text-sm leading-relaxed text-slate-300">
                     {step.description}
                   </p>
@@ -167,9 +167,9 @@ export default function PlatformHighlights() {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${format.tint}`}>
                   {format.icon}
                 </div>
-                <h4 className="mt-5 font-heading text-base font-semibold text-white">
+                <h3 className="mt-5 font-heading text-base font-semibold text-white">
                   {format.title}
-                </h4>
+                </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
                   {format.description}
                 </p>
@@ -189,9 +189,9 @@ export default function PlatformHighlights() {
                 <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${format.tint}`}>
                   {format.icon}
                 </div>
-                <h4 className="mt-5 font-heading text-base font-semibold text-navy">
+                <h3 className="mt-5 font-heading text-base font-semibold text-navy">
                   {format.title}
-                </h4>
+                </h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
                   {format.description}
                 </p>
