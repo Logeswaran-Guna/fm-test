@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import fmMarkWhite from "../../public/images/fm-icon-mark-white.png";
 
 const SOCIAL_LINKS: { name: string; href: string; icon: React.ReactNode }[] = [
   {
@@ -143,28 +145,34 @@ export default function Footer() {
       </div>
 
       <div className="relative mx-auto mt-14 max-w-7xl border-t border-white/10 px-6 pt-12 sm:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <FooterColumn title="Quick Links">
-            <Link href="/" className="block hover:text-white">Home</Link>
-            <Link href="/about" className="block hover:text-white">About Us</Link>
-            <Link href="/faq" className="block hover:text-white">FAQ</Link>
-            <a href="mailto:careers@futureminds.in" className="block hover:text-white">Careers</a>
-          </FooterColumn>
+        <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto] lg:gap-10">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+            <FooterColumn title="Quick Links">
+              <Link href="/" className="block hover:text-white">Home</Link>
+              <Link href="/about" className="block hover:text-white">About Us</Link>
+              <Link href="/faq" className="block hover:text-white">FAQ</Link>
+              <a href="mailto:careers@futureminds.in" className="block hover:text-white">Careers</a>
+            </FooterColumn>
 
-          <FooterColumn title="Contact Us">
-            <a href="mailto:hello@futureminds.in" className="block hover:text-white">
-              hello@futureminds.in
-            </a>
-            <a href="tel:+917200227081" className="block hover:text-white">
-              +91 72002 27081
-            </a>
-          </FooterColumn>
+            <FooterColumn title="Contact Us">
+              <a href="mailto:hello@futureminds.in" className="block hover:text-white">
+                hello@futureminds.in
+              </a>
+              <a href="tel:+917200227081" className="block hover:text-white">
+                +91 72002 27081
+              </a>
+            </FooterColumn>
 
-          <FooterColumn title="Registered Office">
-            <p className="font-medium text-white">Future Minds</p>
-            <p>Old Pallavaram,</p>
-            <p>Chennai, Tamil Nadu</p>
-          </FooterColumn>
+            <FooterColumn title="Registered Office">
+              <p className="font-medium text-white">Future Minds</p>
+              <p>Old Pallavaram,</p>
+              <p>Chennai, Tamil Nadu</p>
+            </FooterColumn>
+          </div>
+
+          <div aria-hidden className="pointer-events-none flex justify-center opacity-[0.08] lg:shrink-0 lg:justify-end">
+            <Image src={fmMarkWhite} alt="" className="h-auto w-32 sm:w-40 lg:w-48" />
+          </div>
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-white/10 pt-6">
