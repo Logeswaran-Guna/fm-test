@@ -227,7 +227,6 @@ export default function BecomeATutorPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
-  const [checkingRole, setCheckingRole] = useState(true);
   // Each role requires its own account — a Parent (or Admin) signed in
   // here is blocked outright (signedInAs); only a Teacher account can
   // reach this form. existingTeacherProfile / loggedInProfile then
@@ -264,7 +263,6 @@ export default function BecomeATutorPage() {
 
       if (profile && profile.role !== "TEACHER") {
         setSignedInAs(profile);
-        setCheckingRole(false);
         return;
       }
 
@@ -278,7 +276,6 @@ export default function BecomeATutorPage() {
           setLoggedInProfile(profile);
         }
       }
-      setCheckingRole(false);
     })();
     return () => {
       active = false;
@@ -491,11 +488,7 @@ export default function BecomeATutorPage() {
         <div className="relative overflow-hidden">
           <EducationBackground />
           <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 sm:px-8">
-          {checkingRole ? (
-            <div className="py-16 text-center text-sm text-slate-400">
-              Checking your session…
-            </div>
-          ) : existingTeacherProfile?.kyc_status === "PENDING" ? (
+          {existingTeacherProfile?.kyc_status === "PENDING" ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
                 You&apos;re already registered — and waiting for approval

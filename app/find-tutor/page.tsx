@@ -172,7 +172,6 @@ export default function FindTutorPage() {
   const [success, setSuccess] = useState(false);
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [submittedParentName, setSubmittedParentName] = useState("");
-  const [checkingRole, setCheckingRole] = useState(true);
   const [signedInAs, setSignedInAs] = useState<Profile | null>(null);
   const [loggedInParent, setLoggedInParent] = useState<Profile | null>(null);
   const [honeypot, setHoneypot] = useState("");
@@ -209,7 +208,6 @@ export default function FindTutorPage() {
       } else {
         setLoggedInParent(profile);
       }
-      setCheckingRole(false);
     })();
     return () => {
       active = false;
@@ -368,11 +366,7 @@ export default function FindTutorPage() {
         <div className="relative overflow-hidden">
           <EducationBackground />
           <div className="relative z-10 mx-auto max-w-2xl px-6 py-12 sm:px-8">
-          {checkingRole ? (
-            <div className="py-16 text-center text-sm text-slate-400">
-              Checking your session…
-            </div>
-          ) : signedInAs ? (
+          {signedInAs ? (
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
               <h2 className="font-heading text-xl font-semibold text-navy">
                 You&apos;re signed in as a {signedInAs.role === "TEACHER" ? "tutor" : "admin"}
