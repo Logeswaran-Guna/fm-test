@@ -143,7 +143,7 @@ export default function Footer() {
       </div>
 
       <div className="relative mx-auto mt-14 max-w-7xl border-t border-white/10 px-6 pt-12 sm:px-8">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <FooterColumn title="Quick Links">
             <Link href="/" className="block hover:text-white">Home</Link>
             <Link href="/about" className="block hover:text-white">About Us</Link>
@@ -160,16 +160,10 @@ export default function Footer() {
             </a>
           </FooterColumn>
 
-          <FooterColumn title="Head Office">
+          <FooterColumn title="Registered Office">
             <p className="font-medium text-white">Future Minds</p>
             <p>Old Pallavaram,</p>
             <p>Chennai, Tamil Nadu</p>
-          </FooterColumn>
-
-          <FooterColumn title="Branch">
-            <p className="font-medium text-white">Future Minds</p>
-            <p>Gudiyattam,</p>
-            <p>Vellore, Tamil Nadu</p>
           </FooterColumn>
         </div>
 

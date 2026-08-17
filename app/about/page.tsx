@@ -138,10 +138,9 @@ export default function AboutPage() {
 
             <Section title="Where we're based">
               <p>
-                Future Minds is headquartered in Old Pallavaram, Chennai,
-                with a branch in Gudiyattam, Vellore — built with Tamil Nadu
-                and South Indian families in mind first, and growing from
-                there.
+                Future Minds is headquartered in Old Pallavaram, Chennai —
+                built with Tamil Nadu and South Indian families in mind
+                first, and growing from there.
               </p>
             </Section>
           </div>

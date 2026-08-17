@@ -215,7 +215,7 @@ export default function Hero() {
             </div>
           </div>
           <p className="mt-3 max-w-md text-[11px] italic text-white/40">
-            Live, unedited numbers — small today because every match here is personally handled, not mass-listed.
+            Live, unedited numbers — we&apos;re early, and growing one verified match at a time.
           </p>
         </div>
 
