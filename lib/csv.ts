@@ -3,8 +3,17 @@ export type CsvColumn<T> = {
   value: (row: T) => string | number | null | undefined;
 };
 
+// Values starting with =, +, -, or @ get evaluated as a formula by Excel/
+// Sheets on open (CSV injection, CWE-1236) — these exports carry
+// user-submitted free text (notes, qualifications), so a value like
+// `=HYPERLINK("http://evil","x")` would otherwise execute for whoever
+// opens the file. Prefixing with a leading apostrophe forces it to render
+// as literal text instead.
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
 export function escapeCsvValue(value: unknown): string {
-  const s = value == null ? "" : String(value);
+  let s = value == null ? "" : String(value);
+  if (FORMULA_TRIGGER.test(s)) s = `'${s}`;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 

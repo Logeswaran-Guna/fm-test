@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createClient } from "@/lib/supabase/client";
 import HoneypotField from "../components/HoneypotField";
 import { isLikelyBot } from "@/lib/antiSpam";
+import { useModalA11y } from "@/lib/useModalA11y";
 
 type Course = {
   id: string;
@@ -34,6 +35,7 @@ function EnrollForm({ course, onClose }: { course: Course; onClose: () => void }
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const startedAtRef = useRef(0);
+  const panelRef = useModalA11y(onClose);
 
   useEffect(() => {
     startedAtRef.current = Date.now();
@@ -74,7 +76,11 @@ function EnrollForm({ course, onClose }: { course: Course; onClose: () => void }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl outline-none sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {submitted ? (

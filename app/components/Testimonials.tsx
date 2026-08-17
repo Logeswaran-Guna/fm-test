@@ -5,6 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile, type Profile } from "@/lib/supabase/profile";
+import { useModalA11y } from "@/lib/useModalA11y";
+import HoneypotField from "./HoneypotField";
+import { isLikelyBot } from "@/lib/antiSpam";
 import fmLockup from "../../public/images/fm-header-logo.png";
 import fmLockupWhite from "../../public/images/fm-lockup-white.png";
 import fmMark from "../../public/images/fm-icon-mark.png";
@@ -161,14 +164,25 @@ function SubmitTestimonialModal({ onClose }: { onClose: () => void }) {
   const [authorRole, setAuthorRole] = useState("");
   const [quote, setQuote] = useState("");
   const [rating, setRating] = useState(5);
+  const [honeypot, setHoneypot] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const panelRef = useModalA11y(onClose);
+  const startedAtRef = useRef(0);
+
+  useEffect(() => {
+    startedAtRef.current = Date.now();
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!authorName.trim() || !quote.trim()) {
       setError("Display name and your story are both required.");
+      return;
+    }
+    if (isLikelyBot(honeypot, startedAtRef.current)) {
+      setSubmitted(true); // fail silently, same success state
       return;
     }
     setSubmitting(true);
@@ -193,7 +207,11 @@ function SubmitTestimonialModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-navy/60 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl sm:p-8"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl outline-none sm:p-8"
         onClick={(e) => e.stopPropagation()}
       >
         {submitted ? (
@@ -221,6 +239,8 @@ function SubmitTestimonialModal({ onClose }: { onClose: () => void }) {
                 ✕
               </button>
             </div>
+
+            <HoneypotField value={honeypot} onChange={setHoneypot} />
 
             <div>
               <label className="mb-1 block text-sm font-medium text-navy">

@@ -96,6 +96,11 @@ export async function POST(request: Request) {
   );
 
   if (rpcError) {
+    // The auth account already exists at this point, but with no requirement
+    // behind it — left alone, that's a live login with an unknown random
+    // password and no data, and the email can't be reused without manual
+    // cleanup in Supabase. Roll it back so the admin can just retry.
+    await serviceRole.auth.admin.deleteUser(created.user.id);
     return NextResponse.json({ error: rpcError.message }, { status: 400 });
   }
 

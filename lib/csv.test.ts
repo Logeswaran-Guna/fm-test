@@ -17,6 +17,20 @@ describe("escapeCsvValue", () => {
     expect(escapeCsvValue('Say "hello"')).toBe('"Say ""hello"""');
     expect(escapeCsvValue("line1\nline2")).toBe('"line1\nline2"');
   });
+
+  it("neutralizes values that would execute as a formula in Excel/Sheets", () => {
+    expect(escapeCsvValue('=HYPERLINK("http://evil.com","click")')).toBe(
+      '"\'=HYPERLINK(""http://evil.com"",""click"")"'
+    );
+    expect(escapeCsvValue("+1+1")).toBe("'+1+1");
+    expect(escapeCsvValue("-1+1")).toBe("'-1+1");
+    expect(escapeCsvValue("@SUM(A1)")).toBe("'@SUM(A1)");
+  });
+
+  it("leaves ordinary values starting with non-trigger characters alone", () => {
+    expect(escapeCsvValue("Mathematics")).toBe("Mathematics");
+    expect(escapeCsvValue("9876543210")).toBe("9876543210");
+  });
 });
 
 describe("buildCsv", () => {

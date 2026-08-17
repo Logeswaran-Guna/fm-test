@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useModalA11y } from "@/lib/useModalA11y";
 import {
   computeMatchScore,
   findMatchingTutors,
@@ -112,6 +113,7 @@ export default function MatchModal({
   const [error, setError] = useState<string | null>(null);
   const [demoDate, setDemoDate] = useState("");
   const [demoSlot, setDemoSlot] = useState(TIME_SLOTS[0]);
+  const panelRef = useModalA11y(onClose);
 
   async function editParentFeeAmount() {
     const value = window.prompt(
@@ -119,13 +121,18 @@ export default function MatchModal({
       requirement.parent_onetime_fee_amount != null ? String(requirement.parent_onetime_fee_amount) : ""
     );
     if (value === null || value.trim() === "") return;
+    const amount = Number(value);
+    if (!Number.isFinite(amount) || amount < 0) {
+      setError(`"${value}" isn't a valid amount — the fee was left unchanged.`);
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
       const supabase = createClient();
       const { error: rpcError } = await supabase.rpc("set_parent_onetime_fee", {
         p_match_id: requirement.match_id,
-        p_amount: Number(value) || 0,
+        p_amount: amount,
       });
       if (rpcError) throw new Error(rpcError.message);
       onUpdated();
@@ -232,7 +239,11 @@ export default function MatchModal({
       onClick={onClose}
     >
       <div
-        className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        tabIndex={-1}
+        className="max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl outline-none"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-slate-200 bg-navy px-6 py-5">
