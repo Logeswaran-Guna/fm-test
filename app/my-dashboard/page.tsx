@@ -189,6 +189,10 @@ export default function MyDashboardPage() {
         router.replace("/login");
         return;
       }
+      if (profile.must_change_password) {
+        router.replace("/set-new-password");
+        return;
+      }
       setParentProfile(profile);
       setCheckingAuth(false);
     })();

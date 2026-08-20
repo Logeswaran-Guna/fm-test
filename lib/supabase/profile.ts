@@ -11,6 +11,7 @@ export type Profile = {
   phone: string;
   email: string | null;
   status: EntityStatus;
+  must_change_password: boolean;
 };
 
 // Looks up the signed-in user's own profile row (RLS allows a user to read
@@ -29,7 +30,7 @@ export async function getCurrentProfile(
 
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, display_id, role, name, phone, email, status")
+    .select("id, display_id, role, name, phone, email, status, must_change_password")
     .eq("id", user.id)
     .single();
 

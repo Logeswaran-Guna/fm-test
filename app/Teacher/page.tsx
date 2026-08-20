@@ -172,6 +172,10 @@ export default function TeacherDashboard() {
         router.replace("/login");
         return;
       }
+      if (profile.must_change_password) {
+        router.replace("/set-new-password");
+        return;
+      }
       setCheckingAuth(false);
     })();
     return () => {

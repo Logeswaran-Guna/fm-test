@@ -63,6 +63,12 @@ export default function LoginPage() {
         return;
       }
 
+      if (profile.must_change_password) {
+        router.push("/set-new-password");
+        router.refresh();
+        return;
+      }
+
       router.push(homePathForRole(profile.role));
       router.refresh();
     } catch {
