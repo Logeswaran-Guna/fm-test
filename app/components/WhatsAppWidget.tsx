@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 const WHATSAPP_NUMBER = "917200227081";
+const STARTER_MESSAGE = "Hi Future Minds! I have a question about tutoring on your platform.";
 
 function WhatsAppIcon({ size }: { size: number }) {
   return (
@@ -43,7 +44,7 @@ export default function WhatsAppWidget() {
               Hi! Have a question about tutoring, AI &amp; Robotics, or becoming a tutor? Message us on WhatsApp.
             </p>
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}`}
+              href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(STARTER_MESSAGE)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 block rounded-lg bg-[#25D366] px-4 py-2.5 text-center text-sm font-semibold text-white transition-opacity hover:opacity-90"

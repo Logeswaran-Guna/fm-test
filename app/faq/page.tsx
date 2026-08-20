@@ -342,7 +342,7 @@ export default function FaqPage() {
                 Email us
               </a>
               <a
-                href="https://wa.me/917200227081"
+                href="https://wa.me/917200227081?text=Hi%20Future%20Minds%21%20I%20have%20a%20question%20that%20wasn%27t%20covered%20in%20the%20FAQ."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-full bg-amber px-5 py-2.5 text-sm font-semibold text-navy transition-transform hover:-translate-y-0.5"
