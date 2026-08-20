@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import WhatsAppWidget from "./components/WhatsAppWidget";
+// ChatWidget (AI assistant, app/components/ChatWidget.tsx + app/api/chat)
+// is built and ready but disabled until traffic justifies the API cost —
+// re-enable by importing it and adding <ChatWidget /> below.
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
