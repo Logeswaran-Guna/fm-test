@@ -9,6 +9,7 @@ import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
+import { savePendingRequirement } from "@/lib/pendingRequirement";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
 import { isLikelyBot } from "@/lib/antiSpam";
 import {
@@ -291,6 +292,26 @@ export default function FindTutorPage() {
         });
 
         if (!hasSession) {
+          savePendingRequirement({
+            email: form.email.trim(),
+            studentName: form.studentName.trim(),
+            ageGrade: form.gradeClass.trim(),
+            subjects: buildSubjectList(form),
+            modes: form.modes,
+            location: form.location.trim(),
+            address: form.address.trim(),
+            pincode: form.pincode.trim(),
+            schedulePref: form.schedulePref,
+            timePreference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref]
+              ? form.timePreference
+              : undefined,
+            pricingType: form.pricingType,
+            budget: form.budget,
+            preferredGender: form.preferredGender,
+            whatsapp: form.phoneNumber.trim(),
+            notes: form.notes.trim() || undefined,
+            priorExperience: form.priorExperience.trim() || undefined,
+          });
           setNeedsConfirmation(true);
           return;
         }
@@ -424,8 +445,9 @@ export default function FindTutorPage() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
                 We&apos;ve sent a confirmation link to {form.email}. Once
-                you&apos;ve confirmed, come back to this page and submit the
-                form again — you won&apos;t need to sign up a second time.
+                you click it, we&apos;ll automatically finish submitting your
+                requirement — you don&apos;t need to fill this form again or
+                come back to this page.
               </p>
             </div>
           ) : success ? (
