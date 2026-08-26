@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
 
@@ -30,11 +30,19 @@ type PendingRequirement = {
 // form out on, since the draft never existed on that device's browser.
 export default function PendingRequirementResolver() {
   const [banner, setBanner] = useState<string | null>(null);
+  // Guards against double-submission: onAuthStateChange can fire more than
+  // once for the same session (e.g. INITIAL_SESSION then SIGNED_IN right
+  // after a confirmation-link redirect), and each firing re-triggers a
+  // check. Claimed before the RPC loop starts, released again on failure
+  // so a later event can still retry.
+  const resolvingRef = useRef(false);
 
   useEffect(() => {
     let active = true;
-    (async () => {
-      const supabase = createClient();
+    const supabase = createClient();
+
+    async function tryResolve() {
+      if (resolvingRef.current) return;
       const {
         data: { user },
       } = await supabase.auth.getUser();
@@ -48,6 +56,7 @@ export default function PendingRequirementResolver() {
       const profile = await getCurrentProfile(supabase);
       if (!active || !profile || profile.role !== "PARENT") return;
 
+      resolvingRef.current = true;
       try {
         let studentId: string | null = null;
         for (const subject of pending.subjects) {
@@ -79,12 +88,31 @@ export default function PendingRequirementResolver() {
         await supabase.auth.updateUser({ data: { pending_requirement: null } });
         setBanner(`Welcome back — your requirement for ${pending.studentName} has been submitted.`);
       } catch {
-        // Leave it on the account. It'll retry next time this component
-        // mounts (next page load) rather than being lost silently.
+        // Leave it on the account and allow a later retry — either another
+        // auth event on this same page load, or the next page load.
+        resolvingRef.current = false;
       }
-    })();
+    }
+
+    // Covers the common case: the session already exists by the time this
+    // mounts (e.g. a normal logged-in page load).
+    tryResolve();
+
+    // Covers the confirmation-link race: this component can mount before
+    // the Supabase client finishes detecting/exchanging the session from
+    // the redirect URL, so the call above sees no user yet. These events
+    // fire once that's actually settled.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN") {
+        tryResolve();
+      }
+    });
+
     return () => {
       active = false;
+      subscription.unsubscribe();
     };
   }, []);
 
