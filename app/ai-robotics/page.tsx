@@ -147,7 +147,7 @@ export default function AiRoboticsPage() {
             </div>
           </div>
 
-          <PillarCTAs primary={{ text: "Enquire About AI & Robotics →", href: "mailto:hello@futureminds.in" }} />
+          <PillarCTAs primary={{ text: "Enquire About AI & Robotics →", href: "mailto:contact@futuremindsindia.com" }} />
         </div>
       </main>
       <Footer />

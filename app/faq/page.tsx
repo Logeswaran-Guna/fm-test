@@ -336,7 +336,7 @@ export default function FaqPage() {
             </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
               <a
-                href="mailto:hello@futureminds.in"
+                href="mailto:contact@futuremindsindia.com"
                 className="rounded-full border border-navy px-5 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-navy hover:text-white"
               >
                 Email us

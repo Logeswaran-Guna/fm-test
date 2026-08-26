@@ -222,7 +222,7 @@ export default function TutorPlatformPage() {
             </div>
             <p className="mt-5 text-xs text-slate-500">
               Interested in hosting or joining a pooled class in your community? Mention it in your requirement, or{" "}
-              <a href="mailto:hello@futureminds.in" className="font-semibold text-amber-700 underline">
+              <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
                 write to us directly
               </a>
               .

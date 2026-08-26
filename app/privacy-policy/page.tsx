@@ -64,7 +64,11 @@ export default function PrivacyPolicyPage() {
               <p>
                 Registered business name and address:{" "}
                 <em>[confirm before publishing]</em>. Contact for privacy
-                questions: <em>[confirm before publishing — e.g. privacy@futureminds.in]</em>.
+                questions:{" "}
+                <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
+                  contact@futuremindsindia.com
+                </a>
+                .
               </p>
             </Section>
 

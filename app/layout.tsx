@@ -19,7 +19,7 @@ const inter = Inter({
   weight: ["400", "500", "600", "700"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://futureminds.in";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://futuremindsindia.com";
 const title = "Future Minds — Managed Tutor Marketplace";
 const description =
   "Future Minds hand-picks the right educator for your child, coordinates the demo, and only releases payment once the class is confirmed.";

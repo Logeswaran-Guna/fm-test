@@ -302,7 +302,10 @@ export default function TermsPage() {
                 business name and address:{" "}
                 <em>[confirm before publishing]</em>. For questions about
                 these terms, contact us at{" "}
-                <em>[confirm before publishing — e.g. hello@futureminds.in]</em>.
+                <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
+                  contact@futuremindsindia.com
+                </a>
+                .
               </p>
             </Section>
           </div>

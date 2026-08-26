@@ -151,12 +151,12 @@ export default function Footer() {
               <Link href="/" className="block hover:text-white">Home</Link>
               <Link href="/about" className="block hover:text-white">About Us</Link>
               <Link href="/faq" className="block hover:text-white">FAQ</Link>
-              <a href="mailto:careers@futureminds.in" className="block hover:text-white">Careers</a>
+              <a href="mailto:contact@futuremindsindia.com" className="block hover:text-white">Careers</a>
             </FooterColumn>
 
             <FooterColumn title="Contact Us">
-              <a href="mailto:hello@futureminds.in" className="block hover:text-white">
-                hello@futureminds.in
+              <a href="mailto:contact@futuremindsindia.com" className="block hover:text-white">
+                contact@futuremindsindia.com
               </a>
               <a href="tel:+917200227081" className="block hover:text-white">
                 +91 72002 27081

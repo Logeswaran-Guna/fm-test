@@ -120,8 +120,8 @@ export default function ChatWidget() {
                   WhatsApp
                 </a>{" "}
                 or{" "}
-                <a href="mailto:hello@futureminds.in" className="font-semibold underline">
-                  hello@futureminds.in
+                <a href="mailto:contact@futuremindsindia.com" className="font-semibold underline">
+                  contact@futuremindsindia.com
                 </a>
                 .
               </p>
