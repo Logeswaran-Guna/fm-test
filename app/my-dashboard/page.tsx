@@ -321,9 +321,19 @@ export default function MyDashboardPage() {
                     <StatusBadge status={parentProfile.status} />
                   </div>
                 </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                  {students.length} {students.length === 1 ? "kid" : "kids"} enrolled
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                    {students.length} {students.length === 1 ? "kid" : "kids"} enrolled
+                  </span>
+                  {students.length < 4 && (
+                    <a
+                      href="/find-tutor"
+                      className="rounded-full bg-amber/10 px-2.5 py-1 text-[11px] font-semibold text-amber-700 hover:bg-amber/20"
+                    >
+                      + Add a kid
+                    </a>
+                  )}
+                </div>
               </div>
 
               <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
