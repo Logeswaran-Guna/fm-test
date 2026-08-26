@@ -42,21 +42,37 @@ export default function PendingRequirementResolver() {
     const supabase = createClient();
 
     async function tryResolve() {
+      // Claimed synchronously, before any `await`, so that two calls fired
+      // back-to-back (the direct call plus INITIAL_SESSION/SIGNED_IN, all
+      // within the same tick) can't both pass this check — the previous
+      // version set this flag only after two awaits, which left a window
+      // where multiple overlapping calls each independently created their
+      // own duplicate student + requirement rows.
       if (resolvingRef.current) return;
+      resolvingRef.current = true;
+
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!active || !user) return;
+      if (!active || !user) {
+        resolvingRef.current = false;
+        return;
+      }
 
       const pending = user.user_metadata?.pending_requirement as
         | PendingRequirement
         | undefined;
-      if (!pending) return;
+      if (!pending) {
+        resolvingRef.current = false;
+        return;
+      }
 
       const profile = await getCurrentProfile(supabase);
-      if (!active || !profile || profile.role !== "PARENT") return;
+      if (!active || !profile || profile.role !== "PARENT") {
+        resolvingRef.current = false;
+        return;
+      }
 
-      resolvingRef.current = true;
       try {
         let studentId: string | null = null;
         for (const subject of pending.subjects) {
