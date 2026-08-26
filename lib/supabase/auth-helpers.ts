@@ -23,9 +23,10 @@ export async function signUpOrSignIn(
     phone: string;
     role: Role;
     referralCode?: string;
+    extraMetadata?: Record<string, unknown>;
   }
 ): Promise<{ hasSession: boolean }> {
-  const { email, password, name, phone, role, referralCode } = params;
+  const { email, password, name, phone, role, referralCode, extraMetadata } = params;
 
   // Already logged in (e.g. a parent revisiting the form for a second
   // subject)? Skip signUp entirely — Supabase silently no-ops signUp for
@@ -50,6 +51,7 @@ export async function signUpOrSignIn(
           role,
           consent: true,
           ...(referralCode?.trim() ? { referral_code: referralCode.trim() } : {}),
+          ...(extraMetadata ?? {}),
         },
       },
     }

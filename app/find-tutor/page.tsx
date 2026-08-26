@@ -9,7 +9,6 @@ import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
-import { savePendingRequirement } from "@/lib/pendingRequirement";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
 import { isLikelyBot } from "@/lib/antiSpam";
 import {
@@ -282,6 +281,29 @@ export default function FindTutorPage() {
       const supabase = createClient();
 
       if (!loggedInParent) {
+        // Carried on the account itself (not the browser) so it survives
+        // the confirmation link being opened on a different device than
+        // the one this form was filled out on — see PendingRequirementResolver.
+        const pendingRequirement = {
+          studentName: form.studentName.trim(),
+          ageGrade: form.gradeClass.trim(),
+          subjects: buildSubjectList(form),
+          modes: form.modes,
+          location: form.location.trim(),
+          address: form.address.trim(),
+          pincode: form.pincode.trim(),
+          schedulePref: form.schedulePref,
+          timePreference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref]
+            ? form.timePreference
+            : undefined,
+          pricingType: form.pricingType,
+          budget: form.budget,
+          preferredGender: form.preferredGender,
+          whatsapp: form.phoneNumber.trim(),
+          notes: form.notes.trim() || undefined,
+          priorExperience: form.priorExperience.trim() || undefined,
+        };
+
         const { hasSession } = await signUpOrSignIn(supabase, {
           email: form.email.trim(),
           password: form.password,
@@ -289,29 +311,10 @@ export default function FindTutorPage() {
           phone: form.phoneNumber.trim(),
           role: "PARENT",
           referralCode: form.referralCode,
+          extraMetadata: { pending_requirement: pendingRequirement },
         });
 
         if (!hasSession) {
-          savePendingRequirement({
-            email: form.email.trim(),
-            studentName: form.studentName.trim(),
-            ageGrade: form.gradeClass.trim(),
-            subjects: buildSubjectList(form),
-            modes: form.modes,
-            location: form.location.trim(),
-            address: form.address.trim(),
-            pincode: form.pincode.trim(),
-            schedulePref: form.schedulePref,
-            timePreference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref]
-              ? form.timePreference
-              : undefined,
-            pricingType: form.pricingType,
-            budget: form.budget,
-            preferredGender: form.preferredGender,
-            whatsapp: form.phoneNumber.trim(),
-            notes: form.notes.trim() || undefined,
-            priorExperience: form.priorExperience.trim() || undefined,
-          });
           setNeedsConfirmation(true);
           return;
         }

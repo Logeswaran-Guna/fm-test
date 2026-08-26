@@ -3,27 +3,50 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentProfile } from "@/lib/supabase/profile";
-import { loadPendingRequirement, clearPendingRequirement } from "@/lib/pendingRequirement";
 
-// Mounted once in the root layout so it runs no matter where a parent
-// lands after confirming their email (find-tutor, the homepage, wherever
-// Supabase's Site URL redirect sends them) — see lib/pendingRequirement.ts
-// for why this exists.
+type PendingRequirement = {
+  studentName: string;
+  ageGrade: string;
+  subjects: string[];
+  modes: string[];
+  location: string;
+  address: string;
+  pincode: string;
+  schedulePref: string;
+  timePreference?: string;
+  pricingType: string;
+  budget: number;
+  preferredGender: string;
+  whatsapp: string;
+  notes?: string;
+  priorExperience?: string;
+};
+
+// Mounted once in the root layout so it runs no matter which page/device a
+// parent lands on after confirming their email. The draft lives in the
+// account's own auth metadata (set at signup time in find-tutor/page.tsx),
+// not the browser — a localStorage-based version of this broke the moment
+// someone confirmed on a different device than the one they filled the
+// form out on, since the draft never existed on that device's browser.
 export default function PendingRequirementResolver() {
   const [banner, setBanner] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
-      const pending = loadPendingRequirement();
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!active || !user) return;
+
+      const pending = user.user_metadata?.pending_requirement as
+        | PendingRequirement
+        | undefined;
       if (!pending) return;
 
-      const supabase = createClient();
       const profile = await getCurrentProfile(supabase);
-      if (!active) return;
-      // Only resume for the same parent who saved the draft — a shared
-      // browser shouldn't hand one family's requirement to another login.
-      if (!profile || profile.role !== "PARENT" || profile.email !== pending.email) return;
+      if (!active || !profile || profile.role !== "PARENT") return;
 
       try {
         let studentId: string | null = null;
@@ -51,10 +74,12 @@ export default function PendingRequirementResolver() {
           if (!studentId) studentId = data.student_id as string;
         }
         if (!active) return;
-        clearPendingRequirement();
+        // Clear it from the account so a future login never resubmits the
+        // same requirement a second time.
+        await supabase.auth.updateUser({ data: { pending_requirement: null } });
         setBanner(`Welcome back — your requirement for ${pending.studentName} has been submitted.`);
       } catch {
-        // Leave the draft in storage. It'll retry next time this component
+        // Leave it on the account. It'll retry next time this component
         // mounts (next page load) rather than being lost silently.
       }
     })();
