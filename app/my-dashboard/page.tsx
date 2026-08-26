@@ -383,12 +383,6 @@ export default function MyDashboardPage() {
             </div>
           )}
 
-          {!loading && parentProfile && (
-            <div className="mb-8">
-              <ReferralCard />
-            </div>
-          )}
-
           {loading ? (
             <div className="py-16 text-center text-sm text-slate-400">
               Loading your requirements…
@@ -592,6 +586,12 @@ export default function MyDashboardPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {!loading && parentProfile && (
+            <div className="mt-10 rounded-2xl border border-orange-200 bg-orange-50 p-4 sm:p-5">
+              <ReferralCard />
             </div>
           )}
         </div>

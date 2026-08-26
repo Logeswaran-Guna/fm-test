@@ -42,17 +42,6 @@ export default function PrivacyPolicyPage() {
         </section>
 
         <div className="mx-auto max-w-3xl px-6 py-10 sm:px-8">
-          <div className="mb-8 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
-            <strong>Draft for founder review.</strong> This page describes how
-            the platform actually works today, so it can go live as a real
-            Privacy Policy and Terms page. It should still be reviewed by a
-            qualified lawyer before launch — particularly the sections marked{" "}
-            <code className="rounded bg-amber-100 px-1">
-              [confirm before publishing]
-            </code>
-            , which need your business&apos;s specific details filled in.
-          </div>
-
           <div className="rounded-2xl border border-slate-200 bg-white px-6 py-2 shadow-sm sm:px-8">
             <Section title="1. Who we are">
               <p>
@@ -62,11 +51,15 @@ export default function PrivacyPolicyPage() {
                 such other areas as we expand to.
               </p>
               <p>
-                Registered business name and address:{" "}
-                <em>[confirm before publishing]</em>. Contact for privacy
+                Registered business name and address: Future Minds, Old
+                Pallavaram, Chennai, Tamil Nadu, India. Contact for privacy
                 questions:{" "}
                 <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
                   contact@futuremindsindia.com
+                </a>{" "}
+                or{" "}
+                <a href="tel:+917200227081" className="font-semibold text-amber-700 underline">
+                  +91 72002 27081
                 </a>
                 .
               </p>
@@ -130,7 +123,8 @@ export default function PrivacyPolicyPage() {
               <p>
                 Because Future Minds involves information about students who
                 may be minors, we treat this carefully under India&apos;s Digital
-                Personal Data Protection Act, 2023 (DPDP Act). Processing a
+                Personal Data Protection Act, 2023 (DPDP Act), which defines a
+                &quot;child&quot; as anyone under 18. Processing a
                 child&apos;s personal data requires verifiable consent from a
                 parent or lawful guardian — which is why student details can
                 only be submitted through a parent/guardian&apos;s own account, and
@@ -170,7 +164,17 @@ export default function PrivacyPolicyPage() {
               </ul>
             </Section>
 
-            <Section title="6. Who we share it with">
+            <Section title="6. Cookies &amp; similar technologies">
+              <p>
+                We use only the cookies strictly necessary to run the
+                platform — primarily to keep you signed in securely between
+                page loads. We don&apos;t use advertising or cross-site tracking
+                cookies. If we ever add analytics or marketing cookies, this
+                section will be updated first.
+              </p>
+            </Section>
+
+            <Section title="7. Who we share it with">
               <p>
                 We do not sell your personal data to anyone. We share it only
                 in these situations:
@@ -186,21 +190,40 @@ export default function PrivacyPolicyPage() {
                   stores data on our behalf under their own security
                   practices, strictly to run the platform.
                 </li>
+                <li>
+                  With Resend, our transactional email provider, solely to
+                  deliver account emails (signup confirmation, password
+                  reset) — they receive only your email address and the
+                  message content.
+                </li>
+                <li>
+                  Once enabled, with the WhatsApp Business Platform (Meta),
+                  solely to send status notifications you&apos;d otherwise get
+                  by email (e.g. demo scheduled, tutor confirmed) — they
+                  receive only your phone number and the message content.
+                </li>
                 <li>If required to by law, court order, or regulation.</li>
               </ul>
+              <p>
+                Some of these providers may process or store data on servers
+                located outside India. Where that happens, it is solely to
+                operate the platform (e.g. sending an email or WhatsApp
+                message), and only the minimum data needed for that purpose
+                is involved.
+              </p>
             </Section>
 
-            <Section title="7. How long we keep your data">
+            <Section title="8. How long we keep your data">
               <p>
                 We keep account and activity data for as long as your account
                 is active, and afterward for as long as reasonably necessary
                 for dispute resolution, accounting, or legal compliance. You
-                can request deletion at any time (see Section 9), subject to
+                can request deletion at any time (see Section 10), subject to
                 anything we&apos;re legally required to retain.
               </p>
             </Section>
 
-            <Section title="8. Payments">
+            <Section title="9. Payments">
               <p>
                 Future Minds does not currently process class fees through
                 the platform. Parents pay tutors directly, as agreed between
@@ -224,7 +247,7 @@ export default function PrivacyPolicyPage() {
               </p>
             </Section>
 
-            <Section title="9. Your rights">
+            <Section title="10. Your rights">
               <p>Under the DPDP Act, 2023, you have the right to:</p>
               <ul className="list-disc space-y-1.5 pl-5">
                 <li>Access the personal data we hold about you</li>
@@ -244,18 +267,40 @@ export default function PrivacyPolicyPage() {
               </ul>
               <p>
                 To exercise any of these rights, contact us at{" "}
-                <em>[confirm before publishing]</em>.
+                <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
+                  contact@futuremindsindia.com
+                </a>{" "}
+                or{" "}
+                <a href="tel:+917200227081" className="font-semibold text-amber-700 underline">
+                  +91 72002 27081
+                </a>
+                .
               </p>
             </Section>
 
-            <Section title="10. Grievance officer">
+            <Section title="11. Grievance officer">
               <p>
-                Name and contact details of our designated Grievance Officer:{" "}
-                <em>[confirm before publishing]</em>.
+                In accordance with the DPDP Act, 2023 and applicable IT
+                Rules, our designated Grievance Officer is:
+              </p>
+              <p>
+                <strong className="text-navy">Sambathkumar</strong>
+                <br />
+                Future Minds, Old Pallavaram, Chennai, Tamil Nadu, India
+                <br />
+                Email:{" "}
+                <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
+                  contact@futuremindsindia.com
+                </a>
+                <br />
+                Phone:{" "}
+                <a href="tel:+917200227081" className="font-semibold text-amber-700 underline">
+                  +91 72002 27081
+                </a>
               </p>
             </Section>
 
-            <Section title="11. Terms of use">
+            <Section title="12. Terms of use">
               <p>
                 This page covers privacy specifically. For the full rules
                 covering accounts, fees and commission, cancellations,
@@ -267,7 +312,7 @@ export default function PrivacyPolicyPage() {
               </p>
             </Section>
 
-            <Section title="12. Changes to this policy">
+            <Section title="13. Changes to this policy">
               <p>
                 We may update this policy from time to time as the platform
                 evolves. Material changes will be reflected with a new

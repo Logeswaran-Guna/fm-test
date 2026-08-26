@@ -292,10 +292,6 @@ export default function TeacherDashboard() {
             </div>
           )}
 
-          <div className="mb-8">
-            <ReferralCard />
-          </div>
-
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-semibold text-navy">
               My Matches &amp; Demos
@@ -501,6 +497,10 @@ export default function TeacherDashboard() {
               </table>
             </div>
           )}
+
+          <div className="mt-10 rounded-2xl border border-orange-200 bg-orange-50 p-4 sm:p-5">
+            <ReferralCard />
+          </div>
         </div>
       </main>
     </div>

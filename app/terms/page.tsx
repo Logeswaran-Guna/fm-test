@@ -42,18 +42,6 @@ export default function TermsPage() {
         </section>
 
         <div className="mx-auto max-w-3xl px-6 py-10 sm:px-8">
-          <div className="mb-8 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-800">
-            <strong>Draft for founder review.</strong> This page describes how
-            the platform actually works today, so it can go live as a real
-            Terms of Service. It should still be reviewed by a qualified
-            lawyer before launch — particularly the sections marked{" "}
-            <code className="rounded bg-amber-100 px-1">
-              [confirm before publishing]
-            </code>
-            , which need business decisions (e.g. refund policy specifics,
-            registered business details) that aren&apos;t mine to make.
-          </div>
-
           <div className="rounded-2xl border border-slate-200 bg-white px-6 py-2 shadow-sm sm:px-8">
             <Section title="1. Acceptance of these terms">
               <p>
@@ -117,6 +105,10 @@ export default function TermsPage() {
                   One account per person. Creating multiple accounts to
                   bypass a status change (e.g. after being removed) is a
                   violation of these terms.
+                </li>
+                <li>
+                  Tutors must be at least 18 years old to register and teach
+                  on the platform.
                 </li>
               </ul>
             </Section>
@@ -197,9 +189,15 @@ export default function TermsPage() {
                 tutor, cancellation and refund terms for individual classes
                 are a matter between them. Future Minds&apos; role is limited to
                 coordinating scheduling and tracking attendance/logged
-                classes accurately.{" "}
-                <em>[confirm before publishing — any FM-specific policy on
-                repeated no-shows or demo cancellations]</em>.
+                classes accurately.
+              </p>
+              <p>
+                If a parent or tutor repeatedly cancels or fails to show up
+                for a scheduled demo or class without reasonable notice, we
+                may pause further matching support for that account until
+                the pattern is addressed with our team. The one-time
+                platform fee is charged only once a tutor is approved and a
+                class arrangement is confirmed — never for a cancelled demo.
               </p>
             </Section>
 
@@ -287,7 +285,17 @@ export default function TermsPage() {
               </p>
             </Section>
 
-            <Section title="14. Changes to these terms">
+            <Section title="14. Indemnification">
+              <p>
+                You agree to indemnify and hold Future Minds harmless from
+                any claim, loss, or damage (including reasonable legal fees)
+                arising from your misuse of the platform, violation of these
+                terms, or information you provide being inaccurate or
+                misleading.
+              </p>
+            </Section>
+
+            <Section title="15. Changes to these terms">
               <p>
                 We may update these terms as the platform evolves. Material
                 changes will be reflected with a new &quot;last updated&quot; date at
@@ -296,14 +304,28 @@ export default function TermsPage() {
               </p>
             </Section>
 
-            <Section title="15. Governing law &amp; contact">
+            <Section title="16. Governing law, jurisdiction &amp; contact">
               <p>
-                These terms are governed by the laws of India. Registered
-                business name and address:{" "}
-                <em>[confirm before publishing]</em>. For questions about
+                These terms are governed by the laws of India, and any
+                dispute arising from them is subject to the exclusive
+                jurisdiction of the courts in Chennai, Tamil Nadu. If any
+                provision of these terms is found unenforceable, the
+                remaining provisions continue in full force. Neither party is
+                liable for a delay or failure to perform caused by
+                circumstances beyond reasonable control (e.g. a natural
+                disaster, internet/infrastructure outage, or government
+                action).
+              </p>
+              <p>
+                Registered business name and address: Future Minds, Old
+                Pallavaram, Chennai, Tamil Nadu, India. For questions about
                 these terms, contact us at{" "}
                 <a href="mailto:contact@futuremindsindia.com" className="font-semibold text-amber-700 underline">
                   contact@futuremindsindia.com
+                </a>{" "}
+                or{" "}
+                <a href="tel:+917200227081" className="font-semibold text-amber-700 underline">
+                  +91 72002 27081
                 </a>
                 .
               </p>
