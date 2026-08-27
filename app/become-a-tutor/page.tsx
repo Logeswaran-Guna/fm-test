@@ -238,6 +238,12 @@ export default function BecomeATutorPage() {
   const [loggedInProfile, setLoggedInProfile] = useState<Profile | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const formStartedAt = useRef(0);
+  // Claimed synchronously at the very top of handleSubmit, before any state
+  // update or await — the `submitting` state alone isn't enough to stop a
+  // fast double-click, since disabling the button only takes effect after
+  // React re-renders. This ref closes that window (same fix as find-tutor
+  // and PendingSignupResolver).
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     formStartedAt.current = Date.now();
@@ -355,17 +361,23 @@ export default function BecomeATutorPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
 
     if (isLikelyBot(honeypot, formStartedAt.current)) {
       // Don't reveal detection — show the same success state a real
       // submission would, without ever writing to the database.
       setSuccess(true);
+      submittingRef.current = false;
       return;
     }
 
     const validationErrors = validate(form, Boolean(loggedInProfile));
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      submittingRef.current = false;
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -489,6 +501,7 @@ export default function BecomeATutorPage() {
       );
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 

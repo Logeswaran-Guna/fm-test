@@ -177,6 +177,14 @@ export default function FindTutorPage() {
   const [loggedInParent, setLoggedInParent] = useState<Profile | null>(null);
   const [honeypot, setHoneypot] = useState("");
   const formStartedAt = useRef(0);
+  // Claimed synchronously at the very top of handleSubmit, before any state
+  // update or await — the `submitting` state alone isn't enough to stop a
+  // fast double-click, since disabling the button only takes effect after
+  // React re-renders, leaving a real window for two clicks to both start
+  // handleSubmit before either sees the button as disabled. This ref closes
+  // that window; a state-only guard doesn't (same class of bug fixed in
+  // PendingSignupResolver, just a different spot).
+  const submittingRef = useRef(false);
   // Survive across a retry (a fresh handleSubmit call after a mid-loop
   // failure below) — a plain local variable inside handleSubmit would
   // reset to null every time, so a retry would create a brand-new student
@@ -261,18 +269,24 @@ export default function FindTutorPage() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submittingRef.current) return;
+    submittingRef.current = true;
 
     if (isLikelyBot(honeypot, formStartedAt.current)) {
       // Don't reveal detection — show the same success state a real
       // submission would, without ever writing to the database.
       setSubmittedParentName(loggedInParent ? loggedInParent.name : form.parentName.trim());
       setSuccess(true);
+      submittingRef.current = false;
       return;
     }
 
     const validationErrors = validate(form, Boolean(loggedInParent));
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+    if (Object.keys(validationErrors).length > 0) {
+      submittingRef.current = false;
+      return;
+    }
 
     setSubmitting(true);
     setSubmitError(null);
@@ -370,6 +384,7 @@ export default function FindTutorPage() {
       );
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 
