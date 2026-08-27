@@ -283,7 +283,7 @@ export default function FindTutorPage() {
       if (!loggedInParent) {
         // Carried on the account itself (not the browser) so it survives
         // the confirmation link being opened on a different device than
-        // the one this form was filled out on — see PendingRequirementResolver.
+        // the one this form was filled out on — see PendingSignupResolver.
         const pendingRequirement = {
           studentName: form.studentName.trim(),
           ageGrade: form.gradeClass.trim(),

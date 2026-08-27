@@ -372,6 +372,42 @@ export default function BecomeATutorPage() {
 
     try {
       const supabase = createClient();
+
+      // Carried on the account itself (not the browser) so it survives the
+      // confirmation link being opened on a different device than the one
+      // this form was filled out on — see PendingSignupResolver. The ID
+      // document, if any, can't travel this way (a File can't be
+      // serialized into account metadata) — the resolver's success message
+      // asks for a re-upload from the Teacher Profile page in that case.
+      const pendingTeacherProfile = {
+        qualification: form.qualifications.trim(),
+        experience: form.yearsExperience,
+        subjects: buildSubjectsArray(form),
+        preferredLocations: [form.location.trim()],
+        teachingMode: form.modes,
+        rateExpectation: form.expectedRate ? Number(form.expectedRate) : null,
+        bankUpiRef: form.bankUpiRef.trim() || null,
+        bankIfsc: form.bankIfsc.trim() || null,
+        bankHolderName: form.bankHolderName.trim() || null,
+        bankBranch: form.bankBranch.trim() || null,
+        whatsapp: form.phoneNumber.trim(),
+        address: form.address.trim(),
+        pincode: form.pincode.trim(),
+        areaCity: form.location.trim(),
+        tutoringFor: form.tutoringFor,
+        boards: form.boards,
+        schedulePref: form.schedulePref || null,
+        timePreference: TIME_PREFERENCES_BY_SCHEDULE[form.schedulePref]
+          ? form.timePreference
+          : null,
+        languages: form.languages.map((l) => ({
+          language: l.language,
+          canRead: l.canRead,
+          canWrite: l.canWrite,
+          canSpeak: l.canSpeak,
+        })),
+      };
+
       const { hasSession } = await signUpOrSignIn(supabase, {
         email: form.email.trim(),
         password: form.password,
@@ -379,6 +415,7 @@ export default function BecomeATutorPage() {
         phone: form.phoneNumber.trim(),
         role: "TEACHER",
         referralCode: form.referralCode,
+        extraMetadata: { pending_teacher_profile: pendingTeacherProfile },
       });
 
       if (!hasSession) {
@@ -590,8 +627,9 @@ export default function BecomeATutorPage() {
               </h2>
               <p className="mt-3 text-sm leading-relaxed text-slate-500">
                 We&apos;ve sent a confirmation link to {form.email}. Once
-                you&apos;ve confirmed, come back to this page and submit the
-                form again — you won&apos;t need to sign up a second time.
+                you click it, we&apos;ll automatically finish submitting your
+                application — you don&apos;t need to fill this form again or
+                come back to this page.
               </p>
             </div>
           ) : success ? (

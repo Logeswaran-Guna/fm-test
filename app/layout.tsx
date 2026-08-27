@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import WhatsAppWidget from "./components/WhatsAppWidget";
-import PendingRequirementResolver from "./components/PendingRequirementResolver";
+import PendingSignupResolver from "./components/PendingSignupResolver";
 // ChatWidget (AI assistant, app/components/ChatWidget.tsx + app/api/chat)
 // is built and ready but disabled until traffic justifies the API cost —
 // re-enable by importing it and adding <ChatWidget /> below.
@@ -55,7 +55,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         {children}
-        <PendingRequirementResolver />
+        <PendingSignupResolver />
         <WhatsAppWidget />
       </body>
     </html>
