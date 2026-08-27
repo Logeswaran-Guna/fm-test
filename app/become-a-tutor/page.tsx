@@ -7,6 +7,7 @@ import BackButton from "../components/BackButton";
 import EducationBackground from "../components/EducationBackground";
 import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
+import LocationField from "../components/LocationField";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
@@ -760,10 +761,11 @@ export default function BecomeATutorPage() {
                 hint="Optional — helps us match your expectations with parent budgets."
               />
 
-              <Field
+              <LocationField
                 label="Location"
                 value={form.location}
                 onChange={(value) => updateField("location", value)}
+                onSelectPincode={(pincode) => updateField("pincode", pincode)}
                 error={errors.location}
                 placeholder="e.g. Anna Nagar, Coimbatore"
               />
