@@ -132,7 +132,14 @@ export default function NotificationBell({ profile }: { profile: Profile | null 
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-20 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg">
+        // Anchored to the viewport edge (fixed), not this button's own small
+        // relative container — right-0 against the container overflowed off
+        // the left edge of the screen on narrower widths, since the bell
+        // isn't flush against the true page edge (a hamburger button and/or
+        // the Log out control sit to its right). max-w caps it further for
+        // very narrow devices where even the viewport-anchored version
+        // wouldn't fully fit.
+        <div className="fixed right-4 top-[76px] z-20 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white shadow-lg">
           {profile && (
             <div className="flex border-b border-slate-100">
               <button
