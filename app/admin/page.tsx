@@ -486,7 +486,8 @@ export default function AdminDashboardPage() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="inline-flex rounded-full border border-slate-200 bg-white p-1">
+            <div className="max-w-full overflow-x-auto">
+            <div className="inline-flex flex-nowrap whitespace-nowrap rounded-full border border-slate-200 bg-white p-1">
               <button
                 type="button"
                 onClick={() => setActiveTab("requirements")}
@@ -600,6 +601,7 @@ export default function AdminDashboardPage() {
               >
                 Manage Users
               </button>
+            </div>
             </div>
 
             <div className="flex items-center gap-3">
