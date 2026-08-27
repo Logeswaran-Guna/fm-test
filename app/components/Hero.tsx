@@ -11,7 +11,7 @@ import {
   SOFT_SKILLS_ITEMS,
 } from "@/lib/categories";
 
-const ROTATE_MS = 6000;
+const ROTATE_MS = 12000;
 
 // Which ecosystem nodes light up while each pillar tab is active — ties the
 // rotating headline directly to the living map on the right.
