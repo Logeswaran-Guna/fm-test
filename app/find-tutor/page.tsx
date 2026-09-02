@@ -8,6 +8,7 @@ import EducationBackground from "../components/EducationBackground";
 import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
 import LocationField from "../components/LocationField";
+import FieldLabel from "../components/FieldLabel";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
@@ -512,6 +513,7 @@ export default function FindTutorPage() {
                     onChange={(value) => updateField("parentName", value)}
                     error={errors.parentName}
                     placeholder="e.g. Meera Krishnan"
+                    required
                   />
                   <Field
                     label="Email"
@@ -521,6 +523,7 @@ export default function FindTutorPage() {
                     error={errors.email}
                     placeholder="e.g. meera@email.com"
                     hint="Used to create your account so you can track this requirement later."
+                    required
                   />
                   <PasswordField
                     label="Password"
@@ -528,6 +531,7 @@ export default function FindTutorPage() {
                     onChange={(value) => updateField("password", value)}
                     error={errors.password}
                     placeholder="At least 8 characters"
+                    required
                   />
                   <Field
                     label="Phone Number"
@@ -536,6 +540,7 @@ export default function FindTutorPage() {
                     error={errors.phoneNumber}
                     placeholder="e.g. 98765 43210"
                     type="tel"
+                    required
                   />
                   <Field
                     label="Referral Code (optional)"
@@ -557,6 +562,7 @@ export default function FindTutorPage() {
                 selected={form.tutoringFor}
                 onToggle={(v) => toggleInArray("tutoringFor", v)}
                 error={errors.tutoringFor}
+                required
               />
 
               {form.tutoringFor.includes("Academics") && (
@@ -570,10 +576,15 @@ export default function FindTutorPage() {
                     selected={form.boards}
                     onToggle={(v) => toggleInArray("boards", v)}
                     error={errors.boards}
+                    required
                   />
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-navy">
-                      {sectionNumbers["Academics"]}.2 Grade &amp; {sectionNumbers["Academics"]}.3 Subjects
+                      <FieldLabel
+                        label={`${sectionNumbers["Academics"]}.2 Grade & ${sectionNumbers["Academics"]}.3 Subjects`}
+                        required
+                        error={errors.gradeSubjects}
+                      />
                     </label>
                     <div className="space-y-3">
                       {GRADE_BANDS.map((band) => (
@@ -610,6 +621,7 @@ export default function FindTutorPage() {
                     selected={form.creativeItems}
                     onToggle={(v) => toggleInArray("creativeItems", v)}
                     error={errors.creativeItems}
+                    required
                   />
                 </div>
               )}
@@ -625,6 +637,7 @@ export default function FindTutorPage() {
                     selected={form.softSkillItems}
                     onToggle={(v) => toggleInArray("softSkillItems", v)}
                     error={errors.softSkillItems}
+                    required
                   />
                 </div>
               )}
@@ -635,6 +648,7 @@ export default function FindTutorPage() {
                 selected={form.modes}
                 onToggle={(v) => toggleInArray("modes", v)}
                 error={errors.modes}
+                required
               />
 
               <LocationField
@@ -644,6 +658,7 @@ export default function FindTutorPage() {
                 onSelectPincode={(pincode) => updateField("pincode", pincode)}
                 error={errors.location}
                 placeholder="e.g. Anna Nagar, Coimbatore"
+                required
               />
 
               <Field
@@ -652,6 +667,7 @@ export default function FindTutorPage() {
                 onChange={(value) => updateField("address", value)}
                 error={errors.address}
                 placeholder="Full address — house/flat no., street, area"
+                required
               />
 
               <Field
@@ -660,6 +676,7 @@ export default function FindTutorPage() {
                 onChange={(value) => updateField("pincode", value.replace(/\D/g, "").slice(0, 6))}
                 error={errors.pincode}
                 placeholder="e.g. 641001"
+                required
               />
 
               <div>
@@ -754,6 +771,7 @@ export default function FindTutorPage() {
                 onChange={(value) => updateField("studentName", value)}
                 error={errors.studentName}
                 placeholder="e.g. Aarav Krishnan"
+                required
               />
               <Field
                 label="Age / Grade / Class"
@@ -761,6 +779,7 @@ export default function FindTutorPage() {
                 onChange={(value) => updateField("gradeClass", value)}
                 error={errors.gradeClass}
                 placeholder="e.g. Class 10"
+                required
               />
 
               <div>
@@ -815,12 +834,18 @@ export default function FindTutorPage() {
               </div>
 
               <div>
-                <label className="flex items-start gap-3 text-sm text-slate-600">
+                <label
+                  className={`flex items-start gap-3 text-sm ${
+                    errors.consent ? "text-red-600" : "text-slate-600"
+                  }`}
+                >
                   <input
                     type="checkbox"
                     checked={form.consent}
                     onChange={(event) => updateField("consent", event.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-amber focus:ring-amber"
+                    className={`mt-0.5 h-4 w-4 shrink-0 rounded text-amber focus:ring-amber ${
+                      errors.consent ? "border-red-400" : "border-slate-300"
+                    }`}
                   />
                   <span>
                     I consent to Future Minds processing this requirement
@@ -833,7 +858,15 @@ export default function FindTutorPage() {
                     >
                       Privacy Policy &amp; Terms
                     </a>
-                    .
+                    . <span className="text-red-500">*</span>
+                    {errors.consent && (
+                      <span
+                        className="ml-1.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold leading-none text-red-600"
+                        aria-hidden="true"
+                      >
+                        !
+                      </span>
+                    )}
                   </span>
                 </label>
                 {errors.consent && (
@@ -869,16 +902,20 @@ function ChipGroup({
   selected,
   onToggle,
   error,
+  required,
 }: {
   label: string;
   options: readonly string[];
   selected: string[];
   onToggle: (value: string) => void;
   error?: string;
+  required?: boolean;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <Chip
@@ -927,6 +964,7 @@ function Field({
   placeholder,
   type = "text",
   hint,
+  required,
 }: {
   label: string;
   value: string;
@@ -935,10 +973,13 @@ function Field({
   placeholder?: string;
   type?: string;
   hint?: string;
+  required?: boolean;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <input
         type={type}
         value={value}

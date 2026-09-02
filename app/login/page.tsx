@@ -218,7 +218,7 @@ export default function LoginPage() {
             >
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Email
+                  Email <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -232,7 +232,7 @@ export default function LoginPage() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="block text-sm font-medium text-navy">
-                    Password
+                    Password <span className="text-red-500">*</span>
                   </label>
                   <button
                     type="button"

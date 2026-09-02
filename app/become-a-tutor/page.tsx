@@ -8,6 +8,7 @@ import EducationBackground from "../components/EducationBackground";
 import PasswordField from "../components/PasswordField";
 import HoneypotField from "../components/HoneypotField";
 import LocationField from "../components/LocationField";
+import FieldLabel from "../components/FieldLabel";
 import { createClient } from "@/lib/supabase/client";
 import { signUpOrSignIn } from "@/lib/supabase/auth-helpers";
 import { getCurrentProfile, homePathForRole, type Profile } from "@/lib/supabase/profile";
@@ -694,6 +695,7 @@ export default function BecomeATutorPage() {
                     onChange={(value) => updateField("fullName", value)}
                     error={errors.fullName}
                     placeholder="e.g. Priya Ramesh"
+                    required
                   />
                   <Field
                     label="Email Address"
@@ -702,6 +704,7 @@ export default function BecomeATutorPage() {
                     onChange={(value) => updateField("email", value)}
                     error={errors.email}
                     placeholder="e.g. priya.ramesh@email.com"
+                    required
                   />
                   <PasswordField
                     label="Password"
@@ -709,6 +712,7 @@ export default function BecomeATutorPage() {
                     onChange={(value) => updateField("password", value)}
                     error={errors.password}
                     placeholder="At least 8 characters"
+                    required
                   />
                   <Field
                     label="Phone Number"
@@ -717,6 +721,7 @@ export default function BecomeATutorPage() {
                     onChange={(value) => updateField("phoneNumber", value)}
                     error={errors.phoneNumber}
                     placeholder="e.g. 98765 43210"
+                    required
                   />
                   <Field
                     label="Referral Code (optional)"
@@ -733,11 +738,12 @@ export default function BecomeATutorPage() {
                 onChange={(value) => updateField("qualifications", value)}
                 error={errors.qualifications}
                 placeholder="e.g. B.Tech, M.Sc, B.Ed"
+                required
               />
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Years of Experience
+                  <FieldLabel label="Years of Experience" required error={errors.yearsExperience} />
                 </label>
                 <select
                   value={form.yearsExperience}
@@ -781,6 +787,7 @@ export default function BecomeATutorPage() {
                 onSelectPincode={(pincode) => updateField("pincode", pincode)}
                 error={errors.location}
                 placeholder="e.g. Anna Nagar, Coimbatore"
+                required
               />
 
               <Field
@@ -789,6 +796,7 @@ export default function BecomeATutorPage() {
                 onChange={(value) => updateField("address", value)}
                 error={errors.address}
                 placeholder="Full address — house/flat no., street, area"
+                required
               />
 
               <Field
@@ -797,11 +805,12 @@ export default function BecomeATutorPage() {
                 onChange={(value) => updateField("pincode", value.replace(/\D/g, "").slice(0, 6))}
                 error={errors.pincode}
                 placeholder="e.g. 641001"
+                required
               />
 
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-navy">
-                  Schedule preference
+                  <FieldLabel label="Schedule preference" required error={errors.schedulePref} />
                 </label>
                 <select
                   value={form.schedulePref}
@@ -853,6 +862,7 @@ export default function BecomeATutorPage() {
                 selected={form.modes}
                 onToggle={(v) => toggleInArray("modes", v as Mode)}
                 error={errors.modes}
+                required
               />
 
               <ChipGroup
@@ -861,6 +871,7 @@ export default function BecomeATutorPage() {
                 selected={form.tutoringFor}
                 onToggle={(v) => toggleInArray("tutoringFor", v as TutoringFor)}
                 error={errors.tutoringFor}
+                required
               />
 
               {form.tutoringFor.includes("Academics") && (
@@ -874,10 +885,15 @@ export default function BecomeATutorPage() {
                     selected={form.boards}
                     onToggle={(v) => toggleInArray("boards", v)}
                     error={errors.boards}
+                    required
                   />
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-navy">
-                      Grade Levels &amp; Subjects You Teach
+                      <FieldLabel
+                        label="Grade Levels & Subjects You Teach"
+                        required
+                        error={errors.gradeSubjects}
+                      />
                     </label>
                     <div className="space-y-3">
                       {GRADE_BANDS.map((band) => (
@@ -914,6 +930,7 @@ export default function BecomeATutorPage() {
                     selected={form.creativeItems}
                     onToggle={(v) => toggleInArray("creativeItems", v)}
                     error={errors.creativeItems}
+                    required
                   />
                 </div>
               )}
@@ -929,6 +946,7 @@ export default function BecomeATutorPage() {
                     selected={form.softSkillItems}
                     onToggle={(v) => toggleInArray("softSkillItems", v)}
                     error={errors.softSkillItems}
+                    required
                   />
                 </div>
               )}
@@ -944,6 +962,7 @@ export default function BecomeATutorPage() {
                     selected={form.techSkillItems}
                     onToggle={(v) => toggleInArray("techSkillItems", v)}
                     error={errors.techSkillItems}
+                    required
                   />
                 </div>
               )}
@@ -951,7 +970,7 @@ export default function BecomeATutorPage() {
               <div>
                 <div className="mb-1.5 flex items-center justify-between">
                   <label className="block text-sm font-medium text-navy">
-                    Languages Known
+                    <FieldLabel label="Languages Known" required error={errors.languages} />
                   </label>
                   <button
                     type="button"
@@ -1083,12 +1102,18 @@ export default function BecomeATutorPage() {
               </div>
 
               <div>
-                <label className="flex items-start gap-3 text-sm text-slate-600">
+                <label
+                  className={`flex items-start gap-3 text-sm ${
+                    errors.consent ? "text-red-600" : "text-slate-600"
+                  }`}
+                >
                   <input
                     type="checkbox"
                     checked={form.consent}
                     onChange={(event) => updateField("consent", event.target.checked)}
-                    className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-amber focus:ring-amber"
+                    className={`mt-0.5 h-4 w-4 shrink-0 rounded text-amber focus:ring-amber ${
+                      errors.consent ? "border-red-400" : "border-slate-300"
+                    }`}
                   />
                   <span>
                     I consent to Future Minds storing and processing my tutor
@@ -1101,7 +1126,15 @@ export default function BecomeATutorPage() {
                     >
                       Privacy Policy &amp; Terms
                     </a>
-                    .
+                    . <span className="text-red-500">*</span>
+                    {errors.consent && (
+                      <span
+                        className="ml-1.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-100 text-[10px] font-bold leading-none text-red-600"
+                        aria-hidden="true"
+                      >
+                        !
+                      </span>
+                    )}
                   </span>
                 </label>
                 {errors.consent && (
@@ -1137,16 +1170,20 @@ function ChipGroup({
   selected,
   onToggle,
   error,
+  required,
 }: {
   label: string;
   options: readonly string[];
   selected: string[];
   onToggle: (value: string) => void;
   error?: string;
+  required?: boolean;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <Chip
@@ -1195,6 +1232,7 @@ function Field({
   placeholder,
   type = "text",
   hint,
+  required,
 }: {
   label: string;
   value: string;
@@ -1203,10 +1241,13 @@ function Field({
   placeholder?: string;
   type?: string;
   hint?: string;
+  required?: boolean;
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <input
         type={type}
         value={value}

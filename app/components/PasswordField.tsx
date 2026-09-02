@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import FieldLabel from "./FieldLabel";
 
 export default function PasswordField({
   label,
@@ -9,6 +10,7 @@ export default function PasswordField({
   error,
   placeholder,
   hint,
+  required,
 }: {
   label: string;
   value: string;
@@ -16,12 +18,15 @@ export default function PasswordField({
   error?: string;
   placeholder?: string;
   hint?: string;
+  required?: boolean;
 }) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <div className="relative">
         <input
           type={visible ? "text" : "password"}

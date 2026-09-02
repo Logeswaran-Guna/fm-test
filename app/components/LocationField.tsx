@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LocationEntry } from "@/lib/indiaLocations";
+import FieldLabel from "./FieldLabel";
 
 function locationLabel(loc: LocationEntry): string {
   return `${loc.area}, ${loc.region}`;
@@ -27,6 +28,7 @@ export default function LocationField({
   onSelectPincode,
   error,
   placeholder,
+  required,
 }: {
   label: string;
   value: string;
@@ -34,6 +36,7 @@ export default function LocationField({
   onSelectPincode?: (pincode: string) => void;
   error?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
   const [locations, setLocations] = useState<LocationEntry[]>([]);
   const [open, setOpen] = useState(false);
@@ -67,7 +70,9 @@ export default function LocationField({
 
   return (
     <div ref={containerRef} className="relative">
-      <label className="mb-1.5 block text-sm font-medium text-navy">{label}</label>
+      <label className="mb-1.5 block text-sm font-medium text-navy">
+        <FieldLabel label={label} required={required} error={error} />
+      </label>
       <input
         type="text"
         value={value}
