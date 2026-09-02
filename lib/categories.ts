@@ -75,6 +75,7 @@ export const CREATIVE_MUSIC_ITEMS = [
   "Music - Sitar",
 ];
 export const CREATIVE_DANCE_ITEMS = [
+  "Dance - Bharatanatyam",
   "Dance - Western",
   "Dance - Folk",
   "Dance - Group",
