@@ -45,6 +45,13 @@ export async function signUpOrSignIn(
       email,
       password,
       options: {
+        // Lands on a dedicated page that tells the person their email is
+        // confirmed (or, on a repeat click / different device than the
+        // one that signed up, that it's already confirmed and to log in)
+        // instead of silently dropping them on the bare homepage with no
+        // feedback at all.
+        emailRedirectTo:
+          typeof window !== "undefined" ? `${window.location.origin}/email-confirmed` : undefined,
         data: {
           name,
           phone,
